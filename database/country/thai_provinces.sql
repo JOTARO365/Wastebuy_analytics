@@ -107,4 +107,3 @@ INSERT INTO thai_provinces (id, name_th, name_en, geography_id, created_at, upda
 INSERT INTO thai_provinces (id, name_th, name_en, geography_id, created_at, updated_at, deleted_at) VALUES (76, 'นราธิวาส', 'Narathiwat', 6, '2019-08-09 03:33:09', '2022-05-16 06:31:03', NULL);
 INSERT INTO thai_provinces (id, name_th, name_en, geography_id, created_at, updated_at, deleted_at) VALUES (77, 'บึงกาฬ', 'buogkan', 3, '2019-08-09 03:33:09', '2022-05-16 06:31:03', NULL);
 COMMIT;
-

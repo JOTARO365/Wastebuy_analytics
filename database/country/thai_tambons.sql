@@ -7485,6 +7485,7 @@ INSERT INTO thai_tambons (id, zip_code, name_th, name_en, amphure_id, created_at
 INSERT INTO thai_tambons (id, zip_code, name_th, name_en, amphure_id, created_at, updated_at, deleted_at) VALUES (961301, 96130, 'จวบ', 'Chuap', 9613, '2019-08-09 03:33:09', '2022-05-16 06:31:31', NULL);
 INSERT INTO thai_tambons (id, zip_code, name_th, name_en, amphure_id, created_at, updated_at, deleted_at) VALUES (961302, 96130, 'บูกิต', 'Bukit', 9613, '2019-08-09 03:33:09', '2022-05-16 06:31:31', NULL);
 INSERT INTO thai_tambons (id, zip_code, name_th, name_en, amphure_id, created_at, updated_at, deleted_at) VALUES (961303, 96130, 'มะรือโบออก', 'Maruebo Ok', 9613, '2019-08-09 03:33:09', '2022-05-16 06:31:31', NULL);
+
 COMMIT;
 
 

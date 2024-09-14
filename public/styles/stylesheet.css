@@ -1,11 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
+div { 
+    font-family: 'Prompt', sans-serif; 
+}
+
+.modal-title, .modal-body {
+    font-family: 'Prompt', sans-serif;
+}
+
 #content {
     overflow-x: auto;
 }
 
 
-#content::-webkit-scrollbar {
+
+body::-webkit-scrollbar,.scroll-content::-webkit-scrollbar {
     display: none;
 }
 
@@ -48,7 +57,123 @@
 
 .body-content:hover {
     background-color: #198754;
-    opacity: 0.5;
+    opacity: 0.7;
     color: white;
-    transition: all 0.3s;
 }
+
+
+.body-content a div:hover {
+    background-color: #198754;
+    opacity: 0.7;
+    color: white;
+}
+
+
+.dropdown-menu li {
+    padding: 5px;
+}
+
+
+.scroll-content .item {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.scroll-content .item:hover {
+    color: white;
+    background-color: #198754;
+    opacity: 0.7;
+}
+
+#MainPieChart {
+    max-width: 400px; 
+    max-height: 400px;
+    position: relative;
+    /* top: -20px; */
+}
+#SubPieChart {
+    max-width: 400px; 
+    max-height: 400px;
+    position: relative;
+    top: 120px;
+}
+
+@media print {
+    body .no-print {
+        display: none !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 20mm;
+    }
+    
+    .logo {
+        align-items: center;
+    }
+    .logo img {
+        display: block;
+        margin: 0 auto; /* จัดรูปภาพให้อยู่ตรงกลาง */
+    }
+    /* บังคับให้มีการแบ่งหน้าให้แผนภูมิไปอยู่ที่หน้า 2 */
+    .content {
+        page-break-after: always; /* สิ้นสุดหน้าแรกที่นี่ */
+    }
+
+    /* ซ่อนองค์ประกอบที่ไม่จำเป็นในการพิมพ์ */
+    .no-print, button, .modal {
+        display: none !important;
+    }
+
+    /* ปรับขนาดของแผนภูมิให้พอดีกับหน้ากระดาษ */
+    .chart-section {
+        page-break-inside: avoid; /* ป้องกันการแบ่งแผนภูมิเป็นสองหน้า */
+        position: relative;
+        top: 50px;
+        margin: 20px 0; /* เพิ่มพื้นที่ว่างรอบๆ */
+        width: 100%; /* ปรับขนาดให้เต็มหน้ากระดาษ */
+        height: auto; /* ให้ความสูงอัตโนมัติ */
+    }
+
+
+    .chart-section .chart-bar {
+        position: relative;
+        margin-top: -200px; /* ปรับให้ติดกับ mainchart */
+        height: 200px; /* ลดความสูงของ chart-bar เพื่อให้เห็นข้อมูลทั้งหมด */
+        width: 100%; /* ให้ chart-bar ใช้พื้นที่ทั้งหมด */
+    }
+
+    .chart-section .chart-bar {
+        position: relative;
+        margin-top: -50px; /* เลื่อนขึ้นมา 50px หรือปรับตามความต้องการ */
+        height: auto; /* ปรับความสูงให้เหมาะสม */
+        width: 100%; /* ให้ chart-bar ใช้พื้นที่ทั้งหมด */
+    }
+
+    .chart-section .chart-bar canvas {
+        width: 100% !important; /* ให้ canvas ใช้ความกว้างเต็มที่ */
+        height: 120% !important; /* ให้ canvas ใช้ความสูงเต็มที่ */
+        position: relative; /* ตั้งค่าตำแหน่งให้สัมพันธ์กับ parent */
+        top: -150px; /* เลื่อน canvas ขึ้น 50px หรือปรับตามความต้องการ */
+    }
+
+    /* ปรับตารางและฟอนต์สำหรับพิมพ์ */
+    .header-content, .body-content {
+        grid-template-columns: 80px 1fr 1fr 1fr 1fr !important;
+    }
+    .scroll-content {
+        width: calc(100% + 35px); /* เพิ่มขนาดความกว้างของเนื้อหา */
+        overflow-y: scroll;
+    }
+
+    .scroll-content::-webkit-scrollbar {
+        display: none;
+    }
+
+    .chart-section .chart-bar {
+        position: relative;
+        top: -500px;
+    }
+}        
+

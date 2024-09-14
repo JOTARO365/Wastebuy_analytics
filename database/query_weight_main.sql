@@ -1,0 +1,22 @@
+create table weight_query (
+	id serial primary key,
+	date_time date,
+	doc_code varchar(50),
+	code_mat varchar(20),
+	group_mat varchar(50),
+	name_mat varchar(50),
+	driver varchar(30),
+	name_driver varchar(100),
+	customer_name varchar(100),
+	unit varchar(10),
+	quantity_unit double precision,
+	quantity_weight double precision,
+	quantity_break double precision,
+	quantity_weight_final double precision,
+	price_per_unit double precision,
+	price_final double precision,
+	pay varchar(20),
+	recorder varchar(100),
+	time_record time,
+	status varchar(20)
+);

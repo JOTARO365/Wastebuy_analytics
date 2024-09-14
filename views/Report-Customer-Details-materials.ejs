@@ -1,46 +1,690 @@
+<%- include('index') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap JS (necessary for dropdowns) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+
+<!-- <style>
+    /* ปรับขนาดและตำแหน่งสำหรับการพิมพ์ */
+    @media print {
+        .modal-content {
+            width: 100%;
+            height: auto;
+            page-break-inside: avoid;
+        }
+        /* ซ่อนส่วนอื่นๆ ที่ไม่ต้องการ */
+        .no-print {
+            display: none;
+        }
+    }
+    /* ปรับขนาดของ modal เมื่อดาวน์โหลดเป็นรูปภาพ */
+    .modal-content.small {
+        width: 800px; /* กำหนดความกว้างที่ต้องการ */
+        height: auto;
+        margin: auto;
+        border: 1px solid #ddd;
+        padding: 20px;
+    }
+</style> -->
+
 <body>
     <div class="container">
         <div class="content row py-5 px-4">
-            <div class="col-lg-3 col-xxl-2 col-sm-12">
+            <div class="col-lg-3 col-xxl-2 col-sm-12 logo">
                 <img src="/images/logo3.png" height="150" alt="">
             </div>
-            <div class="col-lg-9 col-xxl-10 col-sm-12">
+            <div class="col-lg-9 col-xxl-10 col-sm-12 text">
                 <h2 class="fs-1 fw-bold">Wastebuy Delivery Ltd,. Co.</h2>
             <div class="mt-2 lead">
                 <p class="fs-4">Report Customer Details materials</p>
-                <p class="fs-5">Date</p>
-            </div>
+                <p class="fs-5 "> ตั้งแต่วันที่  <%= startDate  %> ถึงวันที่ <%= endDate %></p>
+                <form id="searchForm" action="/report-customer-details-materials" method="get">
+                    <div class="d-flex align-items-center no-print">
+                        <div class="mx-2 d-flex flex-column">
+                            <label for="startDate">Start date</label>
+                            <input class="form-control" type="date" id="startDate" name="startDate" required>
+                        </div>
+                        <div class="mx-2 d-flex flex-column">
+                            <label for="endDate">End date</label>
+                            <input class="form-control" type="date" id="endDate" name="endDate" required>
+                        </div>
+                        <div class="dropdown  p-2" style="margin-top: 25px;">
+                            <button class="btn btn-success dropdown-toggle " type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                กลุ่มสมาชิก
+                            </button>
+                            <ul class="overflow-auto dropdown-menu scroll-content fw-bold" aria-labelledby="dropdownMenuButton" style="height: 100px; font-size: 10px;">
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox1" name="customer_group" value="B2B-AP Thailand">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-AP Thailand
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox2" name="customer_group" value="B2B-CirPlas">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-CirPlas
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox3" name="customer_group" value="B2B-Frsasers Property">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-Frsasers Property
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox4" name="customer_group" value="B2B-สถานีบริการน้ำมัน PTT">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-สถานีบริการน้ำมัน PTT
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox5" name="customer_group" value="B2B-GC YOUTURN">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-GC YOUTURN
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox6" name="customer_group" value="B2B-Ritta">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-Ritta
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox7" name="customer_group" value="B2B-งานการตลาด">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-งานการตลาด
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox8" name="customer_group" value="B2B-CP ALL (7-11)">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-CP ALL (7-11)
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox9" name="customer_group" value="B2B-GTC">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-GTC
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox10" name="customer_group" value="B2B-กลุ่มCPN">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-กลุ่มCPN
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox11" name="customer_group" value="B2B-ปั๊มPT">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-ปั๊มPT
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox12" name="customer_group" value="B2C-ลูกค้าทั่วไป">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2C-ลูกค้าทั่วไป
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox13" name="customer_group" value="B2C-โรงพยาบาล">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2C-โรงพยาบาล
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox14" name="customer_group" value="B2C-สถานศึกษา">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2C-สถานศึกษา
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox15" name="customer_group" value="B2C-ผู้ประกอบการ">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2C-ผู้ประกอบการ
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox16" name="customer_group" value="B2C-ชุมชนที่พักอาศัย">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2C-ชุมชนที่พักอาศัย
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2C-องค์กรภาคเอกชน">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2C-องค์กรภาคเอกชน
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-แสงฟ้าก่อสร้าง">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-แสงฟ้าก่อสร้าง
+                                        </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-VS8">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-VS8
+                                        </label>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="d-flex p-2 mx-3 mt-2 justify-content-space-between" style="position: relative; top: 10px;">
+                            <form action="">
+                                <div class="btn btn-warning mx-1 px-4 my-4 text-white shadow-sm rounded-5" style="height: 30px; font-size: 12px;" id="export-excel">Excel</div>
+                                <div class="btn btn-primary mx-1 px-4 my-4 rounded-5 shadow-sm" id="generate-pdf-btn"  style="height: 30px; font-size: 12px;" onclick="window.print()">Print</div>
+                            </form>
+                        </div>
+                        <div class="d-flex">
+                            <button class="btn btn-success px-4 text-white shadow-sm rounded-5" type="submit" style="height: 40px; margin-top: 25px;">Search</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
-        <div class="mx-4 border-2 border-top">
-            <div class="px-1 py-2">
-                <div class="rounded-2 d-flex flex-column align-items-center border">
-                    <div class="header-content row bg-success rounded-top fw-bold text-white py-2" style="width: 100%;">
-                        <div class="col">No.</div>
-                        <div class="col">Groups</div>
-                        <div class="col">Customers</div>
-                        <div class="col">Weight</div>
-                        <div class="col">GHG</div>
-                        <div class="col">Tree</div>
+        <div class="container mt-2 print">
+            <div class="row border-2 border-top main-content">
+                <div class="col-lg-8 col-md-12">
+                    <div class="px-1 py-2">
+                        <div class="rounded-2 border" style="font-size: 12px;">
+                            <div class="header-content bg-success rounded-top fw-bold text-white py-2 d-grid " style="grid-template-columns: 80px 1fr 1fr 1fr 1fr;">
+                                <div class="text-center">No.</div>
+                                <div >Groups</div>
+                                <div>Weight</div>
+                                <div>GHG</div>
+                                <div>Tree</div>
+                            </div>
+                            <% totals.forEach(totals => { %>
+                            <% if (totals.customer_group !== null) { %>
+                            <div class="body-content-group py-2 border-top d-grid" style="grid-template-columns: 80px 1fr 1fr 1fr 1fr;">
+                                <div class="text-center"> <%= count++ %></div>
+                                <div > <%= totals.customer_group %></div>
+                                <div> <%= (totals.kg_delivery).toLocaleString() %></div>
+                                <div> <%= (totals.ghg).toLocaleString() %></div>
+                                <div> <%= parseInt(totals.ghg / 9.5).toLocaleString() %></div> 
+                            </div>
+                            <% } %>
+                            <% }) %>
+                        </div>
                     </div>
-                    <div class="row py-2 border-top body-content" style="width: 100%;">
-                        <div class="col">1</div>
-                        <div class="col">ลูกค้าทั่วไป</div>
-                        <div class="col">ลาดกระบัง</div>
-                        <div class="col">23018</div>
-                        <div class="col">11032</div>
-                        <div class="col">1341</div>
+
+                    <div class="border border-bottom mt-2 shadow-sm"></div>
+
+                    <!-- <div class="d-flex border-bottom mx-3 mt-2 justify-content-end">
+                        <form class="d-flex py-4 search-bar" role="search">
+                            <input id=""  class="shadow-sm" placeholder="ชื่อสมาชิก/กลุ่มสมาชิก" type="text">
+                        </form>
+                    </div> -->
+                    <div class="rounded-2 border mt-2 no-print" style="font-size: 10px;">
+                        <div class="header-content bg-success rounded-top fw-bold text-white py-2 d-grid " style="grid-template-columns: 80px 1fr 2fr 150px 1fr 1fr 1fr;">
+                            <div class="text-center">No.</div>
+                            <div>Date</div>
+                            <div>Customer</div>
+                            <div class="" >Groups</div>
+                            <div>Weight</div>
+                            <div>GHG</div>
+                            <div>Tree</div>
+                        </div>
+
+                        <div class="scroll-content overflow-auto item-content" style="height: 500px;">
+                            <% materialCal.forEach(s => { %>
+                                <a class="body-content py-2 border-top  item d-grid" style="grid-template-columns: 80px 1fr 2fr 150px 1fr 1fr 1fr;" 
+                                   href="#" 
+                                   data-purchase-number="<%= s.purchase_number %>" 
+                                   data-purchase-date="<%= s.purchase_date %>"
+                                   data-location="<%= s.location %>"
+                                   data-customer-group="<%= s.customer_group %>"
+                                   onclick="showDetails(event)">
+                                   <div class="text-center"> <%= count_sub++ %></div>
+                                    <div><%= s.purchase_date %></div>
+                                    <div><%= s.location %></div>
+                                    <div class=""> <%= s.customer_group %></div>
+                                    <div> <%= (s.kg_delivery).toLocaleString() %></div>
+                                    <div> <%= (s.ghg).toLocaleString() %></div>
+                                    <div> <%= parseInt(s.ghg / 9.5).toLocaleString() %></div> 
+                                </a>
+                            <% }) %>                            
+                        </div>
                     </div>
-                    <div class="row py-2 border-top body-content" style="width: 100%;">
-                        <div class="col">2</div>
-                        <div class="col">ลูกค้าทั่วไป</div>
-                        <div class="col">ลาดกระบัง</div>
-                        <div class="col">123123</div>
-                        <div class="col">11032</div>
-                        <div class="col">1341</div>
+                    <div class="modal fade" id="detailModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl-custom" style="max-width: 80%; width: 80%; max-height: 80%; height: 80%;">
+                          <div class="modal-content">
+                            <div class="modal-header bg-success " style="color: white;">
+                              <h1 class="modal-title fs-5 " id="purchaseNumberDetails"></h1>
+                              <button type="button" class="btn-close " data-bs-dismiss="modal">
+                              </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container-fluid">
+                                    <h4 id="location"></h4>
+                                    <p id="purchaseDateDetails"></p>
+                                    <p id="customerGroup"></p>
+                                    <div class="row">
+                                        <div class="col-6" style="font-size: 10px;">
+                                            <div class="row bg-success rounded-top text-white py-2" >
+                                                <div class="col">Materials</div>
+                                                <div class="col">Weight</div>
+                                                <div class="col">GHG</div>
+                                                <div class="col">Tree</div>
+                                            </div>
+                                            <div class="content-item">
+
+                                            </div>
+                                            <div class="row rounded-bottom border-bottom border-start border-end py-2">
+                                                <div class="col">รวม </div>
+                                                <div class="col kgTotal"></div>
+                                                <div class="col ghgTotal"></div>
+                                                <div class="col treeTotal"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <canvas id="materialChart" width="400" height="400"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <!-- <div class="btn btn-warning text-white shadow-sm rounded-5" style="height: 30px; font-size: 12px;" id="export-excel-modal">Excel</div> -->
+                                <!-- <button type="button" class="btn btn-warning  rounded-5">Export Excel</button> -->
+                                <!-- <button type="button" class="btn btn-success  text-small text-white " id="download-images"> Download </button> -->
+                            </div>
+                          </div>
+                        </div>
                     </div>
                 </div>
+                
+                <div class="col-lg-4 col-md-12 mt-2 chart-section">
+                    <h4 class="fw-bold" style="font-size: 20px;"> ปริมาณน้ำหนักสุทธิแบ่งตามกลุ่ม สมาชิก</h4>
+                    <div class="d-flex justify-content-center align-items-start" style="height: 400px;">
+                        <canvas class="mt-3" id="MainPieChart"></canvas>
+                    </div>      
+                    <h4 class="fw-bold chart-bar" style="font-size: 20px; position: relative; top: 100px;">ปริมาณน้ำหนักสุทธิกลุ่มสมาชิก B2B/B2C</h4>
+                    <div class="d-flex justify-content-center align-items-start" style="height: 400px;">
+                        <canvas class="mt-3" id="SubPieChart"></canvas>
+                    </div>                 
+                </div>
             </div>
-        </div>
+
+        </div>               
     </div> 
 </body>
+
+<script>
+
+    const totalsData = <%- JSON.stringify(totals) %>;
+    const materialData = <%- JSON.stringify(matDetail) %>;
+
+
+    const filteredData = totalsData.filter(item => item.customer_group !== null);
+
+    const labels = filteredData.map(item => item.customer_group);
+    const data = filteredData.map(item => item.kg_delivery);
+
+    const chartData = {
+        labels: labels,
+        datasets: [{
+            data: data,
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)',
+                'rgb(153, 102, 255)',
+                'rgb(255, 159, 64)'
+            ],
+            label: '(kg)',
+            hoverOffset: 4
+        }]
+    };
+
+   
+    const config = {
+        type: 'pie',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    };
+
+    const myPieChart = new Chart(
+        document.getElementById('MainPieChart'),
+        config
+    );
+
+// กรองข้อมูลเพื่อรวมกลุ่มลูกค้าที่ขึ้นต้นด้วย B2B หรือ B2C
+const b2bAndB2cData = totalsData.filter(item => 
+    item.customer_group !== null && 
+    (item.customer_group.startsWith('B2B') || item.customer_group.startsWith('B2C'))
+);
+
+// จัดลำดับข้อมูลโดยให้กลุ่มลูกค้า B2C มาก่อน
+const sortedData = b2bAndB2cData.sort((a, b) => {
+    if (a.customer_group.startsWith('B2C') && !b.customer_group.startsWith('B2C')) {
+        return -1;
+    } else if (!a.customer_group.startsWith('B2C') && b.customer_group.startsWith('B2C')) {
+        return 1;
+    }
+    return 0;
+});
+
+// จัดกลุ่มและรวมข้อมูลที่ซ้ำกัน
+const uniqueCustomerGroups = [];
+const aggregatedWeights = [];
+
+sortedData.forEach(item => {
+    const groupName = item.customer_group.startsWith('B2B') ? 'ลูกค้า B2B' : 'ลูกค้า B2C';
+    const index = uniqueCustomerGroups.indexOf(groupName);
+    
+    if (index === -1) {
+        // ถ้ายังไม่มีใน uniqueCustomerGroups ให้เพิ่มและเพิ่มน้ำหนัก
+        uniqueCustomerGroups.push(groupName);
+        aggregatedWeights.push(item.kg_delivery);
+    } else {
+        // ถ้ามีกลุ่มนี้อยู่แล้ว ให้รวมข้อมูลน้ำหนัก
+        aggregatedWeights[index] += item.kg_delivery;
+    }
+});
+
+// กำหนดสีสำหรับแต่ละกลุ่มลูกค้า
+const backgroundColors = uniqueCustomerGroups.map(group => {
+    return group === 'ลูกค้า B2B' ? 'rgba(255, 159, 64, 0.5)' : 'rgba(54, 162, 235, 0.5)';
+});
+
+const chartDatab2bb2c = {
+    labels: uniqueCustomerGroups,
+    datasets: [{
+        data: aggregatedWeights,
+        backgroundColor: backgroundColors,
+        label: '(kg)',
+        hoverOffset: 4
+    }]
+};
+
+const configs = {
+    type: 'doughnut',
+    data: chartDatab2bb2c,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'right'
+            }
+        }
+    }
+};
+
+// สร้างแผนภูมิ Doughnut
+const myPieCharts = new Chart(
+    document.getElementById('SubPieChart'),
+    configs
+);
+
+function showDetails(event) {
+    event.preventDefault();
+
+    const target = event.currentTarget;
+    const purchaseNumber = target.getAttribute('data-purchase-number');
+    const purchaseDate = target.getAttribute('data-purchase-date');
+    const location = target.getAttribute('data-location');
+    const customerGroup = target.getAttribute('data-customer-group');
+
+    document.getElementById('purchaseNumberDetails').textContent = `Purchase Number : ${purchaseNumber}`;
+    document.getElementById('purchaseDateDetails').textContent = `ประจำวันที่ : ${purchaseDate}`;
+    document.getElementById('location').textContent =  `ลูกค้า : ${location}`;
+    document.getElementById('customerGroup').textContent = `กลุ่มสมาชิก : ${customerGroup}`;
+
+    const filterMaterials = materialData.filter(item => item.purchase_number === purchaseNumber);
+
+    const materialDetails = document.querySelector('.modal-body .content-item')
+    materialDetails.innerHTML = '';
+
+    if (filterMaterials.length > 0) {
+        filterMaterials.slice(1).forEach(material => {
+            const row = document.createElement('div');
+            row.className = 'row border-bottom border-end border-start py-1';
+
+            row.innerHTML = `
+                <div class="col">${material.item_name}</div>
+                <div class="col kg">${material.kg_delivery.toFixed(2)}</div>
+                <div class="col ghg">${material.ghg.toFixed(2)}</div>
+                <div class="col tree">${parseInt(material.kg_delivery / 9.5)}</div>
+            `
+            materialDetails.appendChild(row);
+        })
+        let kg = '.kg';
+        let ghg = '.ghg';
+        let tree = '.tree';
+
+        let totalkg = '.kgTotal';
+        let totalGhg = '.ghgTotal';
+        let totalTree = '.treeTotal';
+        setTimeout(function() {
+            processCalc(kg, totalkg)
+            processCalc(ghg, totalGhg)
+            processCalc(tree, totalTree)
+        },500)
+    }
+
+    const data = filterMaterials.slice(1).map(item => item.kg_delivery);
+    const labels = filterMaterials.slice(1).map(item => item.item_name);
+
+    const chartData = {
+    labels: labels,
+    datasets: [{
+        data: data,
+        backgroundColor: [
+        'rgb(255, 99, 132)',   // สีแดง
+        'rgb(54, 162, 235)',   // สีน้ำเงิน
+        'rgb(255, 205, 86)',   // สีเหลือง
+        'rgb(75, 192, 192)',   // สีเขียวฟ้า
+        'rgb(153, 102, 255)',  // สีม่วง
+        'rgb(255, 159, 64)',   // ส้ม
+        'rgb(201, 203, 207)',  // เทา
+        'rgb(255, 99, 71)',    // สีแดงเข้ม
+        'rgb(123, 239, 178)',  // สีเขียวมิ้น
+        'rgb(255, 87, 34)',    // สีส้มแดง
+        'rgb(64, 224, 208)',   // สีเขียวอมน้ำเงิน
+        'rgb(238, 130, 238)',  // สีม่วงอ่อน
+        'rgb(220, 20, 60)',    // สีแดงเข้ม
+        'rgb(0, 191, 255)',    // สีฟ้าเข้ม
+        'rgb(34, 139, 34)',    // สีเขียวเข้ม
+        'rgb(51, 212, 13)',    // สีเขียวสด
+        'rgb(128, 0, 128)',    // สีม่วง
+        'rgb(255, 105, 180)',  // สีชมพู
+        'rgb(255, 140, 0)',    // สีส้มเข้ม
+        'rgb(0, 255, 255)'     // สีฟ้าเขียว
+        ],
+        label: '(kg)',
+        hoverOffset: 4
+    }]
+};
+
+const config = {
+    type: 'pie',
+    data: chartData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'right',
+                labels: {
+                    font: {
+                        family: 'Prompt', // ใช้ฟอนต์ Prompt
+                        size: 14 // ขนาดฟอนต์
+                    },
+                    generateLabels: function (chart) {
+                        const data = chart.data;
+                        return data.labels.map((label, i) => {
+                            const total = data.datasets[0].data.reduce((acc, val) => acc + val, 0);
+                            const value = data.datasets[0].data[i];
+                            const percentage = (value / total * 100).toFixed(2);
+                            return {
+                                text: `${label} (${percentage}%)`,
+                                fillStyle: data.datasets[0].backgroundColor[i]
+                            };
+                        });
+                    }
+                }
+            }
+        }
+    }
+};
+
+    const existingChart = Chart.getChart('materialChart');
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    const chart = new Chart(
+        document.getElementById('materialChart'),
+        config
+    )
+
+    $('#detailModal').modal('show');
+}
+
+// document.getElementById('download-images').addEventListener('click', function () {
+//             // เปลี่ยนขนาดของ modal ก่อนจับภาพ
+//             var modalContent = document.querySelector('.modal-content');
+//             modalContent.classList.add('small');
+            
+//             html2canvas(modalContent, { 
+//                 useCORS: true,
+//                 allowTaint: true,
+//                 scale: 2
+//             }).then(canvas => {
+//                 const link = document.createElement('a');
+//                 link.href = canvas.toDataURL('image/png');
+//                 link.download = 'modal-content.png'; // ตั้งชื่อไฟล์
+//                 link.click();
+                
+//                 // รีเซ็ตขนาดของ modal หลังจากการจับภาพ
+//                 modalContent.classList.remove('small');
+//     });
+// });
+
+
+// ปิด modal เมื่อกดปุ่มปิด
+document.querySelectorAll('.close').forEach(button => {
+    button.addEventListener('click', () => {
+        $('#detailModal').modal('hide');
+    });
+});
+
+document.getElementById('export-excel').addEventListener('click', function() {
+    // เลือก container ที่เก็บข้อมูล
+    const table = document.querySelector('.scroll-content');
+    
+    // เลือกแถวของตาราง
+    const rows = table.querySelectorAll('.body-content-group');
+    
+    // สร้าง array สำหรับเก็บข้อมูล
+    const data = [['No.','Groups', 'Weight', 'GHG', 'Tree']];
+
+    // ดึงข้อมูลจากแต่ละแถว
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('div');
+        const rowData = Array.from(cells).map(cell => cell.textContent.trim());
+        data.push(rowData);
+    });
+
+    // สร้าง workbook และ worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(data);
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+    // สร้าง blob ของ Excel
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+
+    // ฟังก์ชันสำหรับแปลง binary เป็น array buffer
+    function s2ab(s) {
+        const buf = new ArrayBuffer(s.length);
+        const view = new Uint8Array(buf);
+        for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+    }
+
+    // ดาวน์โหลดไฟล์
+    const filename = 'customer_groupsData.xlsx';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }));
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+function processCalc(part, totalPart) {
+            var total = 0;
+            $(part).each(function() {
+                let weightText = $(this).text().trim().replace(',','')
+                let replaceText = weightText.replace(/.*\((.*?)\).*/, '$1');
+                let weight = parseFloat(replaceText) || 0 ;
+
+                total += weight;
+                
+            })
+            $(totalPart).html(total.toLocaleString());
+            
+};
+
+
+
+
+</script>

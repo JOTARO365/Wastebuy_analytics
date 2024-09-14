@@ -1,0 +1,24 @@
+﻿ลำดับที่,รหัสกลุ่มสมาชิก,ชื่อกลุ่มสมาชิก,สถานะใช้งาน
+1,G0010,เนสเล่,false
+2,,B2B-AP Thailand,true
+3,G0017,B2B-CirPlas,true
+4,G0019,B2B-Frasers Property,true
+5,G0020,B2B-สถานีบริการน้ำมัน PTT,true
+6,G0016,B2B-GC YOUTURN,true
+7,G0018,B2B-Ritta,true
+8,G0014,B2C-งานการตลาด,true
+9,G0021,B2B-CP ALL (7-11),true
+10,G0022,B2B-GTC,true
+11,G0023,B2B-กลุ่มCPN,true
+12,G0009,7-11,false
+13,G0008,ปตท,false
+14,G0013,B2B-ปั๊มPT,true
+15,G0001,B2C-ลูกค้าทั่วไป,true
+16,G0011,องค์กรภาครัฐ,false
+17,G0012,อาคารสำนักงาน,false
+18,G0003,ศาสนสถาน,false
+19,G0004,B2C-โรงพยาบาล,true
+20,G0002,B2C-สถานศึกษา,true
+21,G0005,B2C-ผู้ประกอบการ,true
+22,G0006,B2C-ชุมชนที่พักอาศัย,true
+23,G0007,B2C-องค์กรภาคเอกชน,true
