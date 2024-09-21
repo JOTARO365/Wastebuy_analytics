@@ -16,7 +16,7 @@
                 <img src="/images/logo3.png" height="150" alt="">
             </div>
             <div class="col-lg-9 col-xxl-10 col-sm-12">
-                <h2 class="fs-1 fw-bold">Wastebuy Delivery Ltd,. Co.</h2>
+                <h2 class="fs-1 fw-bold text-success">Wastebuy Delivery  Co., Ltd.</h2>
                 <p class="fs-4">Report Carbon Credit</p>
                 <p class="fs-5 "> ตั้งแต่วันที่  <%= startDate  %> ถึงวันที่ <%= endDate %></p>
                 <form id="searchForm" action="/report-Carbon-Credit" method="get">
@@ -358,6 +358,7 @@
                     <div class="col">Date</div>
                     <div class="col">Groups</div>
                     <div class="col-2">Customers</div>
+                    <div class="col">Sub district</div>
                     <div class="col">District</div>
                     <div class="col">Provices</div>
                     <div class="col">Weight</div>
@@ -365,18 +366,19 @@
                     <div class="col">GHG</div>
                     <div class="col">Tree</div>
                 </div>
-                <div class="d-flex flex-column align-items-center  scroll-content  border overflow-auto" style="height: 400px;">
+                <div class="d-flex flex-column align-items-center  scroll-content  border overflow-auto" style="max-height: 400px;">
                     <% totals.forEach(totals => {%>
                     <div class="row py-2 border-top body-content" style="width: 100%; font-size: 12px;">
                         <div class="col"> <%= count++ %> </div>
                         <div class="col"><%= totals.purchase_date %></div>
                         <div class="col"><%= totals.customer_group %></div>
                         <div class="col-2"><%= totals.location %></div>
+                        <div class="col"><%= totals.tambons %> </div>
                         <div class="col"><%= totals.amphures %></div>
                         <div class="col"><%= totals.provinces %></div>
-                        <div class="col"><%= (totals.kg_delivery).toFixed(2) %></div>
-                        <div class="col"><%= (totals.total_delivery).toFixed(2) %></div>
-                        <div class="col"><%= (totals.ghg).toFixed(2) %></div>
+                        <div class="col"><%= (totals.kg_delivery).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                        <div class="col"><%= (totals.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                        <div class="col"><%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                         <div class="col"><%= parseInt(totals.kg_delivery / 9.5) %></div>
                     </div>
                    <% }) %>
@@ -422,7 +424,7 @@
     const rows = table.querySelectorAll('.body-content');
     
     // สร้าง array สำหรับเก็บข้อมูล
-    const data = [['No.', 'Date', 'Group', 'Customer', 'District', 'Proviinces', 'Weight', 'Price', 'GHG', 'Tree']];
+    const data = [['No.', 'Date', 'Group', 'Customer', 'Sub District',  'District', 'Proviinces', 'Weight', 'Price', 'GHG', 'Tree']];
 
     // ดึงข้อมูลจากแต่ละแถว
     rows.forEach(row => {

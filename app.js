@@ -1,6 +1,6 @@
 import express from "express";
 import axios, { Axios } from "axios";
-import { showDate } from "./function/scripts.js";
+import { InEndDate, InStartDate, showDate } from "./function/scripts.js";
 import { carbonCalc } from "./function/scripts.js";
 import puppeteer from "puppeteer";
 
@@ -293,6 +293,7 @@ app.get('/api/carbon-credit', async (req, res) => {
                     }),
                     customer_group : cal.customer_group,
                     location : cal.location,
+                    tambons : cal.tambons,
                     amphures : cal.amphures,
                     provinces : cal.provinces,
                     kg_delivery : parseFloat(cal.kg_delivery) || 0,
@@ -349,6 +350,7 @@ app.get('/api/carbon-credit-material', async (req, res) => {
                     purchase_number : cal.purchase_number,
                     customer_group: cal.customer_group,
                     location: cal.location,
+                    category : cal.category,
                     item_name: cal.item_name,
                     amphures: cal.amphures,
                     provinces: cal.provinces,
@@ -392,7 +394,6 @@ app.get('/api/carbon-credit-material', async (req, res) => {
                 combined[key].ghg += parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0;
             }
         });
-
         const mattotals = Object.values(combined);
         res.json({
             mattotals : mattotals,
@@ -411,7 +412,7 @@ app.get('/api/carbon-credit-material', async (req, res) => {
 app.get('/report-carbon-credit', async (req, res) => {
     const startDate = req.query.startDate || showDate();
     const endDate = req.query.endDate || showDate();
-    const limit = parseInt(req.query.limit, 10) || 300;
+    const limit = parseInt(req.query.limit, 10) || 10000;
     const page = parseInt(req.query.page, 10) || 1;
     const amphures = req.query.amphures || [];
     try {
@@ -450,6 +451,17 @@ app.get('/report-customer-details-materials', async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 5000;
     const page = parseInt(req.query.page, 10) || 1;
     const customerGroup = req.query.customer_group || [];
+    const inputStart = InStartDate(startDate) || InStartDate();
+    const inputEnd = InEndDate(endDate) || InEndDate();
+
+    const dayStart = String(inputStart[2]);
+    const monthStart = String(inputStart[1]);
+    const yearStart = String(inputStart[0]);
+
+    const dayEnd = String(inputEnd[2]);
+    const monthEnd = String(inputEnd[1]);
+    const yearEnd = String(inputEnd[0]);
+
 
     try {
         const [result, material] = await Promise.all([
@@ -458,10 +470,13 @@ app.get('/report-customer-details-materials', async (req, res) => {
         ]);
 
         const carbonCal = result.data;
-        console.log(material.data.matdata)
+        const materialCal = material.data.data;
+
+
+        // CUSTOMER DATA
         const combined = {};
         carbonCal.forEach(cal => {
-            const key = cal.customer_group;
+            const key = `${cal.customer_group}`;
             const date = new Date(cal.purchase_date);
             if (!combined[key]) {
                 combined[key] = {
@@ -485,19 +500,160 @@ app.get('/report-customer-details-materials', async (req, res) => {
                 combined[key].ghg += parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0;
             }
         });
-        
         const totals = Object.values(combined);
-        const materialCal = material.data.data;
+
+        // SENT TO MODAL MATERIALS AND 4 CHART
+        const combinedModal = {};
+        carbonCal.forEach(cal => {
+            const key = `${cal.customer_group} ${cal.location}`;
+            const date = new Date(cal.purchase_date);
+            const paper = cal.category === 'กระดาษ' ? parseFloat(cal.kg_delivery) || 0 : 0;
+            const glass = cal.category === 'แก้ว' ? parseFloat(cal.kg_delivery) || 0 : 0;
+            const plastic = cal.category === 'พลาสติก' ? parseFloat(cal.kg_delivery) || 0 : 0;
+            const metal1 = cal.category === 'เหล็ก' ? parseFloat(cal.kg_delivery) || 0 : 0;
+            const metal2 = cal.category === 'โลหะมีค่า' ? parseFloat(cal.kg_delivery) || 0 : 0;
+            const oil = cal.category === 'น้ำมัน' ? parseFloat(cal.kg_delivery) || 0 : 0;
+            const other = cal.category === 'เบ็ตเตล็ด' ? parseFloat(cal.kg_delivery) || 0 : 0;
+
+            if (!combinedModal[key]) {
+                combinedModal[key] = {
+                    purchase_date : date.toLocaleDateString('th-TH',{
+                        day : "numeric",
+                        month : "short",
+                        year : "numeric"
+                    }),
+                    purchase_number : cal.purchase_number,
+                    customer_group : cal.customer_group,
+                    location : cal.location,
+                    paper : paper,
+                    glass : glass,
+                    plastic : plastic,
+                    metal1 : metal1,
+                    metal2 : metal2,
+                    oil : oil,
+                    other : other,
+                    amphures : cal.amphures,
+                    provinces : cal.provinces,
+                    kg_delivery : parseFloat(cal.kg_delivery) || 0,
+                    total_delivery : parseFloat(cal.total_delivery) || 0,
+                    ghg : parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0,
+                };
+            } else {
+                combinedModal[key].kg_delivery += parseFloat(cal.kg_delivery) || 0;
+                combinedModal[key].total_delivery += parseFloat(cal.total_delivery) || 0;
+                combinedModal[key].ghg += parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0;
+                combinedModal[key].paper += paper;
+                combinedModal[key].glass += glass;
+                combinedModal[key].metal1 += metal1;
+                combinedModal[key].metal2 += metal2;
+                combinedModal[key].plastic += plastic;
+                combinedModal[key].oil += oil;
+                combinedModal[key].other += other;
+            }
+        });
+        
+        const modalMaterial = Object.values(combinedModal);
+
+        // GROUP CUSTOMERS DATA
+        const combinedGroup = {};
+        carbonCal.forEach(cal => {
+            const key = `${cal.location}_${cal.customer_group}`;
+            const date = new Date(cal.purchase_date);
+            if (!combinedGroup[key]) {
+                combinedGroup[key] = {
+                    purchase_date : date.toLocaleDateString('th-TH', {
+                        day : "numeric",
+                        month : "short",
+                        year : "numeric"
+                    }),
+                    location : cal.location,
+                    customer_group : cal.customer_group,
+                    category : cal.category,
+                    item_name : cal.item_name,
+                    kg_delivery : parseFloat(cal.kg_delivery) || 0,
+                    total_delivery : parseFloat(cal.total_delivery) || 0,
+                    ghg : parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0
+                }
+            } else {
+                combinedGroup[key].kg_delivery += parseFloat(cal.kg_delivery) || 0;
+                combinedGroup[key].total_delivery += parseFloat(cal.total_delivery) || 0;
+                combinedGroup[key].ghg += parseFloat(carbonCalc(cal, 'item_name' , 'kg_delivery')) || 0;
+            }
+        });
+
+        const totalGroup = Object.values(combinedGroup);
+
+        // GROUP MATERIALS
+        const combinedGroupMat = {};
+        carbonCal.forEach(cal => {
+            const key = `${cal.category}_${cal.customer_group}`;
+            const date = new Date(cal.purchase_date);
+            if (!combinedGroupMat[key]) {
+                combinedGroupMat[key] = {
+                    purchase_date : date.toLocaleDateString('th-TH', {
+                        day : "numeric",
+                        month : "short",
+                        year : "numeric"
+                    }),
+                    location : cal.location,
+                    customer_group : cal.customer_group,
+                    category : cal.category,
+                    item_name : cal.item_name,
+                    kg_delivery : parseFloat(cal.kg_delivery) || 0,
+                    total_delivery : parseFloat(cal.total_delivery) || 0,
+                    ghg : parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0
+                }
+            } else {
+                combinedGroupMat[key].kg_delivery += parseFloat(cal.kg_delivery) || 0;
+                combinedGroupMat[key].total_delivery += parseFloat(cal.total_delivery) || 0;
+                combinedGroupMat[key].ghg += parseFloat(carbonCalc(cal, 'item_name' , 'kg_delivery')) || 0;
+            }
+        });
+
+        const groupMat = Object.values(combinedGroupMat);
+
+        // Group Customer Detail
+        const combinedDetail = {};
+        carbonCal.forEach(cal => {
+            const key = `${cal.category}`;
+            const date = new Date(cal.purchase_date);
+            if (!combinedDetail[key]) {
+                combinedDetail[key] = {
+                    purchase_date : date.toLocaleDateString('th-TH', {
+                        day : "numeric",
+                        month : "short",
+                        year : "numeric"
+                    }),
+                    location : cal.location,
+                    customer_group : cal.customer_group,
+                    category : cal.category,
+                    item_name : cal.item_name,
+                    kg_delivery : parseFloat(cal.kg_delivery) || 0,
+                    total_delivery : parseFloat(cal.total_delivery) || 0,
+                    ghg : parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0
+                }
+            } else {
+                combinedDetail[key].kg_delivery += parseFloat(cal.kg_delivery) || 0;
+                combinedDetail[key].total_delivery += parseFloat(cal.total_delivery) || 0;
+                combinedDetail[key].ghg += parseFloat(carbonCalc(cal, 'item_name' , 'kg_delivery')) || 0;
+            }
+        });
+
+        const matDetailGroup = Object.values(combinedDetail);
+
         const matDetail = material.data.matdata;
         const totalindex =  material.data.totalrecord
         const totalpage = Math.ceil( totalindex / limit)
 
 
 
-
         res.render('Report-Customer-Details-materials.ejs', {
             count : 1,
             count_sub : ( page - 1) * limit + 1 ,
+            modalMaterial: modalMaterial,
+            matDetailGroup: matDetailGroup,
+            groupMat : groupMat,
+            totalGroup : totalGroup,
             totals : totals,
             materialCal : materialCal,
             matDetail : matDetail,
@@ -518,7 +674,6 @@ app.get('/report-customer-details-materials', async (req, res) => {
 //##############################  EXPORT FUATHER #####################################
 
 // PDF
-
 
 
 app.listen(port ,  () => {

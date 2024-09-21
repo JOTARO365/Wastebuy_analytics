@@ -14,7 +14,7 @@
                 <img src="/images/logo3.png" height="150" alt="">
             </div>
             <div class="col-lg-9 col-xxl-10 col-sm-12">
-                <h2 class="fs-1 fw-bold">Wastebuy Delivery Ltd,. Co.</h2>
+                <h2 class="fs-1 fw-bold text-success">Wastebuy Delivery  Co., Ltd.</h2>
                 <div class="mt-2 lead no-print">
                     <p class="fs-4">Material Information</p>
                     <p class="fs-5 "> ตั้งแต่วันที่  <%= startDate  %> ถึงวันที่ <%= endDate %></p>
@@ -34,6 +34,9 @@
                                     <!-- <div class="btn btn-primary mx-1 px-4 my-4 rounded-5 shadow-sm" id="generate-pdf-btn"  style="height: 30px; font-size: 12px;" onclick="window.print()">Print</div> -->
                                 </form>
                             </div>
+                            <div class="d-flex">
+                                <button class="btn btn-success px-4 text-white shadow-sm rounded-5" type="submit" style="height: 40px; margin-top: 25px;">Search</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -47,14 +50,14 @@
                         <div class="col">Materials</div>
                         <div class="col text-center">
                             <span>Weights</span>
-                            <div class="row" style="font-size:13px;">
+                            <div class="row" style="font-size:10px;">
                                 <div class="col">Delivery</div>
                                 <div class="col">S11</div>
                             </div>
                         </div>
                         <div class="col text-center">
                             <span>Prices</span>
-                            <div class="row" style="font-size:13px;">
+                            <div class="row" style="font-size:10px;">
                                 <div class="col">Delivery</div>
                                 <div class="col">S11</div>
                                 <div class="col">Factory</div>
@@ -62,7 +65,7 @@
                         </div>
                         <div class="col text-center">
                             <span>Net Values</span>
-                            <div class="row" style="font-size:13px;">
+                            <div class="row" style="font-size:10px;">
                                 <div class="col">Delivery</div>
                                 <div class="col">S11</div>
                                 <div class="col">Factory</div>
@@ -70,7 +73,7 @@
                         </div>
                         <div class="col text-center">
                             <span>Profit/Loss</span>
-                            <div class="row" style="font-size:13px;">
+                            <div class="row" style="font-size:10px;">
                                 <div class="col">Delivery</div>
                                 <div class="col">S11</div>
                                 <div class="col">Factory</div>
@@ -81,39 +84,39 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "กระดาษ" && mat.quantity_delivery != 0) {%>
                         <div class="row body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size: 13px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size: 13px;"><%= mat.item_name %></div>
+                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
+                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
                             <div class="col  ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div  class="col kg_deliTotal  kg_deli1"><%= mat.kg_delivery.toLocaleString() %></div>
-                                    <div class="col kg_staTotal  kg_sta1"><%= mat.kg_station.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div  class="col kg_deliTotal  kg_deli1"><%= (mat.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col kg_staTotal  kg_sta1"><%= (mat.kg_station).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col"> <%= mat.price_delivery.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_station.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_factory.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col price_deli price_deli1"><%= mat.quantity_delivery.toLocaleString() %></div>
-                                    <div class="col price_sta price_sta1"><%= mat.quantity_station.toLocaleString() %></div>
-                                    <div class="col price_fac price_fac1"><%= (mat.kg_station * mat.price_factory).toFixed(2) %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col price_deli price_deli1"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_sta price_sta1"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_fac price_fac1"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
+                                <div class="row text-center" style="font-size:10px;">
                                     <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta1"><%= (mat.quantity_station - mat.quantity_delivery).toFixed(2) %></div>
-                                    <div class="col proFitFac proFitFac1"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toFixed(2) %></div>
+                                    <div class="col proFitSta proFitSta1"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                    <div class="col proFitFac proFitFac1"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -148,44 +151,44 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "แก้ว" && mat.quantity_delivery != 0) {%>
                             <div class="row body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size: 13px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size: 13px;"><%= mat.item_name %></div>
+                                <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
+                                <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
                                 <div class="col  ">
-                                    <div class="row text-center" style="font-size:13px;">
+                                    <div class="row text-center" style="font-size:10px;">
                                         <% if (mat.item_name === "เบียร์ช้างใหญ่ (แบบใหม่)" || mat.item_name === "เบียร์ลีโอ " || mat.item_name === "เบียร์สิงห์ใหญ่" || mat.item_name === "เหล้าขาวเล็ก" || mat.item_name === "เหล้าขาวใหญ่") {%>
-                                            <div class="col kg_deliTotal kg_deli2"><%= mat.unit_delivery.toLocaleString() %> (<%= mat.kg_delivery.toLocaleString() %>)</div>
-                                            <div class="col kg_staTotal  kg_sta2"><%= mat.unit_station.toLocaleString() %> (<%= mat.kg_station.toLocaleString() %>)</div>
+                                            <div class="col kg_deliTotal kg_deli2"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
+                                            <div class="col kg_staTotal  kg_sta2"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
                                         <% } else {%>
-                                            <div class="col kg_deli2"><%= mat.kg_delivery.toLocaleString() %></div>
-                                            <div class="col kg_sta2"><%= mat.kg_station.toLocaleString() %></div>
+                                            <div class="col kg_deli2"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                            <div class="col kg_sta2"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                         <% } %>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
-                                        <div class="col"> <%= mat.price_delivery.toLocaleString() %></div>
-                                        <div class="col"><%= mat.price_station.toLocaleString() %></div>
-                                        <div class="col"><%= mat.price_factory.toLocaleString() %></div>
+                                    <div class="row text-center" style="font-size:10px;">
+                                        <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
-                                        <div class="col price_deli price_deli2"><%= mat.quantity_delivery.toLocaleString() %></div>
-                                        <div class="col price_sta price_sta2"><%= mat.quantity_station.toLocaleString() %></div>
-                                        <div class="col price_fac price_fac2"><%= (mat.kg_station * mat.price_factory).toFixed(2) %></div>
+                                    <div class="row text-center" style="font-size:10px;">
+                                        <div class="col price_deli price_deli2"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col price_sta price_sta2"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col price_fac price_fac2"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
+                                    <div class="row text-center" style="font-size:10px;">
                                         <div class="col"><%= 0 %></div>
-                                        <div class="col proFitSta proFitSta2"><%= (mat.quantity_station - mat.quantity_delivery).toFixed(2) %></div>
-                                        <div class="col proFitFac proFitFac2"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toFixed(2) %></div>
+                                        <div class="col proFitSta proFitSta2"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                        <div class="col proFitFac proFitFac2"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                             </div>
                         <% } %>
                         <% }); %>
-                        <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                        <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                             <div class="col-1"></div>
                             <div class="col"></div>
                             <div class="col">
@@ -220,45 +223,45 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "น้ำมัน" && mat.quantity_delivery != 0) {%>
                             <div class="row body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size: 13px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size: 13px;"><%= mat.item_name %></div>
+                                <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
+                                <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
                                 <div class="col  ">
-                                    <div class="row text-center" style="font-size:13px;">
+                                    <div class="row text-center" style="font-size:10px;">
                                         <% if(mat.item_name === "ปิ๊บน้ำมันพืชใหม่ (เปล่า)") {%>
-                                            <div class="col kg_deliTotal kg_deli3"><%= mat.unit_delivery.toLocaleString() %> (<%= mat.kg_delivery.toLocaleString() %>)</div>
-                                            <div class="col kg_staTotal  kg_sta3"><%= mat.unit_station.toLocaleString() %> (<%= mat.kg_station.toLocaleString() %>)</div>
+                                            <div class="col kg_deliTotal kg_deli3"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
+                                            <div class="col kg_staTotal  kg_sta3"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
                                         <% } else { %>
-                                            <div class="col  kg_deli3"><%= mat.kg_delivery.toLocaleString() %></div>
-                                            <div class="col kg_sta3"><%= mat.kg_station.toLocaleString() %></div>
+                                            <div class="col  kg_deli3"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                            <div class="col kg_sta3"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                         <% } %>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
-                                        <div class="col"> <%= mat.price_delivery.toLocaleString() %></div>
-                                        <div class="col"><%= mat.price_station.toLocaleString() %></div>
-                                        <div class="col"><%= mat.price_factory.toLocaleString() %></div>
+                                    <div class="row text-center" style="font-size:10px;">
+                                        <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
-                                        <div class="col price_deli price_deli3"><%= mat.quantity_delivery.toLocaleString() %></div>
-                                        <div class="col price_sta price_sta3"><%= mat.quantity_station.toLocaleString() %></div>
-                                        <div class="col price_fac price_fac3"><%= (mat.kg_station * mat.price_factory).toFixed(2) %></div>
+                                    <div class="row text-center" style="font-size:10px;">
+                                        <div class="col price_deli price_deli3"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col price_sta price_sta3"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col price_fac price_fac3"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
+                                    <div class="row text-center" style="font-size:10px;">
                                         <div class="col"><%= 0 %></div>
-                                        <div class="col proFitSta proFitSta3"><%= (mat.quantity_station - mat.quantity_delivery).toFixed(2) %></div>
-                                        <div class="col proFitFac proFitFac3"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toFixed(2) %></div>
+                                        <div class="col proFitSta proFitSta3"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                        <div class="col proFitFac proFitFac3"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                             </div>
                         <% } %>
                         <% }); %>
 
-                        <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                        <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                             <div class="col-1"></div>
                             <div class="col"></div>
                             <div class="col">
@@ -293,51 +296,51 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "เบ็ตเตล็ด" && mat.quantity_delivery != 0) {%>
                             <div class="row body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size: 13px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size: 13px;"><%= mat.item_name %></div>
+                                <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
+                                <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
                                 <div class="col  ">
-                                    <div class="row text-center" style="font-size:13px;">
+                                    <div class="row text-center" style="font-size:10px;">
                                         <% if(mat.item_name === "จอทีวีนูน21นิ้ว ขึ้นไป" ||
                                               mat.item_name === "จอคอม 14 นิ้ว" || 
                                               mat.item_name === "ตู้เย็น" || 
                                               mat.item_name === "จอทีวีนูน14นิ้ว" ||
                                               mat.item_name === "เครื่องซักผ้า" ||
                                               mat.item_name === "จอคอม 21 นิ้ว ขึ้่นไป") {%>
-                                            <div class="col kg_deliTotal kg_deli4"><%= mat.unit_delivery.toLocaleString() %> (<%= mat.kg_delivery.toLocaleString() %>)</div>
-                                            <div class="col kg_staTotal  kg_sta4"><%= mat.unit_station.toLocaleString() %> (<%= mat.kg_station.toLocaleString() %>)</div>
+                                            <div class="col kg_deliTotal kg_deli4"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
+                                            <div class="col kg_staTotal  kg_sta4"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
 
                                         <% } else { %>
-                                            <div class="col  kg_deli4"><%= mat.kg_delivery.toLocaleString() %></div>
-                                            <div class="col kg_sta4"><%= mat.kg_station.toLocaleString() %></div>
+                                            <div class="col  kg_deli4"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                            <div class="col kg_sta4"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                         <% } %>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
-                                        <div class="col"> <%= mat.price_delivery.toLocaleString() %></div>
-                                        <div class="col"><%= mat.price_station.toLocaleString() %></div>
-                                        <div class="col"><%= mat.price_factory.toLocaleString() %></div>
+                                    <div class="row text-center" style="font-size:10px;">
+                                        <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
-                                        <div class="col price_deli price_deli4"><%= mat.quantity_delivery.toLocaleString() %></div>
-                                        <div class="col price_sta price_sta4"><%= mat.quantity_station.toLocaleString() %></div>
-                                        <div class="col price_fac price_fac4"><%= (mat.kg_station * mat.price_factory).toFixed(2) %></div>
+                                    <div class="row text-center" style="font-size:10px;">
+                                        <div class="col price_deli price_deli4"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col price_sta price_sta4"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                        <div class="col price_fac price_fac4"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                                 <div class="col ">
-                                    <div class="row text-center" style="font-size:13px;">
+                                    <div class="row text-center" style="font-size:10px;">
                                         <div class="col"><%= 0 %></div>
-                                        <div class="col proFitSta proFitSta4"><%= (mat.quantity_station - mat.quantity_delivery).toFixed(2) %></div>
-                                        <div class="col proFitFac proFitFac4"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toFixed(2) %></div>
+                                        <div class="col proFitSta proFitSta4"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                        <div class="col proFitFac proFitFac4"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                     </div>
                                 </div>
                             </div>
                         <% } %>
                         <% }); %>
 
-                        <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                        <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                             <div class="col-1"></div>
                             <div class="col"></div>
                             <div class="col">
@@ -373,39 +376,39 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "พลาสติก" && mat.quantity_delivery != 0) {%>
                             <div class="row body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size: 13px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size: 13px;"><%= mat.item_name %></div>
+                            <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
+                            <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
                             <div class="col  ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col kg_deliTotal kg_deli5"><%= mat.kg_delivery.toLocaleString() %></div>
-                                    <div class="col kg_staTotal  kg_sta5"><%= mat.kg_station.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col kg_deliTotal kg_deli5"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col kg_staTotal  kg_sta5"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col"> <%= mat.price_delivery.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_station.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_factory.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col price_deli price_deli5"><%= mat.quantity_delivery.toLocaleString() %></div>
-                                    <div class="col price_sta price_sta5"><%= mat.quantity_station.toLocaleString() %></div>
-                                    <div class="col price_fac price_fac5"><%= (mat.kg_station * mat.price_factory).toFixed(2) %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col price_deli price_deli5"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_sta price_sta5"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_fac price_fac5"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
+                                <div class="row text-center" style="font-size:10px;">
                                     <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta5"><%= (mat.quantity_station - mat.quantity_delivery).toFixed(2) %></div>
-                                    <div class="col proFitFac proFitFac5"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toFixed(2) %></div>
+                                    <div class="col proFitSta proFitSta5"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                    <div class="col proFitFac proFitFac5"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -440,39 +443,39 @@
                         <% materials.forEach(mat => {%>
                         <% if (mat.category === "โลหะมีค่า" && mat.quantity_delivery != 0) {%>
                             <div class="row body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size: 13px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size: 13px;"><%= mat.item_name %></div>
+                            <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
+                            <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
                             <div class="col  ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col kg_deliTotal kg_deli6"><%= mat.kg_delivery.toLocaleString() %></div>
-                                    <div class="col kg_staTotal  kg_sta6"><%= mat.kg_station.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col kg_deliTotal kg_deli6"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col kg_staTotal  kg_sta6"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col"> <%= mat.price_delivery.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_station.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_factory.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col price_deli price_deli6"><%= mat.quantity_delivery.toLocaleString() %></div>
-                                    <div class="col price_sta price_sta6"><%= mat.quantity_station.toLocaleString() %></div>
-                                    <div class="col price_fac price_fac6"><%= (mat.kg_station * mat.price_factory).toFixed(2) %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col price_deli price_deli6"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_sta price_sta6"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_fac price_fac6"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
+                                <div class="row text-center" style="font-size:10px;">
                                     <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta6"><%= (mat.quantity_station - mat.quantity_delivery).toFixed(2) %></div>
-                                    <div class="col proFitFac proFitFac6"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toFixed(2) %></div>
+                                    <div class="col proFitSta proFitSta6"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                    <div class="col proFitFac proFitFac6"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -507,39 +510,39 @@
                         <% materials.forEach(mat => {%>
                             <% if (mat.category === "เหล็ก" && mat.quantity_delivery != 0) {%>
                                 <div class="row body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size: 13px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size: 13px;"><%= mat.item_name %></div>
+                            <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
+                            <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
                             <div class="col  ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col kg_deliTotal kg_deli7"><%= mat.kg_delivery.toLocaleString() %></div>
-                                    <div class="col kg_staTotal  kg_sta7"><%= mat.kg_station.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col kg_deliTotal kg_deli7"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col kg_staTotal  kg_sta7"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col"> <%= mat.price_delivery.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_station.toLocaleString() %></div>
-                                    <div class="col"><%= mat.price_factory.toLocaleString() %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
-                                    <div class="col price_deli price_deli7"><%= mat.quantity_delivery.toLocaleString() %></div>
-                                    <div class="col price_sta price_sta7"><%= mat.quantity_station.toLocaleString() %></div>
-                                    <div class="col price_fac price_fac7"><%= (mat.kg_station * mat.price_factory).toFixed(2) %></div>
+                                <div class="row text-center" style="font-size:10px;">
+                                    <div class="col price_deli price_deli7"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_sta price_sta7"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                    <div class="col price_fac price_fac7"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                             <div class="col ">
-                                <div class="row text-center" style="font-size:13px;">
+                                <div class="row text-center" style="font-size:10px;">
                                     <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta7"><%= (mat.quantity_station - mat.quantity_delivery).toFixed(2) %></div>
-                                    <div class="col proFitFac proFitFac7"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toFixed(2) %></div>
+                                    <div class="col proFitSta proFitSta7"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                    <div class="col proFitFac proFitFac7"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                                 </div>
                             </div>
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -572,7 +575,7 @@
                     </div>
                     
                     <div class="col-12 bg-success fs-4 text-white text-center" > TOTALS</div>
-                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 13px;">
+                    <div class="mb-2 border rounded-bottom text-center fw-bold row" style="width: 1420px; font-size: 10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -618,7 +621,7 @@
                 total += weight;
                 
             })
-            $(totalPart).html(total.toLocaleString());
+            $(totalPart).html(total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
             
         }
         //Paper

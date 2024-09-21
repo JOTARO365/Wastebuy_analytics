@@ -6,6 +6,40 @@ export function showDate() {
     return (year + '-' + month + '-' + day);
 };
 
+
+export function InStartDate(startDate) {
+
+    let date;
+
+    if (startDate) {
+        date = new Date(startDate)
+    } else {
+        date = new Date();
+    }
+
+    const day = date.getDate();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).padStart(2, '0');
+    return [year, month, day];
+}
+
+
+export function InEndDate(endDate) {
+    let date;
+
+    if (endDate) {
+        date = new Date(endDate);
+    } else {
+        date = new Date()
+    }
+
+    const day = date.getDate();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).padStart(2, '0');
+    return [year, month, day];
+}
+
+
 export function carbonCalc(row, item, weight) {
 
     // # factor_1 will calculate the values according it this list  
@@ -126,4 +160,8 @@ export function carbonCalc(row, item, weight) {
     else 
         return 0;
 };
+
+
+
+
 

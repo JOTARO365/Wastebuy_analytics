@@ -310,7 +310,9 @@ app.get('/weight_query/search', async (req, res) => {
         SELECT 
             min(wq.id) AS id,
             wq.purchase_date,
+            wq.purchase_number,
             wq.customer_name,
+            wq.location,
             wq.item_name,
             wq.category,
             SUM(wq.price_per_kg) AS total_price_per_kg,
@@ -318,7 +320,7 @@ app.get('/weight_query/search', async (req, res) => {
             wq.unit
         FROM
             weight_query wq
-               WHERE 1=1
+            WHERE 1=1
     `;
 
     // เตรียมค่าพารามิเตอร์สำหรับการค้นหา
@@ -344,14 +346,16 @@ app.get('/weight_query/search', async (req, res) => {
     }
 
     sql += `
-        GROUP BY 
+        GROUP BY
+            wq.location,
             wq.purchase_date,
+            wq.purchase_number,
             wq.customer_name,
             wq.item_name,
             wq.category,
             wq.unit
         ORDER BY 
-            wq.purchase_date, 
+            wq.purchase_date,
             wq.customer_name,
         	id asc;
     `;
@@ -443,6 +447,8 @@ SELECT
     wq.category,
 	c.id_customer,
 	cg.customer_group,
+    c.id_tambons,
+    tm.name_th as tambons,
     c.id_amphures,
     am.name_th AS amphures,
     c.id_provinces,
@@ -453,6 +459,7 @@ SELECT
 FROM
     weight_query wq
 LEFT JOIN customers c ON wq.location = c.fullname
+LEFT JOIN thai_tambons tm on c.id_tambons = tm.id
 LEFT JOIN thai_amphures am ON c.id_amphures = am.id
 left join customer_groups cg on c.id_customer = cg.id
 left join thai_provinces p on c.id_provinces = p.id
@@ -464,10 +471,12 @@ GROUP BY
     wq.location,
     wq.item_name,
     wq.category,
+    c.id_tambons,
     c.id_amphures,
 	c.id_customer,
     c.id_provinces,
 	cg.customer_group,
+    tm.name_th,
     am.name_th,
     p.name_th
 ORDER BY 
@@ -478,6 +487,7 @@ ORDER BY
         const result = await db.query(sql, [startDate, endDate]);
 
         res.json(result.rows);
+
     } catch (err) {
         console.error('Connnection Failed', err);
         res.status(500).send('Connnection Failed');
