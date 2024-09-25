@@ -9,6 +9,28 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
+
+<style>
+    
+    .container {
+            overflow-x: hidden;
+    }
+    @media print {
+        body .no-print{
+            display: none !important;
+        }
+
+        .container {
+            overflow-x: hidden;
+        }
+
+        .scroll-content {
+            height: 100% !important;
+        }
+
+    }
+</style>
+
 <body>
     <div class="container scroll-content">
         <div class="content row py-5 px-4">
@@ -20,7 +42,7 @@
                 <p class="fs-4">Report Carbon Credit</p>
                 <p class="fs-5 "> ตั้งแต่วันที่  <%= startDate  %> ถึงวันที่ <%= endDate %></p>
                 <form id="searchForm" action="/report-Carbon-Credit" method="get">
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex no-print align-items-center">
                         <div class="mx-2 d-flex flex-column">
                             <label for="startDate">Start date</label>
                             <input class="form-control" type="date" id="startDate" name="startDate" required>
