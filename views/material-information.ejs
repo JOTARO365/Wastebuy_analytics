@@ -18,6 +18,7 @@
         body .no-print {
             display: none !important;
         }
+
         .scroll-content {
             overflow-x: hidden;
         }
@@ -73,7 +74,7 @@
         </div>
         <div class="mx-4 border-2 border-top content-mat overflow-hidden" style="width: auto;">
             <div class=" px-1 py-2">
-                <div class="d-flex flex-column rounded-2 section-1 border align-items-center" style="width: 1420px;">
+                <div class="d-flex flex-column rounded-2 section-1 border align-items-center" style="width: auto;">
                     <div class="header-content row bg-success rounded-top text-white py-2" style="width: 100%;">              
                         <div class="col-1">No.</div>
                         <div class="col">Materials</div>
@@ -145,7 +146,7 @@
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumPaper border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                    <div class="mb-2 sumPaper border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -180,8 +181,8 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "แก้ว" && mat.quantity_delivery != 0) {%>
                             <div class="row itemGlass body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
+                                <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
+                                <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
                                 <div class="col  ">
                                     <div class="row text-center" style="font-size:10px;">
                                         <% if (mat.item_name === "เบียร์ช้างใหญ่ (แบบใหม่)" || mat.item_name === "เบียร์ลีโอ " || mat.item_name === "เบียร์สิงห์ใหญ่" || mat.item_name === "เหล้าขาวเล็ก" || mat.item_name === "เหล้าขาวใหญ่") {%>
@@ -217,7 +218,7 @@
                             </div>
                         <% } %>
                         <% }); %>
-                        <div class="mb-2 sumGlass border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                        <div class="mb-2 sumGlass border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                             <div class="col-1"></div>
                             <div class="col"></div>
                             <div class="col">
@@ -253,8 +254,8 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "น้ำมัน" && mat.quantity_delivery != 0) {%>
                             <div class="row itemOil body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
+                                <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
+                                <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
                                 <div class="col  ">
                                     <div class="row text-center" style="font-size:10px;">
                                         <% if(mat.item_name === "ปิ๊บน้ำมันพืชใหม่ (เปล่า)") {%>
@@ -291,7 +292,7 @@
                         <% } %>
                         <% }); %>
 
-                        <div class="mb-2 sumOil border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                        <div class="mb-2 sumOil border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                             <div class="col-1"></div>
                             <div class="col"></div>
                             <div class="col">
@@ -326,8 +327,8 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "เบ็ตเตล็ด" && mat.quantity_delivery != 0) {%>
                             <div class="row itemOther body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
+                                <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
+                                <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
                                 <div class="col  ">
                                     <div class="row text-center" style="font-size:10px;">
                                         <% if(mat.item_name === "จอทีวีนูน21นิ้ว ขึ้นไป" ||
@@ -370,7 +371,7 @@
                         <% } %>
                         <% }); %>
 
-                        <div class="mb-2 sumOther border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                        <div class="mb-2 sumOther border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                             <div class="col-1"></div>
                             <div class="col"></div>
                             <div class="col">
@@ -406,8 +407,8 @@
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "พลาสติก" && mat.quantity_delivery != 0) {%>
                             <div class="row itemPlastic body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
+                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
+                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
                             <div class="col  ">
                                 <div class="row text-center" style="font-size:10px;">
                                     <div class="col kg_deliTotal kg_deli5"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
@@ -438,7 +439,7 @@
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumPlastic border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                    <div class="mb-2 sumPlastic border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -474,8 +475,8 @@
                         <% materials.forEach(mat => {%>
                         <% if (mat.category === "โลหะมีค่า" && mat.quantity_delivery != 0) {%>
                             <div class="row itemMetal1 body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
+                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
+                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
                             <div class="col  ">
                                 <div class="row text-center" style="font-size:10px;">
                                     <div class="col kg_deliTotal kg_deli6"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
@@ -506,7 +507,7 @@
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumMetal1 border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                    <div class="mb-2 sumMetal1 border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -542,8 +543,8 @@
                         <% materials.forEach(mat => {%>
                             <% if (mat.category === "เหล็ก" && mat.quantity_delivery != 0) {%>
                                 <div class="row itemMetal2 body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size: 10px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size: 10px;"><%= mat.item_name %></div>
+                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
+                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
                             <div class="col  ">
                                 <div class="row text-center" style="font-size:10px;">
                                     <div class="col kg_deliTotal kg_deli7"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
@@ -574,7 +575,7 @@
                         </div>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumMetal2 border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                    <div class="mb-2 sumMetal2 border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">
@@ -607,7 +608,7 @@
                     </div>
                     
                     <div class="col-12 bg-success fs-4 text-white text-center" > TOTALS</div>
-                    <div class="mb-2 sumAll border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size: 10px;">
+                    <div class="mb-2 sumAll border rounded-bottom text-center py-2 fw-bold row" style="width: 1420px; font-size:10px;">
                         <div class="col-1"></div>
                         <div class="col"></div>
                         <div class="col">

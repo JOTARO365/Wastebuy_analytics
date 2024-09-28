@@ -60,7 +60,7 @@ app.get('/material-information', async (req, res) => {
                 } else {
                     combinedMaterials[key].total_delivery += parseFloat(mat.total_delivery) || 0;
                 }
-                combinedMaterials[key].quantity_delivery = (parseFloat(combinedMaterials[key].quantity_delivery) + (parseFloat(mat.total_delivery) || 0)).toFixed(2)
+                combinedMaterials[key].quantity_delivery = (parseFloat(combinedMaterials[key].quantity_delivery) + (parseFloat(mat.total_delivery) || 0))
             }
         });
         
@@ -86,7 +86,7 @@ app.get('/material-information', async (req, res) => {
             } else {
                 combinedMaterials[key].kg_station += parseFloat(item.kg_station) || 0;
                 combinedMaterials[key].unit_station += parseFloat(item.unit_station) || 0;
-                combinedMaterials[key].quantity_station = (parseFloat(combinedMaterials[key].quantity_station) + (parseFloat(item.total_station) || 0)).toFixed(2)
+                combinedMaterials[key].quantity_station = (parseFloat(combinedMaterials[key].quantity_station) + (parseFloat(item.total_station) || 0))
             }
         });
         

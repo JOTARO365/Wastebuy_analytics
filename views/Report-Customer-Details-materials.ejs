@@ -1678,7 +1678,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     }
 
     // ดาวน์โหลดไฟล์
-    const filename = 'รายการรับซื้อสินค้าแบ่งตามกลุ่มสมาชิก.xlsx';
+    const filename = 'รายการรับซื้อวัสดุแบ่งตามกลุ่มสมาชิก.xlsx';
     const link = document.createElement('a');
     link.href = URL.createObjectURL(new Blob([s2ab(wbout)], { type: 'application/octet-stream' }));
     link.download = filename;
