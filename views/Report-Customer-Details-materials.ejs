@@ -21,7 +21,7 @@
         size: A4 portrait;
         margin: 20mm;
     }
-    
+
     .logo {
         align-items: center;
     }
@@ -99,13 +99,13 @@
     }
 
     #SubPieChart {
-        max-width: 400px; 
+        max-width: 400px;
         max-height: 400px;
         position: relative;
         top: 60px;
     }
-    
-}        
+
+}
 
 </style>
 
@@ -304,6 +304,48 @@
                                             B2B-Nestle
                                         </label>
                                     </div>
+									<div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-ดอยคำ">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-ดอยคำ
+                                        </label>
+                                    </div>
+									<div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2C-knock Door">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2C-knock Door
+                                        </label>
+                                    </div>
+									<div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-RAC">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-RAC
+                                        </label>
+                                    </div>
+									<div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-CUสิ่งแวดล้อม">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-CUสิ่งแวดล้อม
+                                        </label>
+                                    </div>
+									<div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-CP ALL ร.ร.ต้นกล้าไร้ถังกทม">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-CP ALL ร.ร.ต้นกล้าไร้ถังกทม
+                                        </label>
+                                    </div>
+									<div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-CP ALL อาคารสำนักงาน">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-CP ALL อาคารสำนักงาน
+                                        </label>
+                                    </div>
+									<div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-SWUศรีนครินทรวิโรฒ">
+                                        <label class="form-check-label" for="checkbox1">
+                                            B2B-SWUศรีนครินทรวิโรฒ
+                                        </label>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
@@ -369,8 +411,8 @@
                                 <div > <%= totals.customer_group %></div>
                                 <div> <%= (totals.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
                                 <div> <%= (totals.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2 , maximumFractionDigits:2}) %></div>
-                                <div> <%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>                                
-                                <div> <%= parseInt(totals.ghg / 9.5).toLocaleString() %></div> 
+                                <div> <%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
+                                <div> <%= parseInt(totals.ghg / 9.5).toLocaleString() %></div>
                             </div>
                             <% } %>
                             <% }) %>
@@ -430,7 +472,7 @@
                                         <div id="content-customer" class="scroll-content overflow-auto" style="height: 37%;"></div>
                                     </div>
                                     <div class="col-5">
-                                       
+
                                     </div>
                                 </div>
                               </div>
@@ -443,7 +485,7 @@
                           </div>
                         </div>
                       </div>
-                      
+
                     <div class="border border-bottom mt-2 shadow-sm"></div>
 
                     <!-- <div class="d-flex border-bottom mx-3 mt-2 justify-content-end">
@@ -465,7 +507,7 @@
 
                         <div class="scroll-content overflow-auto item-content" style="height: 500px;">
                             <% materialCal.forEach(s => { %>
-                                <div class="body-content py-2 border-top  item d-grid" style="grid-template-columns: 80px 1fr 2fr 150px 1fr 1fr 1fr 1fr;" 
+                                <div class="body-content py-2 border-top  item d-grid" style="grid-template-columns: 80px 1fr 2fr 150px 1fr 1fr 1fr 1fr;"
                                    data-purchase-number="<%= s.purchase_number %>"
                                    data-purchase-date="<%= s.purchase_date %>"
                                    data-location="<%= s.location %>"
@@ -478,9 +520,9 @@
                                     <div> <%= (s.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                     <div><%= (s.total_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                                     <div> <%= (s.ghg).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                    <div> <%= parseInt(s.ghg / 9.5) %></div> 
+                                    <div> <%= parseInt(s.ghg / 9.5) %></div>
                                 </div >
-                            <% }) %>                            
+                            <% }) %>
                         </div>
                     </div>
 
@@ -533,21 +575,21 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-lg-4 col-md-12 mt-2 chart-section">
                     <h4 class="fw-bold" style="font-size: 20px;"> ปริมาณน้ำหนักสุทธิแบ่งตามกลุ่ม สมาชิก</h4>
                     <div class="d-flex justify-content-center align-items-start" style="height: 400px;">
                         <canvas class="mt-3" id="MainPieChart"></canvas>
-                    </div>      
+                    </div>
                     <h4 class="fw-bold chart-bar" style="font-size: 20px; position: relative; top: 100px;">ปริมาณน้ำหนักสุทธิกลุ่มสมาชิก B2B/B2C</h4>
                     <div class="d-flex justify-content-center align-items-start" style="height: 400px;">
                         <canvas class="mt-3" id="SubPieChart"></canvas>
-                    </div>                 
+                    </div>
                 </div>
             </div>
 
-        </div>               
-    </div> 
+        </div>
+    </div>
 </body>
 
 <script>
@@ -630,7 +672,7 @@
         }]
     };
 
-   
+
     const config = {
         type: 'pie',
         data: chartData,
@@ -651,8 +693,8 @@
     );
 
 // กรองข้อมูลเพื่อรวมกลุ่มลูกค้าที่ขึ้นต้นด้วย B2B หรือ B2C
-const b2bAndB2cData = totalsData.filter(item => 
-    item.customer_group !== null && 
+const b2bAndB2cData = totalsData.filter(item =>
+    item.customer_group !== null &&
     (item.customer_group.startsWith('B2B') || item.customer_group.startsWith('B2C'))
 );
 
@@ -673,7 +715,7 @@ const aggregatedWeights = [];
 sortedData.forEach(item => {
     const groupName = item.customer_group.startsWith('B2B') ? 'ลูกค้า B2B' : 'ลูกค้า B2C';
     const index = uniqueCustomerGroups.indexOf(groupName);
-    
+
     if (index === -1) {
         // ถ้ายังไม่มีใน uniqueCustomerGroups ให้เพิ่มและเพิ่มน้ำหนัก
         uniqueCustomerGroups.push(groupName);
@@ -726,7 +768,7 @@ function showAllData(event) {
     const customerGroup = target.getAttribute('data-customer-group');
     const customer = target.getAttribute('data-customer');
     let count = 1
-    document.getElementById('customerGroupDetail').textContent = `กลุ่มลูกค้า : ${customerGroup}` 
+    document.getElementById('customerGroupDetail').textContent = `กลุ่มลูกค้า : ${customerGroup}`
 
     const filterCustomer = modalMaterialandChart.filter(item => item.customer_group === customerGroup);
     const filterCategory = categoryMaterial.filter(item => item.customer_group === customerGroup);
@@ -782,7 +824,7 @@ function showAllData(event) {
             hoverOffset:4
         }]
     };
-    
+
     const config = {
         type: 'bar',  // ประเภทของกราฟเป็น bar chart
         data: chartData,
@@ -845,7 +887,7 @@ function showAllData(event) {
         plugins: [ChartDataLabels]
     };
 
-    
+
     const existingChart = Chart.getChart('matGroupChart');
     if (existingChart) {
         existingChart.destroy();
@@ -1280,15 +1322,15 @@ function modalPrint() {
     const chartGhg = document.getElementById('ghgGroupChart').toDataURL();
     const chartPrice = document.getElementById('priceGroupChart').toDataURL();
     const chartMat = document.getElementById('matGroupChart').toDataURL();
-    
-    
+
+
     setTimeout(() => {
         printWindow.document.write(`
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <html>
     <style>
 
@@ -1305,11 +1347,11 @@ function modalPrint() {
                 top: 100px;
                 page-break-before: always;
             }
-            
-            div { 
-                font-family: "Prompt", sans-serif; 
+
+            div {
+                font-family: "Prompt", sans-serif;
             }
-            
+
             .lead {
                 font-size: 12px;
                 height: 200px;
@@ -1374,7 +1416,7 @@ function modalPrint() {
                     <div></div>
                 </div>
                 <div id="content-customer" class="scroll-content overflow-auto ">
-                    ${allContent}    
+                    ${allContent}
                 </div>
             </div>
             <div class="col-5" >
@@ -1395,7 +1437,7 @@ function modalPrint() {
 function showDetails(event) {
     event.preventDefault();
 
-    
+
     const target = event.currentTarget;
     const purchaseNumber = target.getAttribute('data-purchase-number');
     const purchaseDate = target.getAttribute('data-purchase-date');
@@ -1444,7 +1486,7 @@ function showDetails(event) {
         },500)
     }
 
-    
+
 
     const data = filterMaterials.slice(1).map(item => item.kg_delivery);
     const labels = filterMaterials.slice(1).map(item => item.item_name);
@@ -1555,7 +1597,7 @@ function modalCustomer() {
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <html>
             <style>
-                
+
                 @media print {
                 @import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
                     @print {
@@ -1567,14 +1609,14 @@ function modalCustomer() {
                         left: 5px;
                     }
 
-                    div { 
-                        font-family: "Prompt", sans-serif; 
+                    div {
+                        font-family: "Prompt", sans-serif;
                     }
-                    
+
                     .lead {
                         font-size: 12px;
                     }
-                    
+
                 }
             </style>
 
@@ -1616,7 +1658,7 @@ function modalCustomer() {
                     </div>
                 </div>
             </body>
-     
+
         </html>
         `
     );
@@ -1631,11 +1673,11 @@ document.getElementById('export-excel').addEventListener('click', function() {
     // เลือก container ที่เก็บข้อมูล
     const table = document.querySelector('.scroll-content');
     const tableItem = document.querySelector('.item-content');
-    
+
     // เลือกแถวของตาราง
     const rows = table.querySelectorAll('.body-content-group');
     const rowsDetail = tableItem.querySelectorAll('.body-content');
-    
+
     // สร้าง array สำหรับเก็บข้อมูล
     const data = [['No.', 'Groups', 'Weight', 'GHG', 'Tree']];
     const dataDetail = [['No', 'Date', 'Customer', 'Group', 'Weight', 'Price ( บาท )', 'GHG', 'Tree']];
@@ -1701,10 +1743,10 @@ function processCalc(part, totalPart) {
                 let weight = parseFloat(replaceText) || 0 ;
 
                 total += weight;
-                
+
             })
             $(totalPart).html(total.toLocaleString());
-            
+
 };
 
 
