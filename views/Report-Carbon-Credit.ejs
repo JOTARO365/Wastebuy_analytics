@@ -11,7 +11,7 @@
 
 
 <style>
-    
+
     .container {
             overflow-x: hidden;
     }
@@ -404,7 +404,7 @@
                         <div ><%= (totals.kg_delivery).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                         <div ><%= (totals.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                         <div ><%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                        <div ><%= parseInt(totals.kg_delivery / 9.5) %></div>
+                        <div ><%= parseInt(totals.ghg / 9.5) %></div>
                         <div ></div>
                         <div ></div>
                         <div ></div>
@@ -414,25 +414,25 @@
             </div>
             <!-- <div class="d-flex justify-content-end pagination-controls">
                 <% if (currentPage > 1) { %>
-                    <a class="btn btn-light previous shadow-sm" href="/report-carbon-credit?page=<%= currentPage - 1 %>&limit=<%= limit %>&startDate=<%= startDate %>&endDate=<%= endDate %>" style="font-size: 13px;"> 
-                        <img width="6" src="/images/left-arrow.png" alt=""> 
+                    <a class="btn btn-light previous shadow-sm" href="/report-carbon-credit?page=<%= currentPage - 1 %>&limit=<%= limit %>&startDate=<%= startDate %>&endDate=<%= endDate %>" style="font-size: 13px;">
+                        <img width="6" src="/images/left-arrow.png" alt="">
                     </a>
                 <% } %>
-            
-                <% 
+
+                <%
                 const pagesToShow = 10;
                 const startPage = Math.floor((currentPage - 1) / pagesToShow) * pagesToShow + 1;
                 const endPage = Math.min(startPage + pagesToShow - 1, totalPage);
                 %>
-            
+
                 <% for (let i = startPage; i <= endPage; i++) { %>
                     <a class="btn <%= i === currentPage ? 'btn-success' : 'btn-light' %>" href="/report-carbon-credit?page=<%= i %>&limit=<%= limit %>&startDate=<%= startDate %>&endDate=<%= endDate %>"><%= i %></a>
                 <% } %>
-            
+
                 <% if (endPage < totalPage) { %>
                     <a class="btn btn-light" href="/report-carbon-credit?page=<%= endPage + 1 %>&limit=<%= limit %>&startDate=<%= startDate %>&endDate=<%= endDate %>">...</a>
                 <% } %>
-            
+
                 <% if (currentPage < totalPage) { %>
                     <a class="btn btn-light next shadow-sm" href="/report-carbon-credit?page=<%= currentPage + 1 %>&limit=<%= limit %>&startDate=<%= startDate %>&endDate=<%= endDate %>" style="font-size: 13px;">
                         <img width="6" src="/images/right-arrow.png" alt="">
@@ -486,7 +486,7 @@ function print() {
                     <div id="content-purchase" class="d-flex flex-column align-items-center scroll-content  border overflow-auto" >
                         ${allContent};
                     </div>
-                </div> 
+                </div>
             </div>
         </body>
     </html>
@@ -502,10 +502,10 @@ function print() {
  document.getElementById('export-excel').addEventListener('click', function() {
     // เลือก container ที่เก็บข้อมูล
     const table = document.querySelector('.scroll-content');
-    
+
     // เลือกแถวของตาราง
     const rows = table.querySelectorAll('.body-content');
-    
+
     // สร้าง array สำหรับเก็บข้อมูล
     const data = [['No.', 'Date', 'Group', 'Customer', 'Sub District',  'District', 'Proviinces', 'Weight', 'Price', 'GHG', 'Tree']];
 

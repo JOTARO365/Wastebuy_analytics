@@ -16,7 +16,7 @@
             margins: 0;
 
         }
-        
+
         body {
             margin: 0;
         }
@@ -88,7 +88,7 @@
                     <div class="row py-2 border-top body-content border-start border-end " style="width: 90%; font-size: 10px;">
                         <div class="col"><%= count++ %></div>
                         <div class="col"><%= total.amphures %></div>
-                        <% 
+                        <%
                         const easternDis = [
                             "เขตลาดกระบัง",
                             "เขตหนองจอก",
@@ -115,7 +115,7 @@
 	                        "เขตวังทองหลาง",
 	                        "เขตสัมพันธวงศ์",
 	                        "เขตพญาไท",
-	                        "เขตดินแดง", 
+	                        "เขตดินแดง",
 	                        "เขตดุสิต",
 	                        "เขตพระนคร",
 	                        "เขตห้วยขวาง",
@@ -132,7 +132,7 @@
 	                        "เขตปทุมวัน",
 	                        "เขตบางรัก",
 	                        "เขตยานนาวา",
-	                        "เขตบางนา" 
+	                        "เขตบางนา"
                         ]
                         const northTon = [
                             "เขตบางพลัด",
@@ -173,7 +173,7 @@
                         <div class="col kg"><%= (total.kg_delivery).toLocaleString() %></div>
                         <div class="col price"><%= (total.total_delivery).toLocaleString() %></div>
                         <div class="col ghg"><%= (total.ghg).toLocaleString() %></div>
-                        <div class="col tree"><%= parseInt(total.kg_delivery / 9.5) %></div>
+                        <div class="col tree"><%= parseInt(total.ghg / 9.5) %></div>
                     </div>
                     <% } %>
                    <% }); %>
@@ -190,7 +190,7 @@
 
 <script>
     $(document).ready(function() {
-        
+
         function processCalc(part, totalPart) {
             var total = 0;
             $(part).each(function() {
@@ -199,12 +199,12 @@
                 let weight = parseFloat(replaceText) || 0 ;
 
                 total += weight;
-                
+
             })
             $(totalPart).html(total.toLocaleString());
-            
+
         }
-        
+
         let kg = '.kg';
         let price = '.price';
         let ghg = '.ghg';
@@ -226,10 +226,10 @@
     document.getElementById('export-excel').addEventListener('click', function() {
     // เลือก container ที่เก็บข้อมูล
     const table = document.querySelector('.scroll-content');
-    
+
     // เลือกแถวของตาราง
     const rows = table.querySelectorAll('.body-content');
-    
+
     // สร้าง array สำหรับเก็บข้อมูล
     const data = [['No.', 'Districts', 'District Groups', 'Weight', 'GHG', 'Tree']];
 
