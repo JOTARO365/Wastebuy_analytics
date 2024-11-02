@@ -170,10 +170,10 @@
                         <% } else  {%>
                                 <div class="col">นอกเขตพื้นที่กรุงเทพ</div>
                         <% } %>
-                        <div class="col kg"><%= (total.kg_delivery).toLocaleString() %></div>
-                        <div class="col price"><%= (total.total_delivery).toLocaleString() %></div>
-                        <div class="col ghg"><%= (total.ghg).toLocaleString() %></div>
-                        <div class="col tree"><%= parseInt(total.ghg / 9.5) %></div>
+                        <div class="col kg"><%= (total.kg_delivery).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                        <div class="col price"><%= (total.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                        <div class="col ghg"><%= (total.ghg).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                        <div class="col tree"><%= (parseInt(total.ghg / 9.5)).toLocaleString() %></div>
                     </div>
                     <% } %>
                    <% }); %>

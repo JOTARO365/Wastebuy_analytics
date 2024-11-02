@@ -27,7 +27,7 @@ app.get('/material-information', async (req, res) => {
             axios.get(api + 'get_weight_by_station/search', { params: { startDate: startDate, endDate: endDate } }),
             axios.get(api + 'materials')
         ]);
-        
+
         const weightByDeli = mat_wg.data;
         const weightByStation = mat_st.data;
         const priceData = price.data;
@@ -50,7 +50,7 @@ app.get('/material-information', async (req, res) => {
                     total_delivery: Array.isArray(mat.total_delivery)
                     ? mat.total_delivery.reduce((total, arry) => total + parseFloat(arry || 0), 0) : parseFloat(mat.total_delivery) || 0,
                     total_station : 0
-                    
+
                 };
             } else {
                 combinedMaterials[key].kg_delivery += parseFloat(mat.kg_delivery) || 0;
@@ -63,7 +63,7 @@ app.get('/material-information', async (req, res) => {
                 combinedMaterials[key].quantity_delivery = (parseFloat(combinedMaterials[key].quantity_delivery) + (parseFloat(mat.total_delivery) || 0))
             }
         });
-        
+
         weightByStation.forEach(item => {
             const key = item.item_name;
             if (!combinedMaterials[key]) {
@@ -89,7 +89,7 @@ app.get('/material-information', async (req, res) => {
                 combinedMaterials[key].quantity_station = (parseFloat(combinedMaterials[key].quantity_station) + (parseFloat(item.total_station) || 0))
             }
         });
-        
+
         priceData.forEach(price => {
             const key = price.name_mat;
             if (!combinedMaterials[key]) {
@@ -112,7 +112,7 @@ app.get('/material-information', async (req, res) => {
                 combinedMaterials[key].price_delivery += parseFloat(price.price_delivery) || 0;
                 combinedMaterials[key].price_station += parseFloat(price.price_station) || 0;
                 combinedMaterials[key].price_factory += parseFloat(price.price_factory) || 0;
-                
+
             }
         });
         const materials = Object.values(combinedMaterials);
@@ -157,7 +157,7 @@ app.get('/report-50-Districts', async (req, res) => {
                     provinces: ghg.provinces || 0,
                     kg_delivery: parseFloat(ghg.kg_delivery) || 0,
                     ghg: parseFloat(carbonCalc(ghg, 'item_name', 'kg_delivery')) || 0,
-                    total_delivery : parseFloat(ghg.total_delivery) || 0 
+                    total_delivery : parseFloat(ghg.total_delivery) || 0
                 };
             } else {
                 ghgTotal[key].kg_delivery += parseFloat(ghg.kg_delivery) || 0;
@@ -190,7 +190,7 @@ app.get('/report-50-Districts', async (req, res) => {
             "เขตวังทองหลาง",
             "เขตสัมพันธวงศ์",
             "เขตพญาไท",
-            "เขตดินแดง", 
+            "เขตดินแดง",
             "เขตดุสิต",
             "เขตพระนคร",
             "เขตห้วยขวาง",
@@ -207,7 +207,7 @@ app.get('/report-50-Districts', async (req, res) => {
             "เขตปทุมวัน",
             "เขตบางรัก",
             "เขตยานนาวา",
-            "เขตบางนา" 
+            "เขตบางนา"
         ]
         const northTon = [
             "เขตบางพลัด",
@@ -242,10 +242,10 @@ app.get('/report-50-Districts', async (req, res) => {
             ];
             const indexA = order.indexOf(a.amphures);
             const indexB = order.indexOf(b.amphures);
-        
+
             if (indexA === -1) return 1;
             if (indexB === -1) return -1;
-        
+
             return indexA - indexB;
             });
             res.render('Report-50-Districts.ejs', {
@@ -297,14 +297,14 @@ app.get('/api/carbon-credit', async (req, res) => {
                     tambons : cal.tambons,
                     amphures : cal.amphures,
                     provinces : cal.provinces,
-                    kg_delivery : parseFloat(cal.kg_delivery) || 0,
-                    total_delivery : parseFloat(cal.total_delivery) || 0,
-                    ghg : parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0,
+                    kg_delivery : (cal.kg_delivery) || 0,
+                    total_delivery : (cal.total_delivery) || 0,
+                    ghg : carbonCalc(cal, 'item_name', 'kg_delivery') || 0,
                 }
             } else {
                 combined[key].kg_delivery += parseFloat(cal.kg_delivery) || 0;
                 combined[key].total_delivery += parseFloat(cal.total_delivery) || 0;
-                combined[key].ghg += parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0;
+                combined[key].ghg += carbonCalc(cal, 'item_name', 'kg_delivery') || 0;
             }
         });
 
@@ -318,7 +318,7 @@ app.get('/api/carbon-credit', async (req, res) => {
         console.error('Error fetching data from API:', err);
         res.status(500).send('Error fetching data from API: ' + err.message);
     };
-   
+
 });
 
 
@@ -367,7 +367,7 @@ app.get('/api/carbon-credit-material', async (req, res) => {
         });
 
         const totals = Object.values(combined);
-        
+
         carbonCal.forEach(cal => {
             const key = `${cal.customer_group}_${cal.item_name}_${cal.purchase_number}`;
             const date = new Date(cal.purchase_date);
@@ -552,7 +552,7 @@ app.get('/report-customer-details-materials', async (req, res) => {
                 combinedModal[key].other += other;
             }
         });
-        
+
         const modalMaterial = Object.values(combinedModal);
 
         // GROUP CUSTOMERS DATA
@@ -669,7 +669,7 @@ app.get('/report-customer-details-materials', async (req, res) => {
         console.error('Error fetching data from API:', err);
         res.status(500).send('Error fetching data from API: ' + err.message);
     };
-    
+
 });
 
 //##############################  EXPORT FUATHER #####################################
@@ -678,5 +678,5 @@ app.get('/report-customer-details-materials', async (req, res) => {
 
 
 app.listen(port ,  () => {
-    console.log(`listening on Port : ${port}`) 
+    console.log(`listening on Port : ${port}`)
 })
