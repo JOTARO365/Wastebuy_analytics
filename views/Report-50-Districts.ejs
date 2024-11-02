@@ -166,14 +166,14 @@
                         <%} else if (northTon.includes(total.amphures)) {%>
                                 <div class="col">กรุงธนเหนือ</div>
                         <%} else if (southTon.includes(total.amphures)) {%>
-                                <div class="col">กรุงธนเหนือ</div>
+                                <div class="col">กรุงธนใต้</div>
                         <% } else  {%>
                                 <div class="col">นอกเขตพื้นที่กรุงเทพ</div>
                         <% } %>
-                        <div class="col kg"><%= (total.kg_delivery).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                        <div class="col kg"><%= (total.kg_delivery).toLocaleString() %></div>
                         <div class="col price"><%= (total.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                         <div class="col ghg"><%= (total.ghg).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                        <div class="col tree"><%= (parseInt(total.ghg / 9.5)).toLocaleString() %></div>
+                        <div class="col tree"><%= (parseInt(total.ghg / 9.4999)).toLocaleString() %></div>
                     </div>
                     <% } %>
                    <% }); %>
@@ -231,7 +231,7 @@
     const rows = table.querySelectorAll('.body-content');
 
     // สร้าง array สำหรับเก็บข้อมูล
-    const data = [['No.', 'Districts', 'District Groups', 'Weight', 'GHG', 'Tree']];
+    const data = [['No.', 'Districts', 'District Groups', 'Weight', 'Price', 'GHG', 'Tree']];
 
     // ดึงข้อมูลจากแต่ละแถว
     rows.forEach(row => {

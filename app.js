@@ -233,10 +233,10 @@ app.get('/report-50-Districts', async (req, res) => {
         const total = Object.values(ghgTotal);
         total.sort((a, b) => {
             const order = [
-                ...easternDis,
                 ...northDis,
                 ...centralDis,
                 ...southDis,
+                ...easternDis,
                 ...northTon,
                 ...southTon
             ];
