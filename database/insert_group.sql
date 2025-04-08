@@ -1,0 +1,1 @@
+insert into customer_groups values (57 , 'B2B-ปั๊ม PT Atlas', 1, 'G0057')
