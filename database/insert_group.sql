@@ -1,1 +1,1 @@
-insert into customer_groups values (57 , 'B2B-ปั๊ม PT Atlas', 1, 'G0057')
+insert into customer_groups values (58, 'B2C-ทสม.ชุมชนตรอกข้าวเม่า ', 1, 'G0058')
