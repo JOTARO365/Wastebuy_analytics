@@ -150,7 +150,15 @@ app.get('/report-50-Districts', async (req, res) => {
 		}
 		console.log(ghgcalc);
 		ghgcalc.forEach(entry => {
-			if (entry.location == "ลูกค้าทั่วไป ..." || entry.location == " ") {
+			if ((entry.location && entry.location.includes("LINE")) ||
+					entry.location === "ลูกค้าทั่วไป ..." ||
+					entry.customer_group === "youเทิร์น-KTB" ||
+					entry.customer_group === null ||
+					entry.customer_group === "B2C-องค์กรภาคเอกชน" ||
+					entry.customer_group === "B2C-ชุมชนที่พักอาศัย" ||
+					entry.customer_group === "B2C-ผู้ประกอบการ" ||
+					entry.customer_group === "Pandora" ||
+					entry.customer_group === "B2B-GTC") {
 				PubcustomerSum.kg_delivery += parseFloat(entry.kg_delivery) || 0;
 				PubcustomerSum.total_delivery += parseFloat(entry.total_delivery) || 0;
 				PubcustomerSum.ghg += parseFloat(carbonCalc(entry, 'item_name', 'kg_delivery')) || 0;
