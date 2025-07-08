@@ -129,8 +129,6 @@ app.get('/material-information', async (req, res) => {
 });
 
 
-
-
 app.get('/report-50-Districts', async (req, res) => {
     const startDate = req.query.startDate || showDate();
     const endDate = req.query.endDate || showDate();
@@ -143,11 +141,21 @@ app.get('/report-50-Districts', async (req, res) => {
                 endDate: endDate
             }
         });
-
         const ghgcalc = ghg.data;
-
         const ghgTotal = {};
-
+		let PubcustomerSum = {
+			kg_delivery: 0,
+			total_delivery: 0,
+			ghg: 0
+		}
+		console.log(ghgcalc);
+		ghgcalc.forEach(entry => {
+			if (entry.location == "ลูกค้าทั่วไป ..." || entry.location == " ") {
+				PubcustomerSum.kg_delivery += parseFloat(entry.kg_delivery) || 0;
+				PubcustomerSum.total_delivery += parseFloat(entry.total_delivery) || 0;
+				PubcustomerSum.ghg += parseFloat(carbonCalc(entry, 'item_name', 'kg_delivery')) || 0;
+			}
+		})
         ghgcalc.forEach(ghg => {
             const key = ghg.amphures;
             if (!ghgTotal[key]) {
@@ -165,6 +173,7 @@ app.get('/report-50-Districts', async (req, res) => {
                 ghgTotal[key].total_delivery += parseFloat(ghg.total_delivery) || 0;
             }
         });
+
         const easternDis = [
 			"เขตคลองสามวา",
 			"เขตคันนายาว",
@@ -259,8 +268,11 @@ app.get('/report-50-Districts', async (req, res) => {
             centralDis : centralDis,
             southDis : southDis,
             northTon : northTon,
-            southTon : southTon
+            southTon : southTon,
+			PublicSum : PubcustomerSum
         });
+
+
     } catch (err) {
         console.error('Error fetching data from API:', err);
         res.status(500).send('Error fetching data from API: ' + err.message);
@@ -298,8 +310,8 @@ app.get('/api/carbon-credit', async (req, res) => {
                     tambons : cal.tambons,
                     amphures : cal.amphures,
                     provinces : cal.provinces,
-                    kg_delivery : (cal.kg_delivery) || 0,
-                    total_delivery : (cal.total_delivery) || 0,
+                    kg_delivery : parseFloat(cal.kg_delivery) || 0,
+                    total_delivery : parseFloat(cal.total_delivery) || 0,
                     ghg : carbonCalc(cal, 'item_name', 'kg_delivery') || 0,
                 }
             } else {
@@ -646,7 +658,6 @@ app.get('/report-customer-details-materials', async (req, res) => {
         const matDetail = material.data.matdata;
         const totalindex =  material.data.totalrecord
         const totalpage = Math.ceil( totalindex / limit)
-
 
 
         res.render('Report-Customer-Details-materials.ejs', {

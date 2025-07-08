@@ -375,7 +375,7 @@
         </div>
         <div class="mx-4 border-2 border-top ">
             <div class="px-1 py-2">
-                <div class="header-content d-grid rounded-top bg-success rounded-top fw-bold text-white py-2" style="grid-template-columns: 40px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; font-size: 10px;" >
+                <div class="header-content d-grid rounded-top bg-success rounded-top fw-bold text-white py-2" style="grid-template-columns: 40px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; font-size: 10px;" >
                     <div class="text-center"> No.</div>
                     <div>Date</div>
                     <div>Groups</div>
@@ -387,13 +387,13 @@
                     <div>Price</div>
                     <div>GHG</div>
                     <div>Tree</div>
-                    <div>Point</div>
+                    <!-- <div>Point</div>
                     <div>Redeem</div>
-                    <div>Amount Point</div>
+                    <div>Amount Point</div> -->
                 </div>
                 <div id="content-purchase" class="scroll-content text-start  border overflow-auto" style="max-height: 400px;">
                     <% totals.forEach(totals => {%>
-                    <div class=" py-2 border-top d-grid body-content" style="font-size: 10px; grid-template-columns: 40px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;">
+                    <div class=" py-2 border-top d-grid body-content" style="font-size: 10px; grid-template-columns: 40px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;">
                         <div class="text-center"> <%= count++ %> </div>
                         <div ><%= totals.purchase_date %></div>
                         <div ><%= totals.customer_group %></div>
@@ -401,9 +401,9 @@
                         <div ><%= totals.tambons %> </div>
                         <div ><%= totals.amphures %></div>
                         <div ><%= totals.provinces %></div>
-                        <div ><%= (totals.kg_delivery).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                        <div ><%= (totals.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                        <div ><%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                        <div ><%= (totals.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })%></div>
+                        <div ><%= (totals.total_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
+                        <div ><%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
                         <div ><%= parseInt(totals.ghg / 9.4999) %></div>
                         <div ></div>
                         <div ></div>
@@ -479,9 +479,6 @@ function print() {
                         <div class="col">Price</div>
                         <div class="col">GHG</div>
                         <div class="col">Tree</div>
-                        <div class="col">Point</div>
-                        <div class="col">Redeem</div>
-                        <div class="col">Amount Point</div>
                     </div>
                     <div id="content-purchase" class="d-flex flex-column align-items-center scroll-content  border overflow-auto" >
                         ${allContent};
