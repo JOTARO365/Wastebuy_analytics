@@ -39,7 +39,7 @@
 
 <body>
     <div class="container scroll-content ">
-        <div class="centent row py-5 px-4 ">
+        <div class="content row py-5 px-4 ">
             <div class="col-lg-3 col-xxl-2 col-sm-12 logo">
                 <img src="/images/logo3.png" height="150" alt="">
             </div>
@@ -178,14 +178,22 @@
                     <% } %>
                    <% }); %>
 				   <div class="row py-2 border-top body-content border-start border-end " style="width: 90%; font-size: 10px;">
-
-					<div class="col"></div>
+					<div class="col">99</div>
                     	<div class="col">ลูกค้าทั่วไป</div>
                     	<div class="col ">ไม่ระบุเขตพื้นที่</div>
                     	<div class="col kg"><%= PublicSum.kg_delivery.toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
                     	<div class="col price"><%= PublicSum.total_delivery.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
                     	<div class="col ghg"><%= PublicSum.ghg.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2})%></div>
                     	<div class="col tree"><%= (parseInt(PublicSum.ghg / 9.4999)).toLocaleString() %></div>
+				   </div>
+				   <div class="row py-2 border-top body-content border-start border-end " style="width: 90%; font-size: 10px;">
+					<div class="col">100</div>
+                    	<div class="col">ลูกค้า Line</div>
+                    	<div class="col ">ไม่ระบุเขตพื้นที่</div>
+                    	<div class="col kg"><%= Linesum.kg_delivery.toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                    	<div class="col price"><%= Linesum.total_delivery.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                    	<div class="col ghg"><%= Linesum.ghg.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2})%></div>
+                    	<div class="col tree"><%= (parseInt(Linesum.ghg / 9.4999)).toLocaleString() %></div>
 				   </div>
                    <div class="row py-3 fw-bold border rounded-bottom border-top border-2 body-content" style="width: 90%; font-size: 12px;">
                     	<div class="col"></div>
