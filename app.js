@@ -796,6 +796,7 @@ app.get('/Scheduling-system', async (req, res) => {
 				phonenumber,
 				booking_code: row["เลขที่การจอง"],
 				driver: row["รถ Waste buy"],
+				address: row['ที่อยู่'],
 				record_date: row["วันที่บันทึก"],
 				booking_date: FormatDate(row["วันที่จอง"]),
 				district: row['อำเภอ/เขต'],

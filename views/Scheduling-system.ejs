@@ -165,18 +165,19 @@
       id: i + 1,
       name: c.label,
       phone: c.phonenumber || '-',
-      district: c.district || '-'
+      district: c.district || '-',
+      address: c.address || '-'           // ใช้ใน UI และ Excel
     }))) %>;
 
     const state = {
       drivers: EMPLOYEES,               // [{id, name}]
-      customers: CUSTOMERS,             // [{id, name, phone, district}]
+      customers: CUSTOMERS,             // [{id, name, phone, district, address}]
       availableCustomerIds: new Set(),  // ลูกค้าที่ "ยังไม่ถูก assign"
       assignments: {},                  // driverId -> [{...customer}]
       ui: {
         openDriverIds: new Set(),       // เปิดหลาย panel ได้
         lastActiveDriverId: null,       // ใช้เป็นเป้าหมายเวลากด "เลือก"
-        offDriverIds: new Set()         // ✅ คนขับที่อยู่ในลิสต์ "วันหยุด"
+        offDriverIds: new Set()         // คนขับที่อยู่ในลิสต์ "วันหยุด"
       }
     };
 
@@ -193,11 +194,8 @@
     const driverOffCountEl = document.getElementById('driverOffCount');
 
     function moveDriverOff(driverId) {
-      state.ui.openDriverIds.delete(driverId);  // ปิด panel ถ้ามี
+      state.ui.openDriverIds.delete(driverId);
       state.ui.offDriverIds.add(driverId);
-      // ถ้าต้องการ "เคลียร์งานของคนหยุด" ใส่โค้ดด้านล่าง (คอมเมนต์ไว้ก่อน)
-      // state.assignments[driverId].forEach(c => state.availableCustomerIds.add(c.id));
-      // state.assignments[driverId] = [];
       renderDrivers();
     }
 
@@ -216,7 +214,7 @@
       driverActiveCountEl.textContent = String(activeDrivers.length);
       driverOffCountEl.textContent = String(offDrivers.length);
 
-      // === Active Drivers (มี panel มอบหมายงาน) ===
+      // === Active Drivers ===
       activeDrivers.forEach(d => {
         const item = document.createElement('li');
         item.className = 'list-group-item driver-item d-flex justify-content-between align-items-center';
@@ -229,7 +227,6 @@
           </div>
         `;
         item.addEventListener('click', (ev) => {
-          // อย่าให้คลิกปุ่ม "หยุดวันนี้" ไปทริกเกอร์เปิด/ปิด panel
           if (ev.target && ev.target.closest('.btn-off')) return;
           toggleDriverPanel(d.id, item);
         });
@@ -246,12 +243,12 @@
           <div class="d-flex flex-wrap gap-2 assigned-tags"></div>
         `;
 
-        // ปุ่ม "หยุดวันนี้"
+        // ปุ่มหยุด
         item.querySelector('.btn-off').addEventListener('click', () => {
           moveDriverOff(d.id);
         });
 
-        // ปุ่ม "โยกงาน" จาก search
+        // ปุ่มโยกงานจาก search
         panel.querySelector('.btn-move').addEventListener('click', () => {
           const q = panel.querySelector('.driver-search').value.trim();
           if (!q) return;
@@ -273,7 +270,7 @@
         }
       });
 
-      // === Off Drivers (ไม่มี panel, มีปุ่ม "ย้ายกลับ") ===
+      // === Off Drivers ===
       offDrivers.forEach(d => {
         const item = document.createElement('li');
         item.className = 'list-group-item d-flex justify-content-between align-items-center';
@@ -340,12 +337,16 @@
         li.innerHTML = `
           <div>
             <div><strong>${c.name}</strong></div>
-            <div class="small text-secondary">เขต: ${c.district} | โทร: ${c.phone}</div>
+            <div class="small text-secondary">
+              เขต: ${c.district} | โทร: ${c.phone}
+              ${c.address && c.address !== '-' ? ` <br> ที่อยู่: ${c.address}` : ''}
+            </div>
           </div>
-          <button class="btn btn-sm btn-outline-primary">เลือก</button>
+          <button class="btn btn-sm btn-outline-primary btn-pick">เลือก</button>
         `;
-        li.querySelector('button').addEventListener('click', () => {
-          // ถ้าคนขับเป้าหมายอยู่ใน "วันหยุด" ให้ป้องกันการใส่ผิด
+
+        // ปุ่ม "เลือก"
+        li.querySelector('.btn-pick').addEventListener('click', () => {
           const fallback = state.drivers.find(d => !state.ui.offDriverIds.has(d.id))?.id;
           const last = state.ui.lastActiveDriverId;
           const targetId = (last && !state.ui.offDriverIds.has(last)) ? last : fallback;
@@ -355,6 +356,7 @@
           renderCustomers();
           renderDrivers();
         });
+
         customerListEl.appendChild(li);
       });
 
@@ -389,7 +391,7 @@
       renderCustomers();
     });
 
-    // ===== Export Excel =====
+    // ===== Export Excel (Address included, Range removed) =====
     function toAssignmentRows() {
       const rows = [];
       state.drivers.forEach(d => {
@@ -400,7 +402,7 @@
             Customer: c.name,
             District: c.district || '-',
             Phone: c.phone || '-',
-            Range: `<%= startDate %> - <%= endDate %>`
+            Address: c.address || '-'
           });
         });
       });
@@ -415,7 +417,8 @@
         rows.push({
           Customer: c.name,
           District: c.district || '-',
-          Phone: c.phone || '-'
+          Phone: c.phone || '-',
+          Address: c.address || '-'
         });
       });
       return rows;
@@ -432,12 +435,16 @@
 
       const wb = XLSX.utils.book_new();
 
-      const ws1 = XLSX.utils.json_to_sheet(assigned.length ? assigned : [{ Driver: '-', Customer: '-', District: '-', Phone: '-', Range: `<%= startDate %> - <%= endDate %>` }]);
-      ws1['!cols'] = [{wch:16},{wch:28},{wch:16},{wch:16},{wch:24}];
+      const ws1 = XLSX.utils.json_to_sheet(
+        assigned.length ? assigned : [{ Driver: '-', Customer: '-', District: '-', Phone: '-', Address: '-' }]
+      );
+      ws1['!cols'] = [{wch:16},{wch:28},{wch:16},{wch:16},{wch:40}];
       XLSX.utils.book_append_sheet(wb, ws1, 'Assignments');
 
-      const ws2 = XLSX.utils.json_to_sheet(unassigned.length ? unassigned : [{ Customer: '-', District: '-', Phone: '-' }]);
-      ws2['!cols'] = [{wch:28},{wch:16},{wch:16}];
+      const ws2 = XLSX.utils.json_to_sheet(
+        unassigned.length ? unassigned : [{ Customer: '-', District: '-', Phone: '-', Address: '-' }]
+      );
+      ws2['!cols'] = [{wch:28},{wch:16},{wch:16},{wch:40}];
       XLSX.utils.book_append_sheet(wb, ws2, 'Unassigned');
 
       const s = `<%= startDate %>`.replaceAll('/','-');
