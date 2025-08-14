@@ -115,7 +115,7 @@
               </div>
               <div class="input-group mb-2">
                 <span class="input-group-text">ค้นหา</span>
-                <input id="customerSearch" type="text" class="form-control" placeholder="พิมพ์ชื่อเพื่อตัวกรอง">
+                <input id="customerSearch" type="text" class="form-control" placeholder="พิมพ์ชื่อ/เขต/เบอร์/ที่อยู่">
               </div>
               <ul id="customerList" class="list-group scroll-10"></ul>
             </div>
@@ -166,7 +166,8 @@
       name: c.label,
       phone: c.phonenumber || '-',
       district: c.district || '-',
-      address: c.address || '-'           // ใช้ใน UI และ Excel
+      address: c.address || '-',           // ใช้ใน UI และ Excel
+	  bookingDate: c.booking_date || '-'
     }))) %>;
 
     const state = {
@@ -325,43 +326,62 @@
       }
     }
 
-    function renderCustomers() {
-      const q = customerSearchEl.value.trim().toLowerCase();
-      const available = [...state.availableCustomerIds].map(id => state.customers.find(c => c.id === id));
-      const filtered = q ? available.filter(c => c.name.toLowerCase().includes(q)) : available;
+ function renderCustomers() {
+  const q = customerSearchEl.value.trim().toLowerCase();
+  const tokens = q.split(/\s+/).filter(Boolean); // แยกหลายคำค้นด้วยช่องว่าง
 
-      customerListEl.innerHTML = '';
-      filtered.forEach(c => {
-        const li = document.createElement('li');
-        li.className = 'list-group-item customer-item';
-        li.innerHTML = `
-          <div>
-            <div><strong>${c.name}</strong></div>
-            <div class="small text-secondary">
-              เขต: ${c.district} | โทร: ${c.phone}
-              ${c.address && c.address !== '-' ? ` <br> ที่อยู่: ${c.address}` : ''}
-            </div>
-          </div>
-          <button class="btn btn-sm btn-outline-primary btn-pick">เลือก</button>
-        `;
+  const available = [...state.availableCustomerIds]
+    .map(id => state.customers.find(c => c.id === id));
 
-        // ปุ่ม "เลือก"
-        li.querySelector('.btn-pick').addEventListener('click', () => {
-          const fallback = state.drivers.find(d => !state.ui.offDriverIds.has(d.id))?.id;
-          const last = state.ui.lastActiveDriverId;
-          const targetId = (last && !state.ui.offDriverIds.has(last)) ? last : fallback;
+  const filtered = tokens.length
+    ? available.filter(c => {
+        // รวมฟิลด์ที่ใช้ค้นหา
+        const hay = [
+          c.name || '',
+          c.district || '',
+          c.phone || '',
+          c.address || ''
+        ].join(' ').toLowerCase();
 
-          if (!targetId) { alert('ไม่พบคนขับที่พร้อมรับงาน'); return; }
-          assignToDriver(targetId, c.id);
-          renderCustomers();
-          renderDrivers();
-        });
+        // ทุกคำต้องพบในสตริงรวม
+        return tokens.every(t => hay.includes(t));
+      })
+    : available;
 
-        customerListEl.appendChild(li);
-      });
+  customerListEl.innerHTML = '';
+  filtered.forEach(c => {
+    const li = document.createElement('li');
+    li.className = 'list-group-item customer-item';
+    li.innerHTML = `
+      <div>
+        <div><strong>${c.name}</strong></div>
+        <div class="small text-secondary">
+          เขต: ${c.district} | โทร: ${c.phone}
+          ${c.bookingDate && c.bookingDate !== '-' ? `<br>วันที่จอง: ${c.bookingDate}` : ''}
+          ${c.address && c.address !== '-' ? `<br>ที่อยู่: ${c.address}` : ''}
+        </div>
+      </div>
+      <button class="btn btn-sm btn-outline-primary btn-pick">เลือก</button>
+    `;
 
-      customerCountEl.textContent = state.availableCustomerIds.size;
-    }
+    // ปุ่ม "เลือก"
+    li.querySelector('.btn-pick').addEventListener('click', () => {
+      const fallback = state.drivers.find(d => !state.ui.offDriverIds.has(d.id))?.id;
+      const last = state.ui.lastActiveDriverId;
+      const targetId = (last && !state.ui.offDriverIds.has(last)) ? last : fallback;
+
+      if (!targetId) { alert('ไม่พบคนขับที่พร้อมรับงาน'); return; }
+      assignToDriver(targetId, c.id);
+      renderCustomers();
+      renderDrivers();
+    });
+
+    customerListEl.appendChild(li);
+  });
+
+  customerCountEl.textContent = state.availableCustomerIds.size;
+}
+
 
     function findAvailableCustomerByName(q) {
       const pool = [...state.availableCustomerIds].map(id => state.customers.find(c => c.id === id));
@@ -399,10 +419,13 @@
         jobs.forEach(c => {
           rows.push({
             Driver: d.name + (state.ui.offDriverIds.has(d.id) ? ' (หยุด)' : ''),
+			driver_number: '-',
+			No: '-',
             Customer: c.name,
-            District: c.district || '-',
+			range: '-',
+			Address: c.address || '-',
             Phone: c.phone || '-',
-            Address: c.address || '-'
+			note: '-'
           });
         });
       });
@@ -429,16 +452,16 @@
       const unassigned = toUnassignedRows();
 
       if (assigned.length === 0 && unassigned.length === 0) {
-        alert('ยังไม่มีข้อมูลคิวงานให้ส่งออก');
+        console.log('ยังไม่มีข้อมูลคิวงานให้ส่งออก');
         return;
       }
 
       const wb = XLSX.utils.book_new();
 
       const ws1 = XLSX.utils.json_to_sheet(
-        assigned.length ? assigned : [{ Driver: '-', Customer: '-', District: '-', Phone: '-', Address: '-' }]
+        assigned.length ? assigned : [{ Driver: '-', Driver_number: '-', No: '-', Customer: '-', range: '-', Address: '-', Phone: '-', note: '-' }]
       );
-      ws1['!cols'] = [{wch:16},{wch:28},{wch:16},{wch:16},{wch:40}];
+      ws1['!cols'] = [{wch:16},{wch:16},{wch:10},{wch:16},{wch:16},{wch:40},{wch:26},{wch:26}];
       XLSX.utils.book_append_sheet(wb, ws1, 'Assignments');
 
       const ws2 = XLSX.utils.json_to_sheet(
@@ -461,7 +484,7 @@
         console.log('SAVE payload:', { assignments: state.assignments, offDriverIds: [...state.ui.offDriverIds] });
       } catch (err) {
         console.error('Export Excel error:', err);
-        alert('เกิดข้อผิดพลาดระหว่างส่งออก Excel');
+        console.log('เกิดข้อผิดพลาดระหว่างส่งออก Excel');
       }
     });
   </script>
