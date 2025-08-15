@@ -138,6 +138,13 @@
     const data = <%- JSON.stringify(mapData) %>;
     const markerLayer = L.layerGroup().addTo(map);
 
+	const stationIcon	= L.icon({
+		iconUrl: '/images/station.png',
+		iconSize: [32, 32],
+		iconAnchor: [16, 32],
+		popupAnchor: [0, -28]
+	});
+
     data.forEach(loc => {
       if (typeof loc.lat === 'number' && typeof loc.lng === 'number') {
         L.circleMarker([loc.lat, loc.lng], {
@@ -152,6 +159,14 @@
         console.warn('location Not Found:', loc.label);
       }
     });
+
+const stations = [
+  { lat: 13.751053, lng: 100.7188289, name: "STATION ลาดกระบัง" },
+  { lat: 13.6357915, lng: 100.3770416, name: "STATION บางบอน" }
+];
+stations.forEach(st => {
+	L.marker([st.lat, st.lng], {icon: stationIcon}).addTo(markerLayer).bindPopup(`<b>${st.name}</b>`);
+});
   </script>
 
   <script>
