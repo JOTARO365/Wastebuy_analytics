@@ -1,3 +1,7 @@
+import { createRequire } from "module";
+const require = createRequire(import.meta.url)
+const db = require('../node_modules/thai-address-database/database/raw_database/raw_database.json')
+
 export function showDate() {
     const date = new Date();
     const day = date.getDate();
@@ -216,8 +220,6 @@ export function carbonCalc(row, item, weight) {
     else
         return 0;
 };
-
-
 
 
 

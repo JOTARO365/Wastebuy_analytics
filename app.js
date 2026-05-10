@@ -70,7 +70,7 @@ app.get('/material-information', async (req, res) => {
 			if (!combinedMaterials[key]) {
 				combinedMaterials[key] = {
 					item_name: item.item_name,
-					category: item.category,
+					category: item.item_category,
 					kg_delivery: 0,
 					unit_delivery: 0,
 					kg_station: parseFloat(item.kg_station) || 0,
@@ -82,7 +82,7 @@ app.get('/material-information', async (req, res) => {
 					quantity_station: parseFloat(item.total_station) || 0,
 					total_delivery: 0,
 					total_station: Array.isArray(item.total_station)
-						? mat.total_delivery.reduce((total, arry) => total + parseFloat(arry || 0), 0) : parseFloat(item.total_station) || 0
+						? item.total_station.reduce((total, arry) => total + parseFloat(arry || 0), 0) : parseFloat(item.total_station) || 0
 				};
 			} else {
 				combinedMaterials[key].kg_station += parseFloat(item.kg_station) || 0;
@@ -489,22 +489,23 @@ app.get('/report-carbon-credit', async (req, res) => {
 });
 
 app.get('/report-customer-details-materials', async (req, res) => {
-	const startDate = req.query.startDate || showDate();
+	const startDate = req.query.startDate || null;
 	const endDate = req.query.endDate || showDate();
 	const limit = parseInt(req.query.limit, 10) || 5000;
 	const page = parseInt(req.query.page, 10) || 1;
 	const customerGroup = req.query.customer_group || [];
-	const inputStart = InStartDate(startDate) || InStartDate();
-	const inputEnd = InEndDate(endDate) || InEndDate();
 
-	const dayStart = String(inputStart[2]);
-	const monthStart = String(inputStart[1]);
-	const yearStart = String(inputStart[0]);
+	const emptyRender = {
+		count: 1, count_sub: 1,
+		modalMaterial: [], matDetailGroup: [], groupMat: [],
+		totalGroup: [], totals: [], materialCal: [], matDetail: [],
+		startDate: startDate || '', endDate: endDate,
+		limit, currentPage: page, totalPage: 0, customer_group: customerGroup
+	};
 
-	const dayEnd = String(inputEnd[2]);
-	const monthEnd = String(inputEnd[1]);
-	const yearEnd = String(inputEnd[0]);
-
+	if (!startDate) {
+		return res.render('Report-Customer-Details-materials.ejs', emptyRender);
+	}
 
 	try {
 		const [result, material] = await Promise.all([
@@ -827,7 +828,15 @@ app.get('/Scheduling-system', async (req, res) => {
 
 	} catch (err) {
 		console.error("LOCATION : API NOT FOUND", err.message);
-		res.render('Scheduling-system.ejs', { mapData: [], err: "Data Error: Cannot Fetch Data" });
+		res.render('Scheduling-system.ejs', {
+			mapData: [],
+			startDate: null,
+			endDate: null,
+			employees: [],
+			count: 1,
+			count_customer: 1,
+			err: "Data Error: Cannot Fetch Data"
+		});
 	}
 });
 

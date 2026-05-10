@@ -5,7 +5,11 @@ import fs from "fs";
 import axios from "axios";
 import xlsx from "xlsx";
 import csvParser from "csv-parser";
-import { extractlocation, SerialToDateBE } from "./function/scripts.js";
+import { extractlocation, SerialToDateBE} from "./function/scripts.js";
+import { promises } from "dns";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const thailandDB = require('./node_modules/thai-address-database/database/raw_database/raw_database.json');
 // import { SocketIo } from "socket.io";
 
 const db = new pg.Client({
@@ -68,7 +72,7 @@ LEFT JOIN thai_provinces p ON c.id_provinces = p.id
 LEFT JOIN thai_amphures am ON c.id_amphures = am.id
 LEFT JOIN thai_tambons t ON c.id_tambons = t.id
 LEFT JOIN status s ON c.id_status = s.id
-LEFT JOIN lookup_provinces lp ON c.address LIKE '%' || id_search ||'%'
+LEFT JOIN lookup_provinces lp ON c.address LIKE '%' || lp.id_search ||'%'
 ORDER BY c.id ASC;
 
     `;
@@ -134,7 +138,7 @@ app.get('/customers/:id', async (req, res) => {
 	try {
 		const result = await db.query(sql, [customer_id]);
 		if (result.rows.length === 0) {
-			return res.status(404).send('No Customer found with ID', err);
+			return res.status(404).send('No Customer found with ID');
 		}
 		res.json(result.rows[0]);
 	} catch (err) {
@@ -676,7 +680,89 @@ app.get('/api-location-customer', async (req, res) => {
 	}
 });
 
+app.get('/update-data', async (req, res) => {
+	try {
+	const partFile = `C:/Users/pornnatcha/Downloads/update_data/`
+	const partprovice = 'thai-province-data-master/xlsx/'
+	const FileGroupCustomer = `${partFile}จัดการกลุ่มสมาชิก.csv`;
+	const customerData = `${partFile}จัดการสมาชิก.csv`;
+	const proviceFile = `${partFile}${partprovice}thai_provinces.xlsx`;
+	const tambonsFile = `${partFile}${partprovice}thai_provinces.xlsx`;
+	const amphuresFile = `${partFile}${partprovice}thai_provinces.xlsx`;
+
+	const workbook_GC = xlsx.readFile(FileGroupCustomer)
+	const sheetGC = workbook_GC.Sheets[workbook_GC.SheetNames[0]];
+	const dataGC = xlsx.utils.sheet_to_json(sheetGC);
+
+	const workbook_CD = xlsx.readFile(customerData);
+	const sheetCD = workbook_CD.Sheets[workbook_CD.SheetNames[0]];
+	const dataCD = xlsx.utils.sheet_to_json(sheetCD);
+
+	const sqlProvice = 'SELECT * FROM thai_provinces'
+	const sqlTambon = 'SELECT * FROM thai_tambons'
+	const sqlAmphure = 'SELECT * FROM thai_amphures'
+
+	let resultCustomerUpdate = new Map();
+
+	const [provice, amphures, tambons] = await Promise.all([
+		db.query(sqlProvice),
+		db.query(sqlAmphure),
+		db.query(sqlTambon)
+	])
+
+	const provinceMap = [...new Set(thailandDB.map(item => item.province))];
+	const amphuresMap = [...new Set(thailandDB.map(item => item.amphoe))];;
+	const districtMap = thailandDB.map(item => item.district);
+	dataCD.forEach(item => {
+		const key = item['กลุ่มสมาชิก'] || '';
+		const cleanAddress = (item['ที่อยู่'] || '').trim();
+		const foundProvince = provinceMap.find(p => cleanAddress.includes(p)) || ''
+		const foundAmphures = amphuresMap.find(a => cleanAddress.includes(a)) || '';
+		const districtCandidates = districtMap.filter(d => cleanAddress.includes(d)) || '';
+
+		let currentDistrict = null;
+
+		if (districtCandidates === 1)
+			currentDistrict = districtCandidates[0];
+		else if (districtCandidates.length > 1)	{
+			currentDistrict = districtCandidates.find(d => d !== foundAmphures);
+			if (!currentDistrict)
+				currentDistrict = districtCandidates[0];
+		}
+		resultCustomerUpdate.set(key, {
+			id: item['ลำดับ'],
+			username: item['Username'],
+			fullname: item['ชื่อ-นามสกุล'],
+			phone: '0' + item['เบอร์โทรศัพท์'],
+			id_gender: 3,
+			id_customer: String(item['กลุ่มสมาชิก'] || '').trim(),
+			address: item['ที่อยู่'] || '',
+			id_tambons: districtCandidates,
+			id_amphures: foundAmphures,
+			id_provinces: foundProvince,
+			id_status: item['สถานะใช้งาน'] === 'TRUE' ? 1 : 2,
+			regisdate: item['วัน/เดือน/ปี เวลา ที่สมัคร']
+		})
+	})
+	dataGC.forEach(item => {
+		const IDkey = item['ลำดับที่'];
+		const lookupKey = String(item['ชื่อกลุ่มสมาชิก'] || '').trim();
+		if (lookupKey && resultCustomerUpdate.has(lookupKey)) {
+			let currentData = resultCustomerUpdate.get(lookupKey);
+			currentData.id_customer = IDkey
+			resultCustomerUpdate.set(item.id_customer, currentData)
+		}
+	})
+	console.log(resultCustomerUpdate)
+	res.json({
+		success: 'send data success !!'
+	})
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ error: "❌ เกิดข้อผิดพลาดในการประมวลผล" });
+	}
+})
+
 app.listen(port, () => {
 	console.log(`listening on API: ${port}`);
 })
-

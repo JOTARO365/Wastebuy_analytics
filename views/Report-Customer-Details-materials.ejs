@@ -401,20 +401,27 @@
                                 <div>GHG</div>
                                 <div>Tree</div>
                             </div>
-                            <% totals.forEach(totals => { %>
-                            <% if (totals.customer_group !== null) { %>
-                            <div class="body-content-group py-2 border-top d-grid body-content" style="grid-template-columns: 80px 1.5fr 1fr 1fr 1fr 1fr; cursor: pointer;"
-                                data-customer-group="<%= totals.customer_group %>"
-                                data-customer="<%= totals.location %>"
-                                onclick="showAllData(event)">
-                                <div class="text-center"> <%= count++ %></div>
-                                <div > <%= totals.customer_group %></div>
-                                <div> <%= (totals.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
-                                <div> <%= (totals.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2 , maximumFractionDigits:2}) %></div>
-                                <div> <%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
-                                <div> <%= parseInt(totals.ghg / 9.5).toLocaleString() %></div>
+                            <% if (totals.length === 0) { %>
+                            <div class="text-center text-muted py-4">
+                                <% if (!startDate) { %>
+                                    กรุณาเลือกวันที่เพื่อค้นหาข้อมูล
+                                <% } else { %>
+                                    ไม่พบข้อมูลในช่วงวันที่ที่เลือก
+                                <% } %>
                             </div>
                             <% } %>
+                            <% totals.forEach(function(item) { %>
+                            <div class="body-content-group py-2 border-top d-grid body-content" style="grid-template-columns: 80px 1.5fr 1fr 1fr 1fr 1fr; cursor: pointer;"
+                                data-customer-group="<%= item.customer_group || '' %>"
+                                data-customer="<%= item.location %>"
+                                onclick="showAllData(event)">
+                                <div class="text-center"> <%= count++ %></div>
+                                <div > <%= item.customer_group || 'ไม่ระบุกลุ่ม' %></div>
+                                <div> <%= (item.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
+                                <div> <%= (item.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2 , maximumFractionDigits:2}) %></div>
+                                <div> <%= (item.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
+                                <div> <%= parseInt(item.ghg / 9.5).toLocaleString() %></div>
+                            </div>
                             <% }) %>
                         </div>
                     </div>
@@ -1455,7 +1462,7 @@ function showDetails(event) {
     materialDetails.innerHTML = '';
 
     if (filterMaterials.length > 0) {
-        filterMaterials.slice(1).forEach(material => {
+        filterMaterials.forEach(material => {
             const row = document.createElement('div');
             row.className = 'row border-bottom border-end border-start py-1';
 
@@ -1488,8 +1495,8 @@ function showDetails(event) {
 
 
 
-    const data = filterMaterials.slice(1).map(item => item.kg_delivery);
-    const labels = filterMaterials.slice(1).map(item => item.item_name);
+    const data = filterMaterials.map(item => item.kg_delivery);
+    const labels = filterMaterials.map(item => item.item_name);
 
     const chartData = {
     labels: labels,
