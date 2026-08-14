@@ -63,571 +63,445 @@
         <div class="mx-4 border-2 border-top content-mat overflow-hidden" style="min-width: 1420px; max-width: 1620px;">
             <div class=" px-1 py-2">
                 <div class="d-flex flex-column rounded-2 section-1 border align-items-center" style="width: auto;">
-                    <div class="header-content row bg-success rounded-top text-white py-2" style="width: 100%;">              
-                        <div class="col-1">No.</div>
-                        <div class="col">Materials</div>
-                        <div class="col text-center">
-                            <span>Weights</span>
-                            <div class="row" style="font-size:10px;">
-                                <div class="col">Delivery</div>
-                                <div class="col">S11</div>
-                            </div>
-                        </div>
-                        <div class="col text-center">
-                            <span>Prices</span>
-                            <div class="row" style="font-size:10px;">
-                                <div class="col">Delivery</div>
-                                <div class="col">S11</div>
-                                <div class="col">Factory</div>
-                            </div>
-                        </div>
-                        <div class="col text-center">
-                            <span>Net Values</span>
-                            <div class="row" style="font-size:10px;">
-                                <div class="col">Delivery</div>
-                                <div class="col">S11</div>
-                                <div class="col">Factory</div>
-                            </div>
-                        </div>
-                        <div class="col text-center">
-                            <span>Profit/Loss</span>
-                            <div class="row" style="font-size:10px;">
-                                <div class="col">Delivery</div>
-                                <div class="col">S11</div>
-                                <div class="col">Factory</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 content-papar bg-danger fs-4 text-white text-center" >กระดาษ</div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 text-center" style="font-size: 10px;">
+                        <caption class="visually-hidden">รายงานรับซื้อวัสดุ แยกตามชนิด</caption>
+                        <thead class="bg-success text-white">
+                            <tr>
+                                <th scope="col" rowspan="2" style="width: 4%;">No.</th>
+                                <th scope="col" rowspan="2" class="text-start">Materials</th>
+                                <th scope="colgroup" colspan="2">Weights</th>
+                                <th scope="colgroup" colspan="3">Prices</th>
+                                <th scope="colgroup" colspan="3">Net Values</th>
+                                <th scope="colgroup" colspan="3">Profit/Loss</th>
+                            </tr>
+                            <tr>
+                                <th scope="col">Delivery</th><th scope="col">S11</th>
+                                <th scope="col">Delivery</th><th scope="col">S11</th><th scope="col">Factory</th>
+                                <th scope="col">Delivery</th><th scope="col">S11</th><th scope="col">Factory</th>
+                                <th scope="col">Delivery</th><th scope="col">S11</th><th scope="col">Factory</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><th scope="rowgroup" colspan="13" class="content-papar bg-danger fs-4 text-white text-center">กระดาษ</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "กระดาษ" && mat.quantity_delivery != 0) {%>
-                        <div class="row itemPaper body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
-                            <div class="col  ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div  class="col kg_deliTotal  kg_deli1"><%= (mat.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col kg_staTotal  kg_sta1"><%= (mat.kg_station).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                <tr class="itemPaper body-content">
+                            
+                            <td><%= counter++  %></td>
+                            <td class="fw-bold"><%= mat.item_name %></td>
+                                    <td class="kg_deliTotal kg_deli1"><%= (mat.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="kg_staTotal kg_sta1"><%= (mat.kg_station).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                            
+                                    <td> <%= (mat.price_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_station).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col price_deli price_deli1"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_sta price_sta1"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_fac price_fac1"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td class="price_deli price_deli1"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_sta price_sta1"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_fac price_fac1"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta1"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                    <div class="col proFitFac proFitFac1"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td><%= 0 %></td>
+                                    <td class="proFitSta proFitSta1"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                    <td class="proFitFac proFitFac1"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                        </div>
+                            
+                                </tr>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumPaper border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                        <div class="col-1"></div>
-                        <div class="col"></div>
-                        <div class="col">
-                            <div class="row">
-                            <div class="col total_deli1"></div>
-                            <div class="col total_sta1"></div>
+                                <tr class="sumPaper border fw-bold">
+                        <td></td>
+                        <td></td>
+                            <td class="total_deli1"></td>
+                            <td class="total_sta1"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"></div>
-                                <div class="col"></div>
-                                <div class="col"></div>
+                        
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col totalPriceDeli1"></div>
-                                <div class="col totalPriceSta1"></div>
-                                <div class="col totalPriceFac1"></div>
+                        
+                                <td class="totalPriceDeli1"></td>
+                                <td class="totalPriceSta1"></td>
+                                <td class="totalPriceFac1"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"> 0 </div>
-                                <div class="col totalProfitSta1"></div>
-                                <div class="col totalProfitFac1"></div>
+                        
+                                <td> 0 </td>
+                                <td class="totalProfitSta1"></td>
+                                <td class="totalProfitFac1"></td>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-12 bg-info fs-4 text-white text-center" >แก้ว</div>
+                        
+                                </tr>
+                            <tr><th scope="rowgroup" colspan="13" class="bg-info fs-4 text-white text-center">แก้ว</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "แก้ว" && mat.quantity_delivery != 0) {%>
-                            <div class="row itemGlass body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
-                                <div class="col  ">
-                                    <div class="row text-center" style="font-size:10px;">
+                                <tr class="itemGlass body-content">
+                            
+                                <td><%= counter++  %></td>
+                                <td class="fw-bold"><%= mat.item_name %></td>
                                         <% if (mat.item_name === "เบียร์ช้างใหญ่ (แบบใหม่)" || mat.item_name === "เบียร์ลีโอ " || mat.item_name === "เบียร์สิงห์ใหญ่" || mat.item_name === "เหล้าขาวเล็ก" || mat.item_name === "เหล้าขาวใหญ่") {%>
-                                            <div class="col kg_deliTotal kg_deli2"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
-                                            <div class="col kg_staTotal  kg_sta2"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
+                                            <td class="kg_deliTotal kg_deli2"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
+                                            <td class="kg_staTotal kg_sta2"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
                                         <% } else {%>
-                                            <div class="col kg_deli2"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                            <div class="col kg_sta2"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                            <td class="kg_deli2"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_sta2"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                         <% } %>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                
+                                        <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col price_deli price_deli2"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col price_sta price_sta2"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col price_fac price_fac2"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                
+                                        <td class="price_deli price_deli2"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td class="price_sta price_sta2"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td class="price_fac price_fac2"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col"><%= 0 %></div>
-                                        <div class="col proFitSta proFitSta2"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                        <div class="col proFitFac proFitFac2"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                
+                                        <td><%= 0 %></td>
+                                        <td class="proFitSta proFitSta2"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                        <td class="proFitFac proFitFac2"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                            </div>
+                                
+                                </tr>
                         <% } %>
                         <% }); %>
-                        <div class="mb-2 sumGlass border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                            <div class="col-1"></div>
-                            <div class="col"></div>
-                            <div class="col">
-                                <div class="row">
-                                <div class="col total_deli2"></div>
-                                <div class="col total_sta2"></div>
+                                <tr class="sumGlass border fw-bold">
+                            <td></td>
+                            <td></td>
+                                <td class="total_deli2"></td>
+                                <td class="total_sta2"></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col"></div>
-                                    <div class="col"></div>
-                                    <div class="col"></div>
+                            
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col totalPriceDeli2"></div>
-                                    <div class="col totalPriceSta2"></div>
-                                    <div class="col totalPriceFac2"></div>
+                            
+                                    <td class="totalPriceDeli2"></td>
+                                    <td class="totalPriceSta2"></td>
+                                    <td class="totalPriceFac2"></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col"> 0 </div>
-                                    <div class="col totalProfitSta2"></div>
-                                    <div class="col totalProfitFac2"></div>
+                            
+                                    <td> 0 </td>
+                                    <td class="totalProfitSta2"></td>
+                                    <td class="totalProfitFac2"></td>
                                 </div>
-                            </div>
-                        </div>
+                            
+                                </tr>
                     <div class="section-2"></div>
-                    <div class="col-12 bg-warning fs-4 text-white text-center" >น้ำมัน</div>
+                            <tr><th scope="rowgroup" colspan="13" class="bg-warning fs-4 text-white text-center">น้ำมัน</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "น้ำมัน" && mat.quantity_delivery != 0) {%>
-                            <div class="row itemOil body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
-                                <div class="col  ">
-                                    <div class="row text-center" style="font-size:10px;">
+                                <tr class="itemOil body-content">
+                            
+                                <td><%= counter++  %></td>
+                                <td class="fw-bold"><%= mat.item_name %></td>
                                         <% if(mat.item_name === "ปิ๊บน้ำมันพืชใหม่ (เปล่า)") {%>
-                                            <div class="col kg_deliTotal kg_deli3"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
-                                            <div class="col kg_staTotal  kg_sta3"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
+                                            <td class="kg_deliTotal kg_deli3"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
+                                            <td class="kg_staTotal kg_sta3"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
                                         <% } else { %>
-                                            <div class="col  kg_deli3"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                            <div class="col kg_sta3"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                            <td class="kg_deli3"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_sta3"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                         <% } %>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                
+                                        <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col price_deli price_deli3"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col price_sta price_sta3"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col price_fac price_fac3"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                
+                                        <td class="price_deli price_deli3"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td class="price_sta price_sta3"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td class="price_fac price_fac3"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col"><%= 0 %></div>
-                                        <div class="col proFitSta proFitSta3"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                        <div class="col proFitFac proFitFac3"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                
+                                        <td><%= 0 %></td>
+                                        <td class="proFitSta proFitSta3"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                        <td class="proFitFac proFitFac3"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                            </div>
+                                
+                                </tr>
                         <% } %>
                         <% }); %>
 
-                        <div class="mb-2 sumOil border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                            <div class="col-1"></div>
-                            <div class="col"></div>
-                            <div class="col">
-                                <div class="row">
-                                <div class="col total_deli3"></div>
-                                <div class="col total_sta3"></div>
+                                <tr class="sumOil border fw-bold">
+                            <td></td>
+                            <td></td>
+                                <td class="total_deli3"></td>
+                                <td class="total_sta3"></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col"></div>
-                                    <div class="col"></div>
-                                    <div class="col"></div>
+                            
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col totalPriceDeli3"></div>
-                                    <div class="col totalPriceSta3"></div>
-                                    <div class="col totalPriceFac3"></div>
+                            
+                                    <td class="totalPriceDeli3"></td>
+                                    <td class="totalPriceSta3"></td>
+                                    <td class="totalPriceFac3"></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col"> 0 </div>
-                                    <div class="col totalProfitSta3"></div>
-                                    <div class="col totalProfitFac3"></div>
+                            
+                                    <td> 0 </td>
+                                    <td class="totalProfitSta3"></td>
+                                    <td class="totalProfitFac3"></td>
                                 </div>
-                            </div>
-                        </div>
-                    <div class="col-12 bg-primary fs-4 text-white text-center" >เบ็ตเตล็ด</div>
+                            
+                                </tr>
+                            <tr><th scope="rowgroup" colspan="13" class="bg-primary fs-4 text-white text-center">เบ็ตเตล็ด</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "เบ็ตเตล็ด" && mat.quantity_delivery != 0) {%>
-                            <div class="row itemOther body-content py-2 border-top" style="width: 100%;">                            
-                                <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
-                                <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
-                                <div class="col  ">
-                                    <div class="row text-center" style="font-size:10px;">
+                                <tr class="itemOther body-content">
+                            
+                                <td><%= counter++  %></td>
+                                <td class="fw-bold"><%= mat.item_name %></td>
                                         <% if(mat.item_name === "จอทีวีนูน21นิ้ว ขึ้นไป" ||
                                               mat.item_name === "จอคอม 14 นิ้ว" || 
                                               mat.item_name === "ตู้เย็น" || 
                                               mat.item_name === "จอทีวีนูน14นิ้ว" ||
                                               mat.item_name === "เครื่องซักผ้า" ||
                                               mat.item_name === "จอคอม 21 นิ้ว ขึ้่นไป") {%>
-                                            <div class="col kg_deliTotal kg_deli4"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
-                                            <div class="col kg_staTotal  kg_sta4"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</div>
+                                            <td class="kg_deliTotal kg_deli4"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
+                                            <td class="kg_staTotal kg_sta4"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
 
                                         <% } else { %>
-                                            <div class="col  kg_deli4"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                            <div class="col kg_sta4"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                            <td class="kg_deli4"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_sta4"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                         <% } %>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                
+                                        <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col price_deli price_deli4"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col price_sta price_sta4"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                        <div class="col price_fac price_fac4"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                
+                                        <td class="price_deli price_deli4"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td class="price_sta price_sta4"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                        <td class="price_fac price_fac4"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                                <div class="col ">
-                                    <div class="row text-center" style="font-size:10px;">
-                                        <div class="col"><%= 0 %></div>
-                                        <div class="col proFitSta proFitSta4"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                        <div class="col proFitFac proFitFac4"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                                
+                                        <td><%= 0 %></td>
+                                        <td class="proFitSta proFitSta4"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                        <td class="proFitFac proFitFac4"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                     </div>
-                                </div>
-                            </div>
+                                
+                                </tr>
                         <% } %>
                         <% }); %>
 
-                        <div class="mb-2 sumOther border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                            <div class="col-1"></div>
-                            <div class="col"></div>
-                            <div class="col">
-                                <div class="row">
-                                <div class="col total_deli4"></div>
-                                <div class="col total_sta4"></div>
+                                <tr class="sumOther border fw-bold">
+                            <td></td>
+                            <td></td>
+                                <td class="total_deli4"></td>
+                                <td class="total_sta4"></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col"></div>
-                                    <div class="col"></div>
-                                    <div class="col"></div>
+                            
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col totalPriceDeli4"></div>
-                                    <div class="col totalPriceSta4"></div>
-                                    <div class="col totalPriceFac4"></div>
+                            
+                                    <td class="totalPriceDeli4"></td>
+                                    <td class="totalPriceSta4"></td>
+                                    <td class="totalPriceFac4"></td>
                                 </div>
-                            </div>
-                            <div class="col">
-                                <div class="row">
-                                    <div class="col"> 0 </div>
-                                    <div class="col totalProfitSta4"></div>
-                                    <div class="col totalProfitFac4"></div>
+                            
+                                    <td> 0 </td>
+                                    <td class="totalProfitSta4"></td>
+                                    <td class="totalProfitFac4"></td>
                                 </div>
-                            </div>
-                        </div>
+                            
+                                </tr>
                         <div class="section-3"></div>
-                    <div class="col-12 bg-info fs-4 text-white text-center" >พลาสติก</div>
+                            <tr><th scope="rowgroup" colspan="13" class="bg-info fs-4 text-white text-center">พลาสติก</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "พลาสติก" && mat.quantity_delivery != 0) {%>
-                            <div class="row itemPlastic body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
-                            <div class="col  ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col kg_deliTotal kg_deli5"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col kg_staTotal  kg_sta5"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                <tr class="itemPlastic body-content">
+                            
+                            <td><%= counter++  %></td>
+                            <td class="fw-bold"><%= mat.item_name %></td>
+                                    <td class="kg_deliTotal kg_deli5"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="kg_staTotal kg_sta5"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                            
+                                    <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col price_deli price_deli5"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_sta price_sta5"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_fac price_fac5"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td class="price_deli price_deli5"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_sta price_sta5"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_fac price_fac5"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta5"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                    <div class="col proFitFac proFitFac5"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td><%= 0 %></td>
+                                    <td class="proFitSta proFitSta5"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                    <td class="proFitFac proFitFac5"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                        </div>
+                            
+                                </tr>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumPlastic border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                        <div class="col-1"></div>
-                        <div class="col"></div>
-                        <div class="col">
-                            <div class="row">
-                            <div class="col total_deli5"></div>
-                            <div class="col total_sta5"></div>
+                                <tr class="sumPlastic border fw-bold">
+                        <td></td>
+                        <td></td>
+                            <td class="total_deli5"></td>
+                            <td class="total_sta5"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"></div>
-                                <div class="col"></div>
-                                <div class="col"></div>
+                        
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col totalPriceDeli5"></div>
-                                <div class="col totalPriceSta5"></div>
-                                <div class="col totalPriceFac5"></div>
+                        
+                                <td class="totalPriceDeli5"></td>
+                                <td class="totalPriceSta5"></td>
+                                <td class="totalPriceFac5"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"> 0 </div>
-                                <div class="col totalProfitSta5"></div>
-                                <div class="col totalProfitFac5"></div>
+                        
+                                <td> 0 </td>
+                                <td class="totalProfitSta5"></td>
+                                <td class="totalProfitFac5"></td>
                             </div>
-                        </div>
-                    </div>
+                        
+                                </tr>
                     <div class="section-4"></div>
-                    <div class="col-12 bg-secondary fs-4 text-white text-center" >โลหะมีค่า</div>
+                            <tr><th scope="rowgroup" colspan="13" class="bg-secondary fs-4 text-white text-center">โลหะมีค่า</th></tr>
                         <% materials.forEach(mat => {%>
                         <% if (mat.category === "โลหะมีค่า" && mat.quantity_delivery != 0) {%>
-                            <div class="row itemMetal1 body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
-                            <div class="col  ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col kg_deliTotal kg_deli6"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col kg_staTotal  kg_sta6"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                <tr class="itemMetal1 body-content">
+                            
+                            <td><%= counter++  %></td>
+                            <td class="fw-bold"><%= mat.item_name %></td>
+                                    <td class="kg_deliTotal kg_deli6"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="kg_staTotal kg_sta6"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                            
+                                    <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col price_deli price_deli6"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_sta price_sta6"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_fac price_fac6"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td class="price_deli price_deli6"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_sta price_sta6"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_fac price_fac6"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta6"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                    <div class="col proFitFac proFitFac6"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td><%= 0 %></td>
+                                    <td class="proFitSta proFitSta6"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                    <td class="proFitFac proFitFac6"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                        </div>
+                            
+                                </tr>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumMetal1 border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                        <div class="col-1"></div>
-                        <div class="col"></div>
-                        <div class="col">
-                            <div class="row">
-                            <div class="col total_deli6"></div>
-                            <div class="col total_sta6"></div>
+                                <tr class="sumMetal1 border fw-bold">
+                        <td></td>
+                        <td></td>
+                            <td class="total_deli6"></td>
+                            <td class="total_sta6"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"></div>
-                                <div class="col"></div>
-                                <div class="col"></div>
+                        
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col totalPriceDeli6"></div>
-                                <div class="col totalPriceSta6"></div>
-                                <div class="col totalPriceFac6"></div>
+                        
+                                <td class="totalPriceDeli6"></td>
+                                <td class="totalPriceSta6"></td>
+                                <td class="totalPriceFac6"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"> 0 </div>
-                                <div class="col totalProfitSta6"></div>
-                                <div class="col totalProfitFac6"></div>
+                        
+                                <td> 0 </td>
+                                <td class="totalProfitSta6"></td>
+                                <td class="totalProfitFac6"></td>
                             </div>
-                        </div>
-                    </div>
+                        
+                                </tr>
                     <div class="section-5"></div>
-                        <div class="col-12 bg-dark fs-4 text-white text-center" >เหล็ก</div>
+                            <tr><th scope="rowgroup" colspan="13" class="bg-dark fs-4 text-white text-center">เหล็ก</th></tr>
                         <% materials.forEach(mat => {%>
                             <% if (mat.category === "เหล็ก" && mat.quantity_delivery != 0) {%>
-                                <div class="row itemMetal2 body-content py-2 border-top" style="width: 100%;">                            
-                            <div class="col-1  " style="font-size:10px;"><%= counter++  %></div>
-                            <div class="col fw-bold" style="font-size:10px;"><%= mat.item_name %></div>
-                            <div class="col  ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col kg_deliTotal kg_deli7"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col kg_staTotal  kg_sta7"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                                <tr class="itemMetal2 body-content">
+                            
+                            <td><%= counter++  %></td>
+                            <td class="fw-bold"><%= mat.item_name %></td>
+                                    <td class="kg_deliTotal kg_deli7"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="kg_staTotal kg_sta7"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col"><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
+                            
+                                    <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (mat.price_factory).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col price_deli price_deli7"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_sta price_sta7"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div class="col price_fac price_fac7"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td class="price_deli price_deli7"><%= (mat.quantity_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_sta price_sta7"><%= (mat.quantity_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td class="price_fac price_fac7"><%= (mat.kg_station * mat.price_factory).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                            <div class="col ">
-                                <div class="row text-center" style="font-size:10px;">
-                                    <div class="col"><%= 0 %></div>
-                                    <div class="col proFitSta proFitSta7"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                    <div class="col proFitFac proFitFac7"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
+                            
+                                    <td><%= 0 %></td>
+                                    <td class="proFitSta proFitSta7"><%= (mat.quantity_station - mat.quantity_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                    <td class="proFitFac proFitFac7"><%= ((mat.kg_station * mat.price_factory) - mat.quantity_station).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
                                 </div>
-                            </div>
-                        </div>
+                            
+                                </tr>
                     <% } %>
                     <% }); %>
-                    <div class="mb-2 sumMetal2 border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                        <div class="col-1"></div>
-                        <div class="col"></div>
-                        <div class="col">
-                            <div class="row">
-                            <div class="col total_deli7"></div>
-                            <div class="col total_sta7"></div>
+                                <tr class="sumMetal2 border fw-bold">
+                        <td></td>
+                        <td></td>
+                            <td class="total_deli7"></td>
+                            <td class="total_sta7"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"></div>
-                                <div class="col"></div>
-                                <div class="col"></div>
+                        
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col totalPriceDeli7"></div>
-                                <div class="col totalPriceSta7"></div>
-                                <div class="col totalPriceFac7"></div>
+                        
+                                <td class="totalPriceDeli7"></td>
+                                <td class="totalPriceSta7"></td>
+                                <td class="totalPriceFac7"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"> 0 </div>
-                                <div class="col totalProfitSta7"></div>
-                                <div class="col totalProfitFac7"></div>
+                        
+                                <td> 0 </td>
+                                <td class="totalProfitSta7"></td>
+                                <td class="totalProfitFac7"></td>
                             </div>
-                        </div>
-                    </div>
+                        
+                                </tr>
                     
-                    <div class="col-12 bg-success fs-4 text-white text-center" > TOTALS</div>
-                    <div class="mb-2 sumAll border rounded-bottom text-center py-2 fw-bold row" style="width: 100%; font-size:10px;">
-                        <div class="col-1"></div>
-                        <div class="col"></div>
-                        <div class="col">
-                            <div class="row">
-                            <div class="col total_deli"></div>
-                            <div class="col total_sta"></div>
+                            <tr><th scope="rowgroup" colspan="13" class="bg-success fs-4 text-white text-center">TOTALS</th></tr>
+                                <tr class="sumAll border fw-bold">
+                        <td></td>
+                        <td></td>
+                            <td class="total_deli"></td>
+                            <td class="total_sta"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"></div>
-                                <div class="col"></div>
-                                <div class="col"></div>
+                        
+                                <td></td>
+                                <td></td>
+                                <td></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col totalPriceDeli"></div>
-                                <div class="col totalPriceSta"></div>
-                                <div class="col totalPriceFac"></div>
+                        
+                                <td class="totalPriceDeli"></td>
+                                <td class="totalPriceSta"></td>
+                                <td class="totalPriceFac"></td>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="row">
-                                <div class="col"> 0 </div>
-                                <div class="col totalProfitSta"></div>
-                                <div class="col totalProfitFac"></div>
+                        
+                                <td> 0 </td>
+                                <td class="totalProfitSta"></td>
+                                <td class="totalProfitFac"></td>
                             </div>
-                        </div>
-                    </div>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+                        
+                                </tr>
+                        </tbody>
+                    </table>
+                </div>
 <script>
     $(document).ready(function() {
 
@@ -935,7 +809,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push(...header, ...subHeader, ...headerPaper);
 
     rowsPaper.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -947,7 +821,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     });
 
     sumPaper.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -962,7 +836,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push(...headerGlass);
 
     rowsGlass.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -973,7 +847,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     });
 
     sumGlass.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -988,7 +862,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push(...headerOil);
 
     rowsOil.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -999,7 +873,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     });
     
     sumOil.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1014,7 +888,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push(...headerOther);
 
     rowsOther.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1025,7 +899,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     });
 
     sumOther.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1040,7 +914,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push(...headerPlastic);
 
     rowsPlastic.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1051,7 +925,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     });
 
     sumPlastic.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1066,7 +940,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push(...headerMetal1);
 
     rowsMetal1.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1076,7 +950,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
         data.push(filData);
     })
     sumMetal1.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1091,7 +965,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push(...headerMetal2);
 
     rowsMetal2.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
@@ -1100,7 +974,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
         data.push(filData);
     })
     sumMetal2.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {
@@ -1113,7 +987,7 @@ document.getElementById('export-excel').addEventListener('click', function() {
     data.push([]);
     data.push(...headerSum);
     sumAll.forEach((row, index) => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = [];
 
         cells.forEach(cell => {

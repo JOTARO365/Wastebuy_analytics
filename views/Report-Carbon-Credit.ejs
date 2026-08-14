@@ -364,41 +364,43 @@
         </div>
         <div class="mx-4 border-2 border-top ">
             <div class="px-1 py-2">
-                <div class="header-content d-grid rounded-top bg-success rounded-top fw-bold text-white py-2" style="grid-template-columns: 40px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; font-size: 10px;" >
-                    <div class="text-center"> No.</div>
-                    <div>Date</div>
-                    <div>Groups</div>
-                    <div>Customers</div>
-                    <div>Sub district</div>
-                    <div>District</div>
-                    <div>Provices</div>
-                    <div>Weight</div>
-                    <div>Price</div>
-                    <div>GHG</div>
-                    <div>Tree</div>
-                    <!-- <div>Point</div>
-                    <div>Redeem</div>
-                    <div>Amount Point</div> -->
-                </div>
-                <div id="content-purchase" class="scroll-content text-start  border overflow-auto" style="max-height: 400px;">
-                    <% totals.forEach(totals => {%>
-                    <div class=" py-2 border-top d-grid body-content" style="font-size: 10px; grid-template-columns: 40px 1fr 1.5fr 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;">
-                        <div class="text-center"> <%= count++ %> </div>
-                        <div ><%= totals.purchase_date %></div>
-                        <div ><%= totals.customer_group %></div>
-                        <div ><%= totals.location %></div>
-                        <div ><%= totals.tambons %> </div>
-                        <div ><%= totals.amphures %></div>
-                        <div ><%= totals.provinces %></div>
-                        <div ><%= (totals.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })%></div>
-                        <div ><%= (totals.total_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
-                        <div ><%= (totals.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></div>
-                        <div ><%= parseInt(totals.ghg / 9.4999) %></div>
-                        <div ></div>
-                        <div ></div>
-                        <div ></div>
-                    </div>
-                   <% }) %>
+<div id="content-purchase" class="table-responsive border overflow-auto" style="max-height: 400px;">
+                    <table class="table table-sm table-hover align-middle mb-0" style="font-size: 10px;">
+                        <caption class="visually-hidden">ยอดคาร์บอนเครดิตรายชื่อสมาชิก</caption>
+                        <thead class="bg-success text-white position-sticky top-0">
+                            <tr>
+                                <th scope="col" class="text-center" style="width: 40px;">No.</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Groups</th>
+                                <th scope="col">Customers</th>
+                                <th scope="col">Sub district</th>
+                                <th scope="col">District</th>
+                                <th scope="col">Provinces</th>
+                                <th scope="col" class="text-end">Weight</th>
+                                <th scope="col" class="text-end">Price</th>
+                                <th scope="col" class="text-end">GHG</th>
+                                <th scope="col" class="text-end">Tree</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% const money = (n) => (n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); %>
+                            <% totals.forEach(totals => { %>
+                            <tr class="body-content">
+                                <td class="text-center"><%= count++ %></td>
+                                <td><%= totals.purchase_date %></td>
+                                <td><%= totals.customer_group %></td>
+                                <td><%= totals.location %></td>
+                                <td><%= totals.tambons %></td>
+                                <td><%= totals.amphures %></td>
+                                <td><%= totals.provinces %></td>
+                                <td class="text-end"><%= money(totals.kg_delivery) %></td>
+                                <td class="text-end"><%= money(totals.total_delivery) %></td>
+                                <td class="text-end"><%= money(totals.ghg) %></td>
+                                <td class="text-end"><%= parseInt(totals.ghg / 9.4999) %></td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <!-- <div class="d-flex justify-content-end pagination-controls">
@@ -489,7 +491,7 @@ function print() {
 
     // ดึงข้อมูลจากแต่ละแถว
     rows.forEach(row => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = Array.from(cells).map(cell => cell.textContent.trim());
         data.push(rowData);
     });

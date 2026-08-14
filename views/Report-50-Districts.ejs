@@ -63,136 +63,76 @@
         <div class="border-2 border-top mt-4">
             <div class="py-2">
                 <div class="rounded-2 d-flex flex-column align-items-center">
-                    <div class="header-content row bg-success rounded-top fw-bold  text-white py-2" style="width: 90%; font-size: 10px;">
-                        <div class="col">No.</div>
-                        <div class="col">Districts</div>
-                        <div class="col">District Groups</div>
-                        <div class="col">Weight</div>
-                        <div class="col">Price</div>
-                        <div class="col">GHG</div>
-                        <div class="col">Tree</div>
-                    </div>
-                    <% total.forEach(total => {%>
-                       <% if (total.amphures !== null) {%>
-                    <div class="row py-2 border-top body-content border-start border-end " style="width: 90%; font-size: 10px;">
-                        <div class="col"><%= count++ %></div>
-                        <div class="col"><%= total.amphures %></div>
-                        <%
-                        const easternDis = [
-                            "เขตลาดกระบัง",
-                            "เขตหนองจอก",
-                            "เขตบางกะปิ",
-                            "เขตประเวศ",
-                            "เขตบึงกุ่ม",
-                            "เขตคันนายาว",
-                            "เขตมีนบุรี",
-                            "เขตคลองสามวา",
-                            "เขตสะพานสูง"
-                        ]
-                        const northDis = [
-                            "เขตสายไหม",
-	                        "เขตจตุจักร",
-	                        "เขตหลักสี่",
-	                        "เขตดอนเมือง",
-	                        "เขตบางซื่อ",
-	                        "เขตลาดพร้าว",
-	                        "เขตบางเขน"
-                        ]
-
-                        const centralDis = [
-                            "เขตป้อมปราบศัตรูพ่าย",
-	                        "เขตวังทองหลาง",
-	                        "เขตสัมพันธวงศ์",
-	                        "เขตพญาไท",
-	                        "เขตดินแดง",
-	                        "เขตดุสิต",
-	                        "เขตพระนคร",
-	                        "เขตห้วยขวาง",
-	                        "เขตราชเทวี"
-                        ]
-
-                        const southDis = [
-                            "เขตวัฒนา",
-	                        "เขตสวนหลวง",
-	                        "เขตพระโขนง",
-	                        "เขตสาทร",
-	                        "เขตคลองเตย",
-	                        "เขตบางคอแหลม",
-	                        "เขตปทุมวัน",
-	                        "เขตบางรัก",
-	                        "เขตยานนาวา",
-	                        "เขตบางนา"
-                        ]
-                        const northTon = [
-                            "เขตบางพลัด",
-	                        "เขตบางกอกน้อย",
-	                        "เขตบางกอกใหญ่",
-	                        "เขตตลิ่งชัน",
-	                        "เขตทวีวัฒนา",
-	                        "เขตจอมทอง",
-	                        "เขตธนบุรี",
-	                        "เขตคลองสาน"
-                        ]
-
-                        const southTon = [
-                            "เขตบางขุนเทียน",
-	                        "เขตบางแค",
-	                        "เขตหนองแขม",
-	                        "เขตภาษีเจริญ",
-	                        "เขตบางบอน",
-	                        "เขตทุ่งครุ",
-	                        "เขตราษฎร์บูรณะ"
-                        ]
-                            if (easternDis.includes(total.amphures)) {
-                        %>
-                                <div class="col">กรุงเทพตะวันออก</div>
-                        <%} else if (northDis.includes(total.amphures)) {%>
-                                <div class="col">กรุงเทพเหนือ</div>
-                        <%} else if (centralDis.includes(total.amphures)) {%>
-                                <div class="col">กรุงเทพกลาง</div>
-                        <%} else if (southDis.includes(total.amphures)) {%>
-                                <div class="col">กรุงเทพใต้</div>
-                        <%} else if (northTon.includes(total.amphures)) {%>
-                                <div class="col">กรุงธนเหนือ</div>
-                        <%} else if (southTon.includes(total.amphures)) {%>
-                                <div class="col">กรุงธนใต้</div>
-                        <% } else  {%>
-                                <div class="col">นอกเขตพื้นที่กรุงเทพ</div>
-                        <% } %>
-                        <div class="col kg"><%= (total.kg_delivery).toLocaleString() %></div>
-                        <div class="col price"><%= (total.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                        <div class="col ghg"><%= (total.ghg).toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                        <div class="col tree"><%= (parseInt(total.ghg / 9.4999)).toLocaleString() %></div>
-                    </div>
-                    <% } %>
-                   <% }); %>
-				   <div class="row py-2 border-top body-content border-start border-end " style="width: 90%; font-size: 10px;">
-					<div class="col">99</div>
-                    	<div class="col">ลูกค้าทั่วไป</div>
-                    	<div class="col ">ไม่ระบุเขตพื้นที่</div>
-                    	<div class="col kg"><%= PublicSum.kg_delivery.toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                    	<div class="col price"><%= PublicSum.total_delivery.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                    	<div class="col ghg"><%= PublicSum.ghg.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2})%></div>
-                    	<div class="col tree"><%= (parseInt(PublicSum.ghg / 9.4999)).toLocaleString() %></div>
-				   </div>
-				   <div class="row py-2 border-top body-content border-start border-end " style="width: 90%; font-size: 10px;">
-					<div class="col">100</div>
-                    	<div class="col">ลูกค้า Line</div>
-                    	<div class="col ">ไม่ระบุเขตพื้นที่</div>
-                    	<div class="col kg"><%= Linesum.kg_delivery.toLocaleString(undefined, { minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                    	<div class="col price"><%= Linesum.total_delivery.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                    	<div class="col ghg"><%= Linesum.ghg.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2})%></div>
-                    	<div class="col tree"><%= (parseInt(Linesum.ghg / 9.4999)).toLocaleString() %></div>
-				   </div>
-                   <div class="row py-3 fw-bold border rounded-bottom border-top border-2 body-content" style="width: 90%; font-size: 12px;">
-                    	<div class="col"></div>
-                    	<div class="col"></div>
-                    	<div class="col">รวม</div>
-                    	<div class="col totalKg"></div>
-                    	<div class="col totalPrice"></div>
-                    	<div class="col totalGhg"></div>
-                    	<div class="col totalTree"></div>
-                	</div>
+<div class="table-responsive" style="width: 90%;">
+                    <table class="table table-sm align-middle mb-0" style="font-size: 10px;">
+                        <caption class="visually-hidden">น้ำหนักและก๊าซเรือนกระจก แยกรายเขต</caption>
+                        <thead class="bg-success text-white">
+                            <tr>
+                                <th scope="col" style="width: 5%;">No.</th>
+                                <th scope="col">Districts</th>
+                                <th scope="col">District Groups</th>
+                                <th scope="col" class="text-end">Weight</th>
+                                <th scope="col" class="text-end">Price</th>
+                                <th scope="col" class="text-end">GHG</th>
+                                <th scope="col" class="text-end">Tree</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%
+                            // app.js ส่งรายชื่อเขตแต่ละกลุ่มมาให้แล้ว ไม่ต้องประกาศซ้ำในนี้
+                            const zoneOf = (amphure) =>
+                                  easternDis.includes(amphure) ? 'กรุงเทพตะวันออก'
+                                : northDis.includes(amphure)   ? 'กรุงเทพเหนือ'
+                                : centralDis.includes(amphure) ? 'กรุงเทพกลาง'
+                                : southDis.includes(amphure)   ? 'กรุงเทพใต้'
+                                : northTon.includes(amphure)   ? 'กรุงธนเหนือ'
+                                : southTon.includes(amphure)   ? 'กรุงธนใต้'
+                                : 'นอกเขตพื้นที่กรุงเทพ';
+                            const money = (n) => (n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            %>
+                            <% total.forEach(total => { %>
+                                <% if (total.amphures !== null) { %>
+                                <tr class="body-content">
+                                    <td><%= count++ %></td>
+                                    <td><%= total.amphures %></td>
+                                    <td><%= zoneOf(total.amphures) %></td>
+                                    <td class="kg text-end"><%= (total.kg_delivery).toLocaleString() %></td>
+                                    <td class="price text-end"><%= money(total.total_delivery) %></td>
+                                    <td class="ghg text-end"><%= money(total.ghg) %></td>
+                                    <td class="tree text-end"><%= (parseInt(total.ghg / 9.4999)).toLocaleString() %></td>
+                                </tr>
+                                <% } %>
+                            <% }); %>
+                            <tr class="body-content">
+                                <td>99</td>
+                                <td>ลูกค้าทั่วไป</td>
+                                <td>ไม่ระบุเขตพื้นที่</td>
+                                <td class="kg text-end"><%= money(PublicSum.kg_delivery) %></td>
+                                <td class="price text-end"><%= money(PublicSum.total_delivery) %></td>
+                                <td class="ghg text-end"><%= money(PublicSum.ghg) %></td>
+                                <td class="tree text-end"><%= (parseInt(PublicSum.ghg / 9.4999)).toLocaleString() %></td>
+                            </tr>
+                            <tr class="body-content">
+                                <td>100</td>
+                                <td>ลูกค้า Line</td>
+                                <td>ไม่ระบุเขตพื้นที่</td>
+                                <td class="kg text-end"><%= money(Linesum.kg_delivery) %></td>
+                                <td class="price text-end"><%= money(Linesum.total_delivery) %></td>
+                                <td class="ghg text-end"><%= money(Linesum.ghg) %></td>
+                                <td class="tree text-end"><%= (parseInt(Linesum.ghg / 9.4999)).toLocaleString() %></td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="fw-bold border-top border-2" style="font-size: 12px;">
+                            <tr>
+                                <td colspan="3">รวม</td>
+                                <td class="totalKg text-end"></td>
+                                <td class="totalPrice text-end"></td>
+                                <td class="totalGhg text-end"></td>
+                                <td class="totalTree text-end"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
 
 
 <script>
@@ -244,7 +184,7 @@
 
     // ดึงข้อมูลจากแต่ละแถว
     rows.forEach(row => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = Array.from(cells).map(cell => cell.textContent.trim());
         data.push(rowData);
     });
