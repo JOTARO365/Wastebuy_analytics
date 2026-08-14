@@ -1,5 +1,69 @@
             </div><!-- /#content -->
         </div><!-- /.container-fluid -->
     </div><!-- /.d-flex -->
+
+<script>
+    // ── สถานะกำลังโหลด ────────────────────────────────────────────
+    // ค้นหารายงานคือการโหลดหน้าใหม่ ซึ่งกินเวลาหลายวินาทีเมื่อช่วงวันที่กว้าง
+    // ระหว่างนั้นเบราว์เซอร์ยังแสดงหน้าเดิม กดซ้ำได้ และไม่มีอะไรบอกว่ารับคำสั่งแล้ว
+    (function () {
+        const overlay = document.getElementById('page-loading');
+        const label = document.getElementById('page-loading-text');
+        if (!overlay) return;
+
+        let shown = false;
+        function showLoading(message) {
+            if (shown) return;
+            shown = true;
+            if (message) label.textContent = message;
+            overlay.dataset.visible = 'true';
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        document.addEventListener('submit', function (e) {
+            const form = e.target;
+            if (!(form instanceof HTMLFormElement) || form.noValidate === false && !form.checkValidity()) return;
+            showLoading('กำลังดึงข้อมูล...');
+            // กันกดซ้ำระหว่างรอ แต่ปล่อยให้ค่าถูกส่งไปก่อน
+            setTimeout(function () {
+                form.querySelectorAll('button[type="submit"]').forEach(function (b) { b.disabled = true; });
+            }, 0);
+        }, true);
+
+        // ลิงก์เปลี่ยนหน้า (แบ่งหน้า / เมนูซ้าย) ก็ใช้เวลาเท่ากัน
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('a[href]');
+            if (!link || link.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey) return;
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+            showLoading('กำลังเปิดหน้า...');
+        });
+
+        // กลับมาด้วยปุ่ม Back เบราว์เซอร์คืนหน้าจาก cache — ต้องซ่อน overlay ทิ้ง
+        window.addEventListener('pageshow', function () {
+            shown = false;
+            overlay.dataset.visible = 'false';
+            overlay.setAttribute('aria-hidden', 'true');
+            document.querySelectorAll('button[type="submit"][disabled]')
+                .forEach(function (b) { b.disabled = false; });
+        });
+
+        window.addEventListener('beforeprint', function () {
+            overlay.dataset.visible = 'false';
+        });
+    })();
+
+    // ── แจ้งเตือนแบบไม่บล็อก ──────────────────────────────────────
+    // alert() หยุดทั้งหน้าไว้จนกว่าจะกดปิด และทำให้สคริปต์อัตโนมัติค้าง
+    window.notify = function (message, ms) {
+        const area = document.getElementById('toast-area');
+        if (!area) return;
+        const item = document.createElement('div');
+        item.className = 'toast-msg';
+        item.textContent = message;
+        area.appendChild(item);
+        setTimeout(function () { item.remove(); }, ms || 4000);
+    };
+</script>
 </body>
 </html>

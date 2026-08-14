@@ -260,7 +260,7 @@ stations.forEach(st => {
           const q = panel.querySelector('.driver-search').value.trim();
           if (!q) return;
           const found = findAvailableCustomerByName(q);
-          if (!found) { alert('ไม่พบลูกค้าที่ว่างชื่อตรงกับที่ค้นหา'); return; }
+          if (!found) { notify('ไม่พบลูกค้าที่ว่างชื่อตรงกับที่ค้นหา'); return; }
           assignToDriver(d.id, found.id);
           panel.querySelector('.driver-search').value = '';
           renderCustomers();
@@ -376,7 +376,7 @@ stations.forEach(st => {
       const last = state.ui.lastActiveDriverId;
       const targetId = (last && !state.ui.offDriverIds.has(last)) ? last : fallback;
 
-      if (!targetId) { alert('ไม่พบคนขับที่พร้อมรับงาน'); return; }
+      if (!targetId) { notify('ไม่พบคนขับที่พร้อมรับงาน'); return; }
       assignToDriver(targetId, c.id);
       renderCustomers();
       renderDrivers();

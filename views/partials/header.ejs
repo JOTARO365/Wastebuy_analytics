@@ -17,8 +17,76 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        /* รายงานบางช่วงใช้เวลาหลายวินาที ระหว่างนั้นหน้าเดิมยังค้างอยู่บนจอ
+           ไม่มีอะไรบอกว่ากดติดแล้ว — overlay นี้ตอบทันทีที่กด */
+        #page-loading {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: none;
+            place-items: center;
+            background: rgba(255, 255, 255, .78);
+            backdrop-filter: blur(1px);
+        }
+        #page-loading[data-visible="true"] { display: grid; }
+        #page-loading .box {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+            padding: 1rem 1.6rem;
+            background: #fff;
+            border: 1px solid #d5ded9;
+            border-radius: .5rem;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, .12);
+            font-size: .95rem;
+        }
+        #page-loading .ring {
+            width: 22px;
+            height: 22px;
+            flex: none;
+            border: 3px solid #cfe3d8;
+            border-top-color: #198754;
+            border-radius: 50%;
+            animation: page-loading-spin .8s linear infinite;
+        }
+        @keyframes page-loading-spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            #page-loading .ring { animation-duration: 2.4s; }
+        }
+
+        /* แจ้งเตือนแบบไม่บล็อกหน้าจอ ใช้แทน alert() */
+        #toast-area {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2100;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            pointer-events: none;
+        }
+        #toast-area .toast-msg {
+            background: #332a1a;
+            color: #fff;
+            padding: .6rem 1rem;
+            border-radius: .4rem;
+            border-left: 4px solid #ffc107;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, .2);
+            font-size: .9rem;
+            max-width: 90vw;
+        }
+    </style>
 </head>
 <body class="scroll-content">
+    <div id="page-loading" aria-hidden="true">
+        <div class="box" role="status" aria-live="polite">
+            <span class="ring"></span>
+            <span id="page-loading-text">กำลังดึงข้อมูล...</span>
+        </div>
+    </div>
+    <div id="toast-area" role="status" aria-live="polite"></div>
     <div class="d-flex">
         <nav class="d-flex flex-column justify-content-center shadow-sm bg-success no-print" style="width: 300px; height: auto;">
             <div class="shadow-sm bg-white">
