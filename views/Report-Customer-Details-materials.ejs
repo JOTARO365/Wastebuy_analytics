@@ -402,9 +402,10 @@
                                 </td></tr>
                             <% } %>
                             <% totals.forEach(function(item) { %>
-                                <tr class="body-content-group body-content" style="cursor: pointer;">"
-                                data-customer="<%= item.location %>"
-                                onclick="showAllData(event)">
+                                <tr class="body-content-group body-content" style="cursor: pointer;"
+                                    data-customer-group="<%= item.customer_group || '' %>"
+                                    data-customer="<%= item.location %>"
+                                    onclick="showAllData(event)">
                                 <td class="text-center"> <%= count++ %></td>
                                 <td> <%= item.customer_group || 'ไม่ระบุกลุ่ม' %></td>
                                 <td> <%= (item.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </td>
@@ -509,7 +510,8 @@
                             <tbody>
 
                             <% materialCal.forEach(s => { %>
-                                <tr class="body-content item" style="cursor: pointer;">"
+                                <tr class="body-content item" style="cursor: pointer;"
+                                   data-purchase-number="<%= s.purchase_number %>"
                                    data-purchase-date="<%= s.purchase_date %>"
                                    data-location="<%= s.location %>"
                                    data-customer-group="<%= s.customer_group %>"
