@@ -444,30 +444,33 @@
                                         <canvas id="matGroupChart"></canvas>
                                     </div>
                                     <div class="col-12 p-2" style="font-size: 10px; height: 30%;">
-                                        <div class="d-grid bg-success rounded-top text-center text-white py-2" style="grid-template-columns: 5% 24% 14% 28% 15% 14%; ">
-                                            <div class="">No.</div>
-                                            <div class="">Customer</div>
-                                            <div >Carbon Credits</div>
-                                            <div >Materials</div>
-                                            <div class="text-center">Weight ( กก. )</div>
-                                            <div class="text-center">Price ( บาท )</div>
+                                        <div class="table-responsive overflow-auto" style="height: 60%;">
+                                            <table class="table table-sm mb-0 text-center align-middle">
+                                                <caption class="visually-hidden">คาร์บอนเครดิตและน้ำหนักแยกรายวัสดุ ของสมาชิกในกลุ่ม</caption>
+                                                <thead class="bg-success text-white position-sticky top-0">
+                                                    <tr>
+                                                        <th scope="col" rowspan="2" style="width: 5%;">No.</th>
+                                                        <th scope="col" rowspan="2" style="width: 24%;">Customer</th>
+                                                        <th scope="colgroup" colspan="2">Carbon Credits</th>
+                                                        <th scope="colgroup" colspan="7">Materials</th>
+                                                        <th scope="col" rowspan="2" style="width: 15%;">Weight ( กก. )</th>
+                                                        <th scope="col" rowspan="2" style="width: 14%;">Price ( บาท )</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th scope="col">GHG</th>
+                                                        <th scope="col">TREE</th>
+                                                        <th scope="col">กระดาษ</th>
+                                                        <th scope="col">แก้ว</th>
+                                                        <th scope="col">พลาสติก</th>
+                                                        <th scope="col">โลหะมีค่า</th>
+                                                        <th scope="col">เหล็ก</th>
+                                                        <th scope="col">น้ำมัน</th>
+                                                        <th scope="col">เบ็ตเตล็ด</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="content-customer"></tbody>
+                                            </table>
                                         </div>
-                                        <div class="d-grid bg-success text-white text-center py-2" style="grid-template-columns:5% 24% 7% 7% repeat(7, 4%) 15% 14%;">
-                                            <div ></div>
-                                            <div ></div>
-                                            <div>GHG</div>
-                                            <div>TREE</div>
-                                            <div >กระดาษ</div>
-                                            <div >แก้ว</div>
-                                            <div >พลาสติก</div>
-                                            <div >โลหะมีค่า</div>
-                                            <div >เหล็ก</div>
-                                            <div >น้ำมัน</div>
-                                            <div >เบ็ตเตล็ด</div>
-                                            <div></div>
-                                            <div></div>
-                                        </div>
-                                        <div id="content-customer" class="scroll-content overflow-auto" style="height: 37%;"></div>
                                     </div>
                                     <div class="col-5">
 
@@ -540,23 +543,28 @@
                                     <p id="customerGroup"></p>
                                     <div class="row">
                                         <div class="col-6" style="font-size: 10px;">
-                                            <div class="row bg-success rounded-top text-white py-2" >
-                                                <div class="col">Materials</div>
-                                                <div class="col">Weight</div>
-                                                <div class="col">Price ( บาท )</div>
-                                                <div class="col">GHG</div>
-                                                <div class="col">Tree</div>
-                                            </div>
-                                            <div id="content-item" class="content-item">
-
-                                            </div>
-                                            <div id="total-cal" class="row rounded-bottom border-bottom border-start border-end py-2">
-                                                <div class="col">รวม </div>
-                                                <div class="col modal_kgTotal"></div>
-                                                <div class="col modal_pricetotal"></div>
-                                                <div class="col modal_ghgTotal"></div>
-                                                <div class="col modal_treeTotal"></div>
-                                            </div>
+                                            <table class="table table-sm mb-0 align-middle">
+                                                <caption class="visually-hidden">รายละเอียดวัสดุของใบรับซื้อที่เลือก</caption>
+                                                <thead class="bg-success text-white">
+                                                    <tr>
+                                                        <th scope="col">Materials</th>
+                                                        <th scope="col" class="text-end">Weight</th>
+                                                        <th scope="col" class="text-end">Price ( บาท )</th>
+                                                        <th scope="col" class="text-end">GHG</th>
+                                                        <th scope="col" class="text-end">Tree</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="content-item" class="content-item"></tbody>
+                                                <tfoot id="total-cal" class="fw-bold border-top border-2">
+                                                    <tr>
+                                                        <td>รวม</td>
+                                                        <td class="modal_kgTotal text-end"></td>
+                                                        <td class="modal_pricetotal text-end"></td>
+                                                        <td class="modal_ghgTotal text-end"></td>
+                                                        <td class="modal_treeTotal text-end"></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
                                         </div>
                                         <div class="col-6">
                                             <canvas id="materialChart" width="400" height="400"></canvas>
@@ -778,23 +786,23 @@ function showAllData(event) {
 
     if (filterCustomer.length > 0) {
         filterCustomer.forEach(customers => {
-            const row = document.createElement('div');
-            row.className = 'border-bottom  border-end border-start py-1 d-grid';
-            row.style.gridTemplateColumns = '5% 24% 7% 7% repeat(7, 4%) 15% 14%'
+            const row = document.createElement('tr');
+            const kg1 = (n) => (n).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+            const kg2 = (n) => (n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             row.innerHTML = `
-                <div class="text-center">${count++}</div>
-                <div >${customers.location}</div>
-                <div class="text-center">${(customers.ghg).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-                <div class="text-center">${parseInt(customers.ghg / 9.5)}</div>
-                <div class="text-center text-danger">${(customers.paper).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
-                <div class="text-center text-danger">${(customers.glass).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
-                <div class="text-center text-danger">${(customers.plastic).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
-                <div class="text-center text-danger">${(customers.metal1).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
-                <div class="text-center text-danger">${(customers.metal2).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
-                <div class="text-center text-danger">${(customers.oil).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
-                <div class="text-center text-danger">${(customers.other).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})}</div>
-                <div class="text-center">${(customers.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-                <div class="text-center">${(customers.total_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                <td>${count++}</td>
+                <td class="text-start">${customers.location}</td>
+                <td>${kg2(customers.ghg)}</td>
+                <td>${parseInt(customers.ghg / 9.5)}</td>
+                <td class="text-danger">${kg1(customers.paper)}</td>
+                <td class="text-danger">${kg1(customers.glass)}</td>
+                <td class="text-danger">${kg1(customers.plastic)}</td>
+                <td class="text-danger">${kg1(customers.metal1)}</td>
+                <td class="text-danger">${kg1(customers.metal2)}</td>
+                <td class="text-danger">${kg1(customers.oil)}</td>
+                <td class="text-danger">${kg1(customers.other)}</td>
+                <td>${kg2(customers.kg_delivery)}</td>
+                <td>${kg2(customers.total_delivery)}</td>
             `
             customerDetails.appendChild(row);
         })
@@ -1384,32 +1392,26 @@ function modalPrint() {
                 <img src="${chartPrice}" width="480" height="220" />
             </div>
             <div class="col-12 p-2  section-1" style="font-size: 9px; height: 30%;">
-                <div class="d-grid bg-success rounded-top text-center text-white py-2" style="grid-template-columns: 5% 24% 14% 28% 15% 14%; ">
-                    <div class="">No.</div>
-                    <div class="">Customer</div>
-                    <div >Carbon Credits</div>
-                    <div >Materials</div>
-                    <div class="text-center">Weight ( กก. )</div>
-                    <div class="text-center">Price ( บาท )</div>
-                </div>
-                <div class="d-grid bg-success text-white text-center py-2 " style="grid-template-columns:5% 24% 7% 7% repeat(7, 4%) 15% 14%;">
-                    <div ></div>
-                    <div ></div>
-                    <div>GHG</div>
-                    <div>TREE</div>
-                    <div >กระดาษ</div>
-                    <div >แก้ว</div>
-                    <div >พลาสติก</div>
-                    <div >โลหะมีค่า</div>
-                    <div >เหล็ก</div>
-                    <div >น้ำมัน</div>
-                    <div >เบ็ตเตล็ด</div>
-                    <div></div>
-                    <div></div>
-                </div>
-                <div id="content-customer" class="scroll-content overflow-auto ">
-                    ${allContent}
-                </div>
+                <table class="table table-sm mb-0 text-center align-middle">
+                    <thead class="bg-success text-white">
+                        <tr>
+                            <th rowspan="2" style="width: 5%;">No.</th>
+                            <th rowspan="2" style="width: 24%;">Customer</th>
+                            <th colspan="2">Carbon Credits</th>
+                            <th colspan="7">Materials</th>
+                            <th rowspan="2" style="width: 15%;">Weight ( กก. )</th>
+                            <th rowspan="2" style="width: 14%;">Price ( บาท )</th>
+                        </tr>
+                        <tr>
+                            <th>GHG</th><th>TREE</th>
+                            <th>กระดาษ</th><th>แก้ว</th><th>พลาสติก</th><th>โลหะมีค่า</th>
+                            <th>เหล็ก</th><th>น้ำมัน</th><th>เบ็ตเตล็ด</th>
+                        </tr>
+                    </thead>
+                    <tbody id="content-customer">
+                        ${allContent}
+                    </tbody>
+                </table>
             </div>
             <div class="col-5" >
             </div>
@@ -1446,15 +1448,13 @@ function showDetails(event) {
 
     if (filterMaterials.length > 0) {
         filterMaterials.forEach(material => {
-            const row = document.createElement('div');
-            row.className = 'row border-bottom border-end border-start py-1';
-
+            const row = document.createElement('tr');
             row.innerHTML = `
-                <div class="col">${material.item_name}</div>
-                <div class="col modal_kg">${material.kg_delivery.toFixed(2)}</div>
-                <div class="col modal_price">${material.total_delivery.toFixed(2)}</div>
-                <div class="col modal_ghg">${material.ghg.toFixed(2)}</div>
-                <div class="col modal_tree">${parseInt(material.ghg / 9.5)}</div>
+                <td>${material.item_name}</td>
+                <td class="modal_kg text-end">${material.kg_delivery.toFixed(2)}</td>
+                <td class="modal_price text-end">${material.total_delivery.toFixed(2)}</td>
+                <td class="modal_ghg text-end">${material.ghg.toFixed(2)}</td>
+                <td class="modal_tree text-end">${parseInt(material.ghg / 9.5)}</td>
             `
             materialDetails.appendChild(row);
         })
@@ -1621,19 +1621,23 @@ function modalCustomer() {
                     <p id="customerGroup"></p>
                     <div class="row ">
                         <div class="col-6 " style="font-size: 10px;">
-                            <div class="row bg-success rounded-top text-white py-2" >
-                                <div class="col">Materials</div>
-                                <div class="col">Weight</div>
-                                <div class="col">Price ( บาท )</div>
-                                <div class="col">GHG</div>
-                                <div class="col">Tree</div>
-                            </div>
-                            <div id="content-item" class="content-item">
-                                ${allContent}
-                            </div>
-                            <div class="row rounded-bottom border-bottom border-start border-end py-2">
-                                ${total_cal}
-                            </div>
+                            <table class="table table-sm mb-0 align-middle">
+                                <thead class="bg-success text-white">
+                                    <tr>
+                                        <th>Materials</th>
+                                        <th class="text-end">Weight</th>
+                                        <th class="text-end">Price ( บาท )</th>
+                                        <th class="text-end">GHG</th>
+                                        <th class="text-end">Tree</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="content-item" class="content-item">
+                                    ${allContent}
+                                </tbody>
+                                <tfoot class="fw-bold border-top border-2">
+                                    ${total_cal}
+                                </tfoot>
+                            </table>
                         </div>
                         <div class="col-5">
                             <img src="${Chart}" width="500"  / >
