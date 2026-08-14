@@ -3,7 +3,6 @@
 -- แถวที่โดน : 19,525
 -- ที่มา     : unmatched_locations.csv (analyze_unmatched.py)
 
-\set ON_ERROR_STOP on
 SET client_encoding = 'UTF8';
 
 BEGIN;
