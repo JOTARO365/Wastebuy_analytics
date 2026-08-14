@@ -7,28 +7,41 @@ import xlsx from "xlsx";
 import csvParser from "csv-parser";
 import { extractlocation, SerialToDateBE} from "./function/scripts.js";
 import { promises } from "dns";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const thailandDB = require('./node_modules/thai-address-database/database/raw_database/raw_database.json');
 // import { SocketIo } from "socket.io";
 
+// ต้องอ่านจาก env ได้ เพราะเครื่อง deploy ไม่ได้ใช้ค่าเดียวกับเครื่อง dev
+// (ตั้งใน ecosystem.config.cjs ของ pm2 หรือ export ไว้ก่อนสั่ง pm2 start)
 const db = new pg.Client({
-	user: "postgres",
-	host: "localhost",
-	database: "wastebuy-analytics",
-	password: "admin",
-	port: 5432,
+	user: process.env.DB_USER || "postgres",
+	host: process.env.DB_HOST || "localhost",
+	database: process.env.DB_NAME || "wastebuy-analytics",
+	password: process.env.DB_PASSWORD || "admin",
+	port: parseInt(process.env.DB_PORT, 10) || 5432,
 });
 
 db.connect(err => {
 	if (err) {
-		console.error('Connection Failed: ', err);
+		// เดิม process.exit(1) เงียบ ๆ ทำให้ pm2 restart วนไม่จบและหน้าเว็บขึ้น 502
+		// โดยไม่มีอะไรบอกว่าเป็นเรื่อง DB — พิมพ์ค่าที่ใช้ต่อ (ไม่รวมรหัสผ่าน) ก่อนตาย
+		console.error(`Connection Failed: ${db.user}@${db.host}:${db.port}/${db.database}`);
+		console.error(err.message);
 		process.exit(1);
 	}
-	console.log('Connection Success !!')
+	console.log(`Connection Success !! ${db.host}:${db.port}/${db.database}`);
 });
 const app = express();
-const port = 4000;
+const port = parseInt(process.env.API_PORT, 10) || 4000;
+
+// server.js เรียกกลับไปที่ app.js — วงกลม แต่ต้องตั้ง host/port ได้เหมือนกัน
+const WEB_URL = process.env.WEB_URL || `http://127.0.0.1:${process.env.PORT || 3000}/`;
+
+// อ่านไฟล์ตาม path ของ repo ไม่ใช่ cwd — pm2 ไม่ได้ตั้ง cwd ให้เสมอ
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
 app.get('/customers', async (req, res) => {
 	const sql = `
@@ -523,7 +536,7 @@ app.get('/api-carbon-cal', async (req, res) => {
 	const { startDate, endDate, limit, page, customer_group, amphures } = req.query;
 
 	try {
-		const result = await axios.get('http://localhost:3000/api/carbon-credit', {
+		const result = await axios.get(WEB_URL + 'api/carbon-credit', {
 			params: {
 				startDate: startDate,
 				endDate: endDate
@@ -563,7 +576,7 @@ app.get('/api-carbon-cal', async (req, res) => {
 app.get('/api-carbon-cal-material', async (req, res) => {
 	const { startDate, endDate, limit, page, customer_group } = req.query;
 	try {
-		const result = await axios.get('http://localhost:3000/api/carbon-credit-material', {
+		const result = await axios.get(WEB_URL + 'api/carbon-credit-material', {
 			params: {
 				startDate: startDate,
 				endDate: endDate
@@ -624,8 +637,8 @@ async function resolveShortlink(url) {
 }
 
 app.get('/api-location-customer', async (req, res) => {
-	const inputFile = 'จัดการการจองคิวขาย.csv';
-	const outputFile = 'locations.xlsx';
+	const inputFile = path.join(ROOT, 'จัดการการจองคิวขาย.csv');
+	const outputFile = path.join(ROOT, 'locations.xlsx');
 
 	const result = [];
 	const promises = [];

@@ -5,9 +5,20 @@ import { carbonCalc } from "./function/scripts.js";
 import puppeteer from "puppeteer";
 import { resolve } from "chart.js/helpers";
 
-const api = 'http://localhost:4000/';
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
+
+// app.js คุยกับ server.js ผ่าน HTTP — ทั้งสอง port ต้องตั้งได้จาก env
+// ไม่งั้น deploy ที่ใช้ port อื่นจะยิงไปที่ 4000 ที่ไม่มีอะไรฟังอยู่
+const api = process.env.API_URL || `http://127.0.0.1:${process.env.API_PORT || 4000}/`;
 const app = express();
-const port = 3000;
+const port = parseInt(process.env.PORT, 10) || 3000;
+
+// pm2 ตั้ง cwd เป็นอะไรก็ได้ ถ้าอ้าง path แบบสัมพัทธ์ static กับ views จะ 404
+app.set("views", path.join(ROOT, "views"));
+app.set("view engine", "ejs");
 
 // ?limit= และ ?page= มาจาก query string ตรง ๆ ไม่เคยถูกตรวจ
 // limit=99999999 จึงสั่งให้ประกอบทั้งชุดเป็น HTML ก้อนเดียวได้
@@ -25,7 +36,17 @@ function readPage(value) {
 	return Number.isFinite(n) && n > 0 ? n : 1;
 }
 
-app.use(express.static('public'))
+app.use(express.static(path.join(ROOT, 'public')))
+
+// nginx ยิง /health มาเช็คได้ว่า node ตายหรือ DB ตาย โดยไม่ต้องรอหน้ารายงาน
+app.get('/health', async (req, res) => {
+	try {
+		await axios.get(api + 'materials', { timeout: 5000 });
+		res.json({ web: 'ok', api: api, upstream: 'ok' });
+	} catch (err) {
+		res.status(503).json({ web: 'ok', api: api, upstream: err.message });
+	}
+})
 
 
 app.get('/', (req, res) => {
