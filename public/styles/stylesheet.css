@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* ฟอนต์โหลดด้วย <link> ใน partials/header.ejs แล้ว
+   @import ที่นี่จะบล็อกการ render จนกว่าจะโหลดเสร็จ และเป็นการโหลดซ้ำ */
 
-div { 
-    font-family: 'Prompt', sans-serif; 
-}
-
-.modal-title, .modal-body {
+/* เดิมตั้งที่ div ซึ่งเป็น element selector ข้อความใน <p> <td> <span> <li>
+   ที่ไม่ได้อยู่ใน div จึงไม่ได้ฟอนต์ — ตอนนี้ตารางเป็น <td> ยิ่งเห็นชัด
+   ตั้งที่ body แล้วให้ทุกอย่างสืบทอดลงไปแทน */
+body {
     font-family: 'Prompt', sans-serif;
 }
 
@@ -14,8 +14,32 @@ div {
 
 
 
-body::-webkit-scrollbar,.scroll-content::-webkit-scrollbar {
-    display: none;
+/* เดิม display:none ซ่อน scrollbar ทั้งหมด รายงานยาวเป็นพันแถวจึงไม่มีอะไร
+   บอกว่าอยู่ตรงไหนของตาราง หรือว่ายังเลื่อนต่อได้อีก — ทำให้บางแทนซ่อน */
+body::-webkit-scrollbar,
+.scroll-content::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+body::-webkit-scrollbar-thumb,
+.scroll-content::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #b9c9c1;
+    border-radius: 5px;
+}
+
+body::-webkit-scrollbar-thumb:hover,
+.scroll-content::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #198754;
+}
+
+body::-webkit-scrollbar-track,
+.scroll-content::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .search-bar i {

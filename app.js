@@ -9,6 +9,22 @@ const api = 'http://localhost:4000/';
 const app = express();
 const port = 3000;
 
+// ?limit= และ ?page= มาจาก query string ตรง ๆ ไม่เคยถูกตรวจ
+// limit=99999999 จึงสั่งให้ประกอบทั้งชุดเป็น HTML ก้อนเดียวได้
+// (หน้ารายละเอียดลูกค้าที่ค่า default ก็ตอบ 22 MB อยู่แล้ว)
+const MAX_LIMIT = 20000;
+
+function readLimit(value, fallback) {
+	const n = parseInt(value, 10);
+	if (!Number.isFinite(n) || n < 1) return fallback;
+	return Math.min(n, MAX_LIMIT);
+}
+
+function readPage(value) {
+	const n = parseInt(value, 10);
+	return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
 app.use(express.static('public'))
 
 
@@ -444,8 +460,8 @@ app.get('/api/carbon-credit-material', async (req, res) => {
 app.get('/report-carbon-credit', async (req, res) => {
 	const startDate = req.query.startDate || showDate();
 	const endDate = req.query.endDate || showDate();
-	const limit = parseInt(req.query.limit, 10) || 10000;
-	const page = parseInt(req.query.page, 10) || 1;
+	const limit = readLimit(req.query.limit, 10000);
+	const page = readPage(req.query.page);
 	const amphures = req.query.amphures || [];
 	try {
 		const result = await axios.get(api + 'api-carbon-cal', {
@@ -482,8 +498,8 @@ app.get('/report-carbon-credit', async (req, res) => {
 app.get('/report-customer-details-materials', async (req, res) => {
 	const startDate = req.query.startDate || null;
 	const endDate = req.query.endDate || showDate();
-	const limit = parseInt(req.query.limit, 10) || 5000;
-	const page = parseInt(req.query.page, 10) || 1;
+	const limit = readLimit(req.query.limit, 5000);
+	const page = readPage(req.query.page);
 	const customerGroup = req.query.customer_group || [];
 
 	const emptyRender = {
@@ -676,7 +692,18 @@ app.get('/report-customer-details-materials', async (req, res) => {
 
 		const matDetailGroup = Object.values(combinedDetail);
 
-		const matDetail = material.data.matdata;
+		// ชุดนี้ถูก JSON.stringify ลงหน้าเว็บทั้งก้อน ฝั่ง client ใช้แค่ 6 field
+		// (สรุปรายเดือน 3 กราฟ + ค้นด้วย purchase_number ตอนกดเปิดรายละเอียด)
+		// ส่งทุก field ทำให้หน้าโตถึง 10 MB โดยที่ location/customer_group/
+		// amphures/provinces ไม่เคยถูกอ่านเลย
+		const matDetail = material.data.matdata.map(row => ({
+			purchase_date: row.purchase_date,
+			purchase_number: row.purchase_number,
+			item_name: row.item_name,
+			kg_delivery: row.kg_delivery,
+			total_delivery: row.total_delivery,
+			ghg: row.ghg
+		}));
 		const totalindex = material.data.totalrecord
 		const totalpage = Math.ceil(totalindex / limit)
 
