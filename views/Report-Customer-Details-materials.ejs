@@ -356,20 +356,21 @@
                 <div class="col-lg-6 col-md-12 mx-1">
                     <div class="row">
                         <div class="col-lg-6 col-md-12 ">
-                            <div class="d-grid bg-success py-2 fw-bold text-white rounded-top mt-3 " style="grid-template-columns: 30px 1.2fr 1fr 1fr; font-size: 12px;">
-                                <div></div>
-                                <div> Material Group</div>
-                                <div>Weight</div>
-                                <div>Price ( บาท )</div>
-                            </div>
+                            <table class="table table-sm mb-0" style="font-size: 12px;">
+                                <caption class="visually-hidden">สรุปน้ำหนักและราคาแยกตามหมวดวัสดุ</caption>
+                                <thead class="bg-success text-white"><tr><th scope="col"></th>
+                                <th scope="col"> Material Group</th>
+                                <th scope="col">Weight</th>
+                                <th scope="col">Price ( บาท )</th></tr></thead>
+                                <tbody>
                             <% matDetailGroup.forEach(item => {%>
-                                <div class="d-grid py-2 border-bottom border-start border-end" style="grid-template-columns: 30px 1.2fr 1fr 1fr; font-size: 12px;">
-                                    <div></div>
-                                    <div ><%= item.category %></div>
-                                    <div class="kg"><%= (item.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                    <div ><%= (item.total_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                </div>
-                           <% }) %>
+                                    <tr><td></td>
+                                    <td><%= item.category %></td>
+                                    <td class="kg"><%= (item.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                    <td><%= (item.total_delivery).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td></tr>
+                                <% }) %>
+                                </tbody>
+                            </table>
                         </div>
                         <div class="col-lg-6 col-md-12 mt-3">
                             <canvas id="chartMaterial" width="200" height="200"></canvas>
@@ -382,36 +383,37 @@
                 <div class="col-lg-8 col-md-12 section-1">
                     <div class="px-1 py-2">
                         <div class="rounded-2 border mt-3" style="font-size: 12px;">
-                            <div class="header-content bg-success rounded-top fw-bold text-white py-2 d-grid " style="grid-template-columns: 80px 1.5fr 1fr 1fr 1fr 1fr;">
-                                <div class="text-center">No.</div>
-                                <div >Groups</div>
-                                <div>Weight</div>
-                                <div>Price ( บาท )</div>
-                                <div>GHG</div>
-                                <div>Tree</div>
-                            </div>
+                            <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
+                                <caption class="visually-hidden">น้ำหนักและคาร์บอนเครดิตแยกตามกลุ่มสมาชิก</caption>
+                                <thead class="bg-success text-white"><tr><th scope="col" class="text-center">No.</th>
+                                <th scope="col">Groups</th>
+                                <th scope="col">Weight</th>
+                                <th scope="col">Price ( บาท )</th>
+                                <th scope="col">GHG</th>
+                                <th scope="col">Tree</th></tr></thead>
+                                <tbody>
                             <% if (totals.length === 0) { %>
-                            <div class="text-center text-muted py-4">
-                                <% if (!startDate) { %>
-                                    กรุณาเลือกวันที่เพื่อค้นหาข้อมูล
-                                <% } else { %>
-                                    ไม่พบข้อมูลในช่วงวันที่ที่เลือก
-                                <% } %>
-                            </div>
+                                <tr><td colspan="6" class="text-center text-muted py-4">
+                                    <% if (!startDate) { %>
+                                        กรุณาเลือกวันที่เพื่อค้นหาข้อมูล
+                                    <% } else { %>
+                                        ไม่พบข้อมูลในช่วงวันที่ที่เลือก
+                                    <% } %>
+                                </td></tr>
                             <% } %>
                             <% totals.forEach(function(item) { %>
-                            <div class="body-content-group py-2 border-top d-grid body-content" style="grid-template-columns: 80px 1.5fr 1fr 1fr 1fr 1fr; cursor: pointer;"
-                                data-customer-group="<%= item.customer_group || '' %>"
+                                <tr class="body-content-group body-content" style="cursor: pointer;">"
                                 data-customer="<%= item.location %>"
                                 onclick="showAllData(event)">
-                                <div class="text-center"> <%= count++ %></div>
-                                <div > <%= item.customer_group || 'ไม่ระบุกลุ่ม' %></div>
-                                <div> <%= (item.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
-                                <div> <%= (item.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2 , maximumFractionDigits:2}) %></div>
-                                <div> <%= (item.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </div>
-                                <div> <%= parseInt(item.ghg / 9.5).toLocaleString() %></div>
-                            </div>
-                            <% }) %>
+                                <td class="text-center"> <%= count++ %></td>
+                                <td> <%= item.customer_group || 'ไม่ระบุกลุ่ม' %></td>
+                                <td> <%= (item.kg_delivery).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </td>
+                                <td> <%= (item.total_delivery).toLocaleString(undefined, { minimumFractionDigits:2 , maximumFractionDigits:2}) %></td>
+                                <td> <%= (item.ghg).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %> </td>
+                                <td> <%= parseInt(item.ghg / 9.5).toLocaleString() %></td></tr>
+                                <% }) %>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     <div class="modal fade" id="detailTotal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -490,35 +492,36 @@
                         </form>
                     </div> -->
                     <div class="rounded-2 border mt-2 no-print" style="font-size: 10px;">
-                        <div class="header-content bg-success rounded-top fw-bold text-white py-2 d-grid " style="grid-template-columns: 80px 1fr 2fr 150px 1fr 1fr 1fr 1fr;">
-                            <div class="text-center">No.</div>
-                            <div>Date</div>
-                            <div>Customer</div>
-                            <div class="" >Groups</div>
-                            <div>Weight</div>
-                            <div>Price</div>
-                            <div>GHG</div>
-                            <div>Tree</div>
-                        </div>
+                        <div class="table-responsive overflow-auto item-content" style="height: 540px;">
+                        <table class="table table-sm table-hover mb-0" style="font-size: 10px;">
+                            <caption class="visually-hidden">รายการรับซื้อรายใบ</caption>
+                            <thead class="bg-success text-white position-sticky top-0"><tr><th scope="col" class="text-center">No.</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Groups</th>
+                            <th scope="col">Weight</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">GHG</th>
+                            <th scope="col">Tree</th></tr></thead>
+                            <tbody>
 
-                        <div class="scroll-content overflow-auto item-content" style="height: 500px;">
                             <% materialCal.forEach(s => { %>
-                                <div class="body-content py-2 border-top  item d-grid" style="grid-template-columns: 80px 1fr 2fr 150px 1fr 1fr 1fr 1fr;"
-                                   data-purchase-number="<%= s.purchase_number %>"
+                                <tr class="body-content item" style="cursor: pointer;">"
                                    data-purchase-date="<%= s.purchase_date %>"
                                    data-location="<%= s.location %>"
                                    data-customer-group="<%= s.customer_group %>"
                                    onclick="showDetails(event)">
-                                   <div class="text-center"> <%= count_sub++ %></div>
-                                    <div><%= s.purchase_date %></div>
-                                    <div><%= s.location %></div>
-                                    <div> <%= s.customer_group %></div>
-                                    <div> <%= (s.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div><%= (s.total_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></div>
-                                    <div> <%= (s.ghg).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></div>
-                                    <div> <%= parseInt(s.ghg / 9.5) %></div>
-                                </div >
+                                   <td class="text-center"> <%= count_sub++ %></td>
+                                    <td><%= s.purchase_date %></td>
+                                    <td><%= s.location %></td>
+                                    <td> <%= s.customer_group %></td>
+                                    <td> <%= (s.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td><%= (s.total_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <td> <%= (s.ghg).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}) %></td>
+                                    <td> <%= parseInt(s.ghg / 9.5) %></td></tr>
                             <% }) %>
+                            </tbody>
+                        </table>
                         </div>
                     </div>
 
