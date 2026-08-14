@@ -72,7 +72,15 @@ LEFT JOIN thai_provinces p ON c.id_provinces = p.id
 LEFT JOIN thai_amphures am ON c.id_amphures = am.id
 LEFT JOIN thai_tambons t ON c.id_tambons = t.id
 LEFT JOIN status s ON c.id_status = s.id
-LEFT JOIN lookup_provinces lp ON c.address LIKE '%' || lp.id_search ||'%'
+-- ที่อยู่หนึ่งอันอาจตรง id_search ได้หลายแถว ทำให้ลูกค้าคนเดียวออกมาซ้ำ
+-- (78,647 คน กลายเป็น 79,933 แถว) เอาแค่แถวแรกพอ
+LEFT JOIN LATERAL (
+    SELECT lp2.province_name
+      FROM lookup_provinces lp2
+     WHERE c.address LIKE '%' || lp2.id_search || '%'
+     ORDER BY length(lp2.id_search) DESC
+     LIMIT 1
+) lp ON TRUE
 ORDER BY c.id ASC;
 
     `;
@@ -466,7 +474,16 @@ SELECT
     SUM(wq.total_price) AS total_delivery
 FROM
     weight_query wq
-LEFT JOIN customers c ON wq.location = c.fullname
+-- ชื่อไม่ใช่ key: มีสมาชิก 493 คนชื่อ "LINE" เหมือนกัน การ join ตรง ๆ กับ customers
+-- จะโคลนแถวการซื้อ 493 เท่า แล้ว SUM ข้างล่างก็บวกซ้ำทั้งหมด (54.40 kg กลายเป็น 26,819.20 kg)
+-- จึงยุบให้เหลือหนึ่งสมาชิกต่อหนึ่งชื่อก่อน เลือกตัว id น้อยสุดเพื่อให้ผลคงที่ทุกครั้ง
+LEFT JOIN (
+    SELECT DISTINCT ON (fullname)
+           fullname, id_customer, id_tambons, id_amphures, id_provinces
+      FROM customers
+     WHERE fullname IS NOT NULL AND btrim(fullname) <> ''
+     ORDER BY fullname, id
+) c ON wq.location = c.fullname
 LEFT JOIN thai_tambons tm on c.id_tambons = tm.id
 LEFT JOIN thai_amphures am ON c.id_amphures = am.id
 left join customer_groups cg on c.id_customer = cg.id
