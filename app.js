@@ -47,20 +47,11 @@ app.get('/material-information', async (req, res) => {
 					price_station: 0,
 					price_factory: 0,
 					quantity_delivery: parseFloat(mat.total_delivery) || 0,
-					quantity_station: 0,
-					total_delivery: Array.isArray(mat.total_delivery)
-						? mat.total_delivery.reduce((total, arry) => total + parseFloat(arry || 0), 0) : parseFloat(mat.total_delivery) || 0,
-					total_station: 0
-
+					quantity_station: 0
 				};
 			} else {
 				combinedMaterials[key].kg_delivery += parseFloat(mat.kg_delivery) || 0;
 				combinedMaterials[key].unit_delivery += parseFloat(mat.unit_delivery) || 0;
-				if (Array.isArray(mat.total_delivery)) {
-					combinedMaterials[key] += mat.total_delivery.reduce((total, arry) => total + parseFloat(arry || 0), 0)
-				} else {
-					combinedMaterials[key].total_delivery += parseFloat(mat.total_delivery) || 0;
-				}
 				combinedMaterials[key].quantity_delivery = (parseFloat(combinedMaterials[key].quantity_delivery) + (parseFloat(mat.total_delivery) || 0))
 			}
 		});
@@ -79,10 +70,7 @@ app.get('/material-information', async (req, res) => {
 					price_station: 0,
 					price_factory: 0,
 					quantity_delivery: 0,
-					quantity_station: parseFloat(item.total_station) || 0,
-					total_delivery: 0,
-					total_station: Array.isArray(item.total_station)
-						? item.total_station.reduce((total, arry) => total + parseFloat(arry || 0), 0) : parseFloat(item.total_station) || 0
+					quantity_station: parseFloat(item.total_station) || 0
 				};
 			} else {
 				combinedMaterials[key].kg_station += parseFloat(item.kg_station) || 0;
@@ -105,9 +93,7 @@ app.get('/material-information', async (req, res) => {
 					price_station: parseFloat(price.price_station) || 0,
 					price_factory: parseFloat(price.price_factory) || 0,
 					quantity_delivery: 0,
-					quantity_station: 0,
-					total_delivery: 0,
-					total_station: 0
+					quantity_station: 0
 				};
 			} else {
 				combinedMaterials[key].price_delivery += parseFloat(price.price_delivery) || 0;
@@ -408,12 +394,17 @@ app.get('/api/carbon-credit-material', async (req, res) => {
 
 		const totals = Object.values(combined);
 
+		// สรุปแยกรายวัสดุ ต้องใช้ accumulator ของตัวเอง
+		// เดิมเขียนทับลงใน combined ตัวเดิม mattotals จึงได้ทั้งชุดที่ key ด้วย location
+		// และชุดที่ key ด้วย customer_group+item_name ปนกัน = นับซ้ำสองเท่า
+		// (kg รวม 208,137 ทั้งที่ของจริง 104,068)
+		const combinedMaterial = {};
 		carbonCal.forEach(cal => {
 			const key = `${cal.customer_group}_${cal.item_name}_${cal.purchase_number}`;
 			const date = new Date(cal.purchase_date);
 
-			if (!combined[key]) {
-				combined[key] = {
+			if (!combinedMaterial[key]) {
+				combinedMaterial[key] = {
 					purchase_date: date.toLocaleDateString('th-TH', {
 						day: "numeric",
 						month: "short",
@@ -430,12 +421,12 @@ app.get('/api/carbon-credit-material', async (req, res) => {
 					ghg: parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0,
 				};
 			} else {
-				combined[key].kg_delivery += parseFloat(cal.kg_delivery) || 0;
-				combined[key].total_delivery += parseFloat(cal.total_delivery) || 0;
-				combined[key].ghg += parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0;
+				combinedMaterial[key].kg_delivery += parseFloat(cal.kg_delivery) || 0;
+				combinedMaterial[key].total_delivery += parseFloat(cal.total_delivery) || 0;
+				combinedMaterial[key].ghg += parseFloat(carbonCalc(cal, 'item_name', 'kg_delivery')) || 0;
 			}
 		});
-		const mattotals = Object.values(combined);
+		const mattotals = Object.values(combinedMaterial);
 		res.json({
 			mattotals: mattotals,
 			totals: totals,
