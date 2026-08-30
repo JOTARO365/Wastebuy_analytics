@@ -1,0 +1,181 @@
+<%- include('partials/header.ejs') %>
+
+<%- include('partials/page-head.ejs', {
+    heading: 'สรุปภาพรวมรายเดือน',
+    lead: 'ตัวเลขรวมของทั้งบริษัท พร้อมคำสรุปที่ AI เขียนจากตัวเลขชุดเดียวกันนี้',
+    note: 'ตัวเลขทุกตัวคำนวณด้วย SQL ก่อนส่งให้โมเดล โมเดลไม่ได้บวกเลขเอง',
+    printable: true,
+}) %>
+
+<% if (err) { %>
+    <div class="alert alert-warning"><%= err %></div>
+<% } else { %>
+
+<%- include('partials/filter-bar.ejs', {
+    action: '/report-month-summary',
+    fields: [
+        { name: 'month', label: 'เดือน', type: 'select', value: filters.month,
+          anyLabel: 'เดือนล่าสุด', options: monthOptions },
+    ],
+}) %>
+
+<% if (current) { %>
+    <div class="wb-stats mt-3">
+        <div class="wb-stat">
+            <div class="label">ยอดรวม</div>
+            <div class="value"><%= Math.round(current.total_baht).toLocaleString() %></div>
+            <div class="sub">
+                บาท<%= delta.baht === null ? '' :
+                    ' · ' + (delta.baht >= 0 ? '+' : '') + delta.baht + '% จากเดือนก่อน' %>
+            </div>
+        </div>
+        <div class="wb-stat">
+            <div class="label">น้ำหนัก</div>
+            <div class="value"><%= Math.round(current.total_kg).toLocaleString() %></div>
+            <div class="sub">
+                กก.<%= delta.kg === null ? '' :
+                    ' · ' + (delta.kg >= 0 ? '+' : '') + delta.kg + '%' %>
+            </div>
+        </div>
+        <div class="wb-stat">
+            <div class="label">บิล</div>
+            <div class="value"><%= Number(current.bills).toLocaleString() %></div>
+            <div class="sub"><%= current.work_days %> วันทำงาน</div>
+        </div>
+        <div class="wb-stat">
+            <div class="label">สมาชิกที่ขาย</div>
+            <div class="value"><%= Number(current.members).toLocaleString() %></div>
+            <div class="sub">คนรับซื้อ <%= Number(current.workers).toLocaleString() %> คน</div>
+        </div>
+    </div>
+
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>คำสรุป</h3>
+            <div class="wb-actions no-print">
+                <% if (ai.ready) { %>
+                    <button type="button" class="btn btn-outline-success btn-sm"
+                            id="write-summary" data-month="<%= current.month.slice(0, 7) %>">
+                        <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                        <%= summary ? 'เขียนใหม่' : 'ให้ AI เขียนสรุป' %>
+                    </button>
+                <% } else { %>
+                    <span class="text-muted small" title="<%= ai.hint %>">
+                        <i class="fa-solid fa-plug-circle-xmark" aria-hidden="true"></i>
+                        ยังไม่ได้ตั้งค่า AI
+                    </span>
+                <% } %>
+            </div>
+        </div>
+
+        <% if (summary) { %>
+            <div class="wb-prose" id="summary-text"><%= summary.summary %></div>
+            <p class="text-muted small mb-0 mt-2">
+                เขียนเมื่อ <%= new Date(summary.created_at).toLocaleString('th-TH') %>
+                · <%= summary.model %>
+            </p>
+        <% } else { %>
+            <p class="text-muted mb-0" id="summary-text">
+                <% if (ai.ready) { %>
+                    ยังไม่มีคำสรุปของเดือนนี้ — กดปุ่มด้านบนให้ AI เขียนจากตัวเลขในตารางข้างล่าง
+                <% } else { %>
+                    ใส่ <code>GEMINI_API_KEY</code> ใน <code>.env</code> แล้วรีสตาร์ท
+                    <code>server.js</code> จึงจะใช้ได้ · ตัวเลขทั้งหมดยังดูได้ตามปกติ
+                <% } %>
+            </p>
+        <% } %>
+    </div>
+<% } %>
+
+<div class="wb-card">
+    <div class="wb-card-head">
+        <h3>ตัวเลขรายเดือน</h3>
+        <span class="text-muted small">
+            ชุดเดียวกับที่ส่งให้โมเดล · เงินสด+โอน+เชื่อ+บริจาค ต้องรวมได้เท่าคอลัมน์ "รายการ"
+        </span>
+    </div>
+    <div class="wb-table-wrap">
+        <table class="wb-table" id="facts-table">
+            <thead>
+                <tr>
+                    <th>เดือน</th>
+                    <th class="num">บิล</th>
+                    <th class="num">รายการ</th>
+                    <th class="num">วันทำงาน</th>
+                    <th class="num">สมาชิก</th>
+                    <th class="num">คนรับซื้อ</th>
+                    <th class="num">กก.</th>
+                    <th class="num">บาท</th>
+                    <th class="num">บาท/รายการ</th>
+                    <th class="num">เงินสด</th>
+                    <th class="num">เงินโอน</th>
+                    <th class="num">เงินเชื่อ</th>
+                    <th class="num">บริจาค</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% facts.forEach(function (f) { %>
+                    <tr <%= current && f.month === current.month ? 'class="is-current"' : '' %>>
+                        <td><%= f.month.slice(0, 7) %></td>
+                        <td class="num"><%= Number(f.bills).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.lines).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.work_days).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.members).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.workers).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(f.total_kg).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(f.total_baht).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(f.avg_line_baht).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.cash_lines).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.transfer_lines || 0).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.credit_lines).toLocaleString() %></td>
+                        <td class="num"><%= Number(f.donate_lines || 0).toLocaleString() %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const btn = document.getElementById('write-summary');
+    if (btn) {
+        btn.addEventListener('click', async function () {
+            const month = btn.dataset.month;
+            const ok = await wbConfirm({
+                title: 'ให้ AI เขียนสรุป',
+                message: 'ส่งตัวเลขรวมของเดือน ' + month + ' ไปให้ Gemini เขียนสรุป?',
+                detail: [
+                    'ส่งไปแค่ตัวเลขรวม ไม่มีชื่อสมาชิกหรือข้อมูลส่วนบุคคล',
+                    'คำสรุปเก็บไว้ในระบบ ไม่ต้องเรียกซ้ำทุกครั้งที่เปิดหน้า',
+                ],
+                confirmText: 'เขียนสรุป',
+                danger: false,
+            });
+            if (!ok) return;
+
+            btn.disabled = true;
+            const original = btn.textContent;
+            btn.textContent = 'กำลังเขียน...';
+            try {
+                const res = await fetch('/api/analysis/month-summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ month }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || data.hint || 'เขียนสรุปไม่สำเร็จ');
+                document.getElementById('summary-text').textContent = data.summary;
+                window.notify('เขียนสรุปเสร็จแล้ว');
+                setTimeout(function () { location.reload(); }, 1200);
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = original;
+                window.notify(err.message);
+            }
+        });
+    }
+</script>
+
+<% } %>
+
+<%- include('partials/footer.ejs') %>

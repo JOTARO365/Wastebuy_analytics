@@ -4,8 +4,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "node scripts/run-all.mjs",
+    "start:api": "node --env-file-if-exists=.env server.js",
+    "start:web": "node --env-file-if-exists=.env app.js",
+    "setup": "powershell -ExecutionPolicy Bypass -File scripts/setup.ps1",
+    "dev": "nodemon --exec \"node --env-file-if-exists=.env server.js\"",
+    "dev:web": "nodemon --exec \"node --env-file-if-exists=.env app.js\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",

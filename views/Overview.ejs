@@ -1,0 +1,470 @@
+<%- include('partials/header') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    /* การ์ดเรื่องที่ต้องลงมือทำ — ให้เด่นกว่าการ์ดตัวเลขเฉย ๆ
+       หน้าแรกไม่ควรบอกแค่ "เกิดอะไรขึ้น" แต่ต้องบอกว่า "ต้องทำอะไรต่อ" */
+    .wb-actions-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        margin-top: 1rem;
+    }
+    .wb-alert-card {
+        display: block;
+        padding: 1rem 1.1rem;
+        border-radius: var(--wb-radius);
+        border: 1px solid var(--wb-border);
+        border-left: 4px solid var(--wb-amber);
+        background: var(--wb-surface);
+        box-shadow: var(--wb-shadow-sm);
+        text-decoration: none;
+        color: inherit;
+        transition: transform .12s, box-shadow .12s;
+    }
+    .wb-alert-card:hover { transform: translateY(-2px); box-shadow: var(--wb-shadow); color: inherit; }
+    .wb-alert-card.is-ok { border-left-color: var(--wb-green); }
+    .wb-alert-card .head { font-weight: 600; margin-bottom: .3rem; }
+    .wb-alert-card .big { font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .wb-alert-card .why { font-size: .82rem; color: var(--wb-ink-soft); margin-top: .35rem; }
+
+    .wb-mini-table td, .wb-mini-table th { padding: .4rem .5rem; font-size: .85rem; }
+    .wb-delta { font-size: .8rem; font-weight: 600; }
+    .wb-delta.up { color: var(--wb-green-dark); }
+    .wb-delta.down { color: var(--wb-red); }
+</style>
+
+<%- include('partials/page-head', {
+    heading: 'ภาพรวมทั้งระบบ',
+    lead: current
+        ? 'สรุปเดือน ' + current.month.slice(0, 7) + ' และสิ่งที่ต้องตามต่อ'
+        : 'ศูนย์รวมรายงานและการวิเคราะห์',
+    note: cacheAt
+        ? 'ตัวเลขคำนวณไว้เมื่อ ' + cacheAt
+          + (cacheStale ? ' · มีข้อมูลใหม่เข้ามา ระบบกำลังจะคำนวณใหม่' : ' · ตรงกับข้อมูลล่าสุดแล้ว')
+        : 'ยังไม่เคยคำนวณ — ระบบจะคำนวณให้เองภายใน 15 นาที',
+}) %>
+
+<div class="wb-cache-bar no-print">
+    <span>
+        <i class="fa-solid <%= cacheStale ? 'fa-rotate' : 'fa-circle-check' %>" aria-hidden="true"></i>
+        <% if (cacheStale) { %>
+            มีข้อมูลใหม่เข้ามา — ระบบตรวจและคำนวณใหม่ให้เองทุก 15 นาที
+        <% } else { %>
+            ตัวเลขบนหน้านี้ตรงกับข้อมูลล่าสุดในระบบแล้ว
+        <% } %>
+    </span>
+    <button type="button" class="btn btn-outline-secondary btn-sm" id="refresh-cache">
+        คำนวณใหม่เดี๋ยวนี้
+    </button>
+</div>
+
+<% if (err) { %>
+    <div class="alert alert-warning"><%= err %></div>
+<% } else { %>
+
+<% if (current) { %>
+    <div class="wb-stats mt-3">
+        <div class="wb-stat">
+            <div class="label">ยอดรับซื้อ · <%= current.month.slice(0, 7) %></div>
+            <div class="value"><%= Math.round(current.total_baht).toLocaleString() %></div>
+            <div class="sub">
+                บาท
+                <% if (delta.baht !== null) { %>
+                    <span class="wb-delta <%= delta.baht >= 0 ? 'up' : 'down' %>">
+                        <%= delta.baht >= 0 ? '▲' : '▼' %> <%= Math.abs(delta.baht) %>%
+                    </span>
+                <% } %>
+            </div>
+        </div>
+        <div class="wb-stat">
+            <div class="label">น้ำหนัก</div>
+            <div class="value"><%= Math.round(current.total_kg).toLocaleString() %></div>
+            <div class="sub">
+                กก.
+                <% if (delta.kg !== null) { %>
+                    <span class="wb-delta <%= delta.kg >= 0 ? 'up' : 'down' %>">
+                        <%= delta.kg >= 0 ? '▲' : '▼' %> <%= Math.abs(delta.kg) %>%
+                    </span>
+                <% } %>
+            </div>
+        </div>
+        <div class="wb-stat">
+            <div class="label">บิล</div>
+            <div class="value"><%= Number(current.bills).toLocaleString() %></div>
+            <div class="sub"><%= current.work_days %> วันทำงาน · <%= Math.round(current.bills / current.work_days) %> บิล/วัน</div>
+        </div>
+        <div class="wb-stat">
+            <div class="label">สมาชิกที่ขาย</div>
+            <div class="value"><%= Number(current.members).toLocaleString() %></div>
+            <div class="sub">คนรับซื้อ <%= Number(current.workers).toLocaleString() %> คน</div>
+        </div>
+    </div>
+<% } %>
+
+<!-- ── เรื่องที่ต้องลงมือ ─────────────────────────────────── -->
+<h3 class="wb-card-title mt-4">ต้องตามต่อ</h3>
+<div class="wb-actions-grid">
+    <a class="wb-alert-card <%= risk.members ? '' : 'is-ok' %>" href="/report-member-insight?segment=%E0%B9%80%E0%B8%AA%E0%B8%B5%E0%B9%88%E0%B8%A2%E0%B8%87%E0%B8%AB%E0%B8%B2%E0%B8%A2&sort=baht">
+        <div class="head">สมาชิกที่กำลังจะหาย</div>
+        <div class="big"><%= risk.members.toLocaleString() %> ราย</div>
+        <div class="why">
+            มูลค่าที่เสี่ยง <%= Math.round(risk.baht).toLocaleString() %> บาท ·
+            เกณฑ์: ไม่ได้ขายเกิน 90 วัน แต่ยังไม่ถึงขั้นหายถาวร
+            <% if (atRisk.length) { %>
+                · ในนี้มี <%= atRisk.length %> รายที่เงียบเกิน 3 เท่าของรอบปกติตัวเอง
+                (ดูตารางข้างล่าง)
+            <% } %>
+        </div>
+    </a>
+
+    <a class="wb-alert-card <%= lost.members ? '' : 'is-ok' %>" href="/report-member-insight?segment=%E0%B8%A1%E0%B8%B2%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B9%80%E0%B8%94%E0%B8%B5%E0%B8%A2%E0%B8%A7%E0%B9%81%E0%B8%A5%E0%B9%89%E0%B8%A7%E0%B8%AB%E0%B8%B2%E0%B8%A2">
+        <div class="head">มาครั้งเดียวแล้วหาย</div>
+        <div class="big"><%= lost.members.toLocaleString() %> ราย</div>
+        <div class="why">
+            <%= lost.pct %>% ของสมาชิกที่เคยขาย — ขายครั้งแรกแล้วไม่กลับมาอีกเลย
+        </div>
+    </a>
+
+    <a class="wb-alert-card <%= issues.pending ? '' : 'is-ok' %>" href="/report-data-quality">
+        <div class="head">หมวดสินค้าที่ต้องตัดสิน</div>
+        <div class="big"><%= issues.pending.toLocaleString() %> รายการ</div>
+        <div class="why">
+            <% if (issues.ai) { %>AI เสนอไว้ <%= issues.ai %> รอคนยืนยัน · <% } %>
+            หมวดที่ไม่มีสินค้าผูก <%= issues.orphan %> หมวด
+        </div>
+    </a>
+
+    <a class="wb-alert-card <%= watch.length ? '' : 'is-ok' %>" href="/report-driver-performance?sort=cancel">
+        <div class="head">คนขับที่ยกเลิกงานสูงสุด</div>
+        <div class="big">
+            <%= watch.length ? watch[0].cancel_pct + '%' : '—' %>
+        </div>
+        <div class="why">
+            <% if (watch.length) { %>
+                <%= watch[0].driver %> · จาก <%= Number(watch[0].bills).toLocaleString() %> บิล
+                · นับเฉพาะใบจองที่จับคู่ทะเบียนรถกับคนขับได้
+                <% if (watch.length > 1) { %>
+                    · อีก <%= watch.length - 1 %> คนเกิน <%= watch[watch.length - 1].cancel_pct %>%
+                <% } %>
+            <% } else { %>
+                ยังไม่มีข้อมูลใบจองพอจะคำนวณ
+            <% } %>
+        </div>
+    </a>
+</div>
+
+<div class="wb-grid-2">
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>แนวโน้ม 12 เดือน</h3>
+            <a class="text-muted small" href="/report-month-summary">ดูรายละเอียด</a>
+        </div>
+        <div class="wb-chart-wrap">
+            <canvas id="trend-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>กลุ่มสมาชิก</h3>
+            <a class="text-muted small" href="/report-member-insight">ดูรายละเอียด</a>
+        </div>
+        <div class="wb-chart-wrap">
+            <canvas id="segment-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="wb-grid-2">
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>รายชื่อที่ควรโทรตามก่อน</h3>
+            <a class="text-muted small" href="/report-member-insight?segment=%E0%B9%80%E0%B8%AA%E0%B8%B5%E0%B9%88%E0%B8%A2%E0%B8%87%E0%B8%AB%E0%B8%B2%E0%B8%A2&sort=baht">ทั้งหมด</a>
+        </div>
+        <% if (atRisk.length) { %>
+            <div class="wb-table-wrap">
+                <table class="wb-table wb-mini-table">
+                    <thead>
+                        <tr>
+                            <th>สมาชิก</th>
+                            <th class="num">ปกติทุก</th>
+                            <th class="num">หายไป</th>
+                            <th class="num">ยอดรวม</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% atRisk.forEach(function (m) { %>
+                            <tr>
+                                <td><%= m.member_name %></td>
+                                <td class="num"><%= m.avg_gap_days %> วัน</td>
+                                <td class="num"><b><%= m.days_since %> วัน</b></td>
+                                <td class="num"><%= Math.round(m.total_baht).toLocaleString() %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <p class="wb-empty mb-0">ไม่มีใครเข้าเกณฑ์ตอนนี้</p>
+        <% } %>
+    </div>
+
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>ผลงานคลัง</h3>
+            <a class="text-muted small" href="/report-station-compare">ดูรายละเอียด</a>
+        </div>
+        <% if (stations.length) { %>
+            <div class="wb-table-wrap">
+                <table class="wb-table wb-mini-table">
+                    <thead>
+                        <tr>
+                            <th>คลัง</th>
+                            <th class="num">บิล/วัน</th>
+                            <th class="num">กก.</th>
+                            <th class="num">บาท/บิล</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% stations.forEach(function (s) { %>
+                            <tr>
+                                <td><%= s.station %></td>
+                                <td class="num"><%= Number(s.bills_per_day).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(s.total_kg).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(s.baht_per_bill).toLocaleString() %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <% if (stationCoverage) { %>
+                <p class="text-muted small mb-0 mt-2">
+                    วัดได้เฉพาะ <%= stationCoverage.first_date %> ถึง <%= stationCoverage.last_date %>
+                    (<%= Math.round(stationCoverage.rows_with_station / stationCoverage.rows_total * 100) %>%
+                    ของข้อมูล) — คลังที่ตัวเลขน้อยไม่ได้แปลว่าทำงานน้อย
+                </p>
+            <% } %>
+        <% } else { %>
+            <p class="wb-empty mb-0">ยังไม่มีข้อมูลคลัง — ต้อง re-import ให้มีคอลัมน์ station</p>
+        <% } %>
+    </div>
+</div>
+
+<div class="wb-grid-2">
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>คนขับที่ทำงานมากสุด</h3>
+            <a class="text-muted small" href="/report-driver-performance">ดูรายละเอียด</a>
+        </div>
+        <% if (drivers.length) { %>
+            <div class="wb-table-wrap">
+                <table class="wb-table wb-mini-table">
+                    <thead>
+                        <tr>
+                            <th>คนขับ</th>
+                            <th class="num">บิล/วัน</th>
+                            <th class="num">สำเร็จ</th>
+                            <th class="num">ส่วนต่างราคา</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% drivers.forEach(function (d) { %>
+                            <tr>
+                                <td><%= d.driver %></td>
+                                <td class="num"><%= Number(d.bills_per_day).toLocaleString() %></td>
+                                <td class="num"><%= d.success_pct === null ? '—' : d.success_pct + '%' %></td>
+                                <td class="num">
+                                    <%= d.price_drift_pct === null ? '—'
+                                        : (d.price_drift_pct > 0 ? '+' : '') + d.price_drift_pct + '%' %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <p class="wb-empty mb-0">ยังไม่ได้สร้าง view ผลงานคนขับ</p>
+        <% } %>
+    </div>
+
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>วัสดุเดือนล่าสุด</h3>
+            <a class="text-muted small" href="/material-information">ดูรายละเอียด</a>
+        </div>
+        <div class="wb-chart-wrap">
+            <canvas id="material-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<% if (aiSummary) { %>
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>สรุปเดือน <%= aiSummary.month.slice(0, 7) %> จาก AI</h3>
+            <a class="text-muted small" href="/report-month-summary?month=<%= aiSummary.month.slice(0, 7) %>">
+                เขียนใหม่
+            </a>
+        </div>
+        <div class="wb-prose"><%= aiSummary.summary %></div>
+        <p class="text-muted small mb-0 mt-2">
+            เขียนเมื่อ <%= new Date(aiSummary.created_at).toLocaleString('th-TH') %> · <%= aiSummary.model %>
+        </p>
+    </div>
+<% } %>
+
+<% if (upcoming.length) { %>
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>นัดงานประจำที่กำลังจะถึง</h3>
+            <a class="text-muted small" href="/report-recurring-jobs">ปฏิทิน</a>
+        </div>
+        <div class="wb-table-wrap">
+            <table class="wb-table wb-mini-table">
+                <thead>
+                    <tr><th>วันที่</th><th>งาน</th><th>คนขับ</th><th>สถานะ</th></tr>
+                </thead>
+                <tbody>
+                    <% upcoming.forEach(function (u) { %>
+                        <tr>
+                            <td><%= u.scheduled_date %></td>
+                            <td><%= u.job_name_snapshot %></td>
+                            <td><%= u.driver || '—' %></td>
+                            <td><span class="wb-chip wb-chip-normal"><%= u.status || '—' %></span></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<% } %>
+
+<h3 class="wb-card-title mt-4">ทุกรายงาน</h3>
+<div class="wb-launcher mb-4">
+    <% nav.forEach(function (section) { %>
+        <% section.items.forEach(function (item) { %>
+            <a class="wb-launch" href="<%= item.path %>">
+                <span class="icon"><i class="fa-solid <%= item.icon %>" aria-hidden="true"></i></span>
+                <span>
+                    <span class="title d-block"><%= item.title %></span>
+                    <span class="desc"><%= item.subtitle %></span>
+                </span>
+            </a>
+        <% }) %>
+    <% }) %>
+</div>
+
+<script>
+    // ปุ่มนี้เป็นทางลัดเฉย ๆ ไม่กดก็ได้ ระบบคำนวณให้เองอยู่แล้ว
+    const refreshBtn = document.getElementById('refresh-cache');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async function () {
+            refreshBtn.disabled = true;
+            const original = refreshBtn.textContent;
+            refreshBtn.textContent = 'กำลังคำนวณ...';
+            try {
+                const res = await fetch('/api/analysis/cache', { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'คำนวณไม่สำเร็จ');
+                if (data.skipped) {
+                    window.notify(data.reason);
+                    refreshBtn.disabled = false;
+                    refreshBtn.textContent = original;
+                    return;
+                }
+                window.notify('คำนวณใหม่เสร็จใน ' + Math.round(data.ms / 1000) + ' วินาที');
+                setTimeout(function () { location.reload(); }, 1200);
+            } catch (err) {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = original;
+                window.notify(err.message);
+            }
+        });
+    }
+
+    const MONTHS = <%- JSON.stringify(months) %>;
+    const SEGMENTS = <%- JSON.stringify(segments) %>;
+    const MATERIALS = <%- JSON.stringify(materials) %>;
+
+    window.addEventListener('DOMContentLoaded', function () {
+        if (!window.Chart) return;
+
+        // เรียงจากเก่าไปใหม่ ตอนอ่านจาก API มาเป็นใหม่ไปเก่า
+        const months = MONTHS.slice().reverse();
+        const trend = document.getElementById('trend-chart');
+        if (trend && months.length) {
+            new Chart(trend, {
+                type: 'line',
+                data: {
+                    labels: months.map(m => m.month.slice(0, 7)),
+                    datasets: [
+                        {
+                            label: 'ยอดรับซื้อ (บาท)',
+                            data: months.map(m => Number(m.total_baht)),
+                            borderColor: '#2f855a', backgroundColor: '#2f855a',
+                            tension: 0.25, yAxisID: 'y',
+                        },
+                        {
+                            label: 'น้ำหนัก (กก.)',
+                            data: months.map(m => Number(m.total_kg)),
+                            borderColor: '#c6a15b', backgroundColor: '#c6a15b',
+                            tension: 0.25, yAxisID: 'y1',
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y:  { position: 'left', beginAtZero: true },
+                        y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } },
+                    },
+                },
+            });
+        }
+
+        const seg = document.getElementById('segment-chart');
+        if (seg && SEGMENTS.length) {
+            new Chart(seg, {
+                type: 'doughnut',
+                data: {
+                    labels: SEGMENTS.map(s => s.segment),
+                    datasets: [{
+                        data: SEGMENTS.map(s => Number(s.members)),
+                        backgroundColor: ['#2f855a', '#c6a15b', '#4c6ef5', '#e8590c', '#9c36b5', '#0b7285'],
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } },
+                },
+            });
+        }
+
+        const mat = document.getElementById('material-chart');
+        if (mat && MATERIALS.length) {
+            new Chart(mat, {
+                type: 'bar',
+                data: {
+                    labels: MATERIALS.map(m => m.category),
+                    datasets: [{
+                        label: 'กก.',
+                        data: MATERIALS.map(m => Number(m.total_kg)),
+                        backgroundColor: '#2f855a',
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } },
+                },
+            });
+        }
+    });
+</script>
+
+<% } %>
+
+<%- include('partials/footer') %>

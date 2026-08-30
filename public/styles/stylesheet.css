@@ -1,125 +1,581 @@
-/* ฟอนต์โหลดด้วย <link> ใน partials/header.ejs แล้ว
-   @import ที่นี่จะบล็อกการ render จนกว่าจะโหลดเสร็จ และเป็นการโหลดซ้ำ */
+/* ============================================================
+   Wastebuy Analytics — design system
+   ------------------------------------------------------------
+   ฟอนต์โหลดด้วย <link> ใน partials/header.ejs แล้ว @import ที่นี่
+   จะบล็อกการ render จนกว่าจะโหลดเสร็จ และเป็นการโหลดซ้ำ
 
-/* เดิมตั้งที่ div ซึ่งเป็น element selector ข้อความใน <p> <td> <span> <li>
-   ที่ไม่ได้อยู่ใน div จึงไม่ได้ฟอนต์ — ตอนนี้ตารางเป็น <td> ยิ่งเห็นชัด
-   ตั้งที่ body แล้วให้ทุกอย่างสืบทอดลงไปแทน */
+   ไฟล์นี้แบ่งเป็น 3 ส่วน:
+     1. token       ค่าที่ใช้ซ้ำทั้งระบบ แก้ที่เดียวเปลี่ยนทั้งเว็บ
+     2. layout      shell / sidebar / topbar
+     3. component   การ์ด ตาราง แถบกรอง chip — ใช้กับ module ใหม่
+   ส่วนท้ายเป็น legacy: ปรับหน้าเก่าให้เข้าชุดโดยไม่ต้องแก้ markup
+   ============================================================ */
+
+/* ── 1. token ─────────────────────────────────────────────── */
+:root {
+    --wb-green: #198754;
+    --wb-green-dark: #146c43;
+    --wb-green-soft: #e8f3ee;
+    --wb-amber: #b8860b;
+    --wb-red: #b02a37;
+    --wb-blue: #0d6efd;
+    --wb-line: #06c755;
+
+    --wb-ink: #1c2521;
+    --wb-ink-soft: #5a6b63;
+    --wb-ink-faint: #8a9a92;
+
+    --wb-bg: #f4f7f5;
+    --wb-surface: #ffffff;
+    --wb-border: #dbe5e0;
+    --wb-border-strong: #c2d2cb;
+
+    --wb-radius: .6rem;
+    --wb-radius-sm: .35rem;
+    --wb-shadow: 0 1px 2px rgba(20, 40, 30, .06), 0 6px 18px rgba(20, 40, 30, .06);
+    --wb-shadow-sm: 0 1px 2px rgba(20, 40, 30, .08);
+
+    --wb-sidebar-w: 264px;
+    --wb-sidebar-w-collapsed: 76px;
+    --wb-topbar-h: 68px;
+}
+
 body {
     font-family: 'Prompt', sans-serif;
+    background: var(--wb-bg);
+    color: var(--wb-ink);
 }
 
-#content {
+/* ── 2. layout ────────────────────────────────────────────── */
+.wb-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.wb-sidebar {
+    width: var(--wb-sidebar-w);
+    flex: none;
+    background: var(--wb-green);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 1.5rem;
+    /* เต็มความสูงจอเสมอ ไม่ใช่แค่ความสูงของเมนู
+       (align-self: flex-start ทำให้แถบเขียวจบกลางจอเมื่อเมนูสั้นกว่าเนื้อหา)
+       เมนูยาวกว่าจอเมื่อ module เพิ่มขึ้นก็ให้เลื่อนในตัวเอง */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    transition: width .18s ease;
+}
+
+.wb-brand {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: 1rem 1rem .9rem;
+    background: #fff;
+    text-decoration: none;
+    color: var(--wb-green);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.wb-brand img { height: 44px; width: auto; }
+.wb-brand span { font-size: 1rem; line-height: 1.15; white-space: nowrap; }
+.wb-brand strong { display: block; font-weight: 700; }
+
+.wb-nav-group {
+    font-size: .72rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .6);
+    padding: 1.1rem 1.1rem .35rem;
+    white-space: nowrap;
+}
+
+.wb-nav { list-style: none; margin: 0; padding: 0 .55rem; }
+
+.wb-nav a {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .55rem .65rem;
+    margin-bottom: .15rem;
+    border-radius: var(--wb-radius-sm);
+    color: rgba(255, 255, 255, .92);
+    text-decoration: none;
+    transition: background .12s ease;
+}
+.wb-nav a:hover { background: rgba(255, 255, 255, .14); color: #fff; }
+
+/* หน้าที่เปิดอยู่ต้องมองออกทันที เดิมไม่มีอะไรบอกเลย */
+.wb-nav a.is-active {
+    background: #fff;
+    color: var(--wb-green-dark);
+    box-shadow: var(--wb-shadow-sm);
+}
+.wb-nav a.is-active strong { font-weight: 700; }
+
+.wb-nav i { width: 1.25rem; text-align: center; font-size: 1rem; flex: none; }
+.wb-nav span { display: flex; flex-direction: column; min-width: 0; }
+.wb-nav strong { font-size: .88rem; font-weight: 500; line-height: 1.2; }
+.wb-nav small { font-size: .74rem; opacity: .78; line-height: 1.25; }
+
+.wb-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.wb-topbar {
+    height: var(--wb-topbar-h);
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1.25rem;
+    background: var(--wb-surface);
+    border-bottom: 1px solid var(--wb-border);
+    position: sticky;
+    top: 0;
+    z-index: 900;
+}
+.wb-topbar-title { min-width: 0; }
+.wb-topbar-title h1 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--wb-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.wb-topbar-title p {
+    margin: 0;
+    font-size: .8rem;
+    color: var(--wb-ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.wb-topbar-actions { margin-left: auto; display: flex; gap: .5rem; align-items: center; }
+
+/* ป้ายบอกว่าข้อมูลในระบบถึงวันไหน — สีเหลืองเมื่อตามหลังปฏิทินเกินเกณฑ์ */
+.wb-freshness {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .3rem .7rem;
+    border-radius: 1rem;
+    font-size: .8rem;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.wb-freshness.is-fresh {
+    background: var(--wb-green-soft);
+    color: var(--wb-green-dark);
+    border-color: #c9e3d6;
+}
+.wb-freshness.is-stale {
+    background: #fdf3dd;
+    color: #7a5600;
+    border-color: #f0dcae;
+}
+@media (max-width: 767.98px) {
+    .wb-freshness > span { display: none; }
+}
+
+.wb-burger {
+    cursor: pointer;
+    color: var(--wb-ink-soft);
+    font-size: 1.1rem;
+    padding: .35rem .5rem;
+    border-radius: var(--wb-radius-sm);
+    margin: 0;
+}
+.wb-burger:hover { background: var(--wb-green-soft); color: var(--wb-green-dark); }
+
+/* ย่อเมนูเหลือแค่ไอคอน — จอแคบหรือเวลาอยากได้พื้นที่ตารางเพิ่ม */
+.wb-nav-toggle:checked ~ .wb-sidebar { width: var(--wb-sidebar-w-collapsed); }
+.wb-nav-toggle:checked ~ .wb-sidebar .wb-brand span,
+.wb-nav-toggle:checked ~ .wb-sidebar .wb-nav span,
+.wb-nav-toggle:checked ~ .wb-sidebar .wb-nav-group { display: none; }
+.wb-nav-toggle:checked ~ .wb-sidebar .wb-brand { justify-content: center; padding: .8rem .4rem; }
+.wb-nav-toggle:checked ~ .wb-sidebar .wb-nav a { justify-content: center; }
+
+#content { overflow-x: auto; }
+
+/* ── 3. component ─────────────────────────────────────────── */
+
+/* หัวเรื่องของหน้า — ใช้ผ่าน partials/page-head.ejs */
+.wb-page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    padding: 1.5rem 1.5rem .25rem;
+}
+.wb-page-head h2 { font-size: 1.5rem; font-weight: 600; margin: 0; }
+.wb-page-head p { margin: .25rem 0 0; color: var(--wb-ink-soft); font-size: .9rem; }
+.wb-page-head .wb-actions { margin-left: auto; display: flex; gap: .5rem; }
+
+.wb-body { padding: 1rem 1.5rem 3rem; }
+
+.wb-card {
+    background: var(--wb-surface);
+    border: 1px solid var(--wb-border);
+    border-radius: var(--wb-radius);
+    box-shadow: var(--wb-shadow-sm);
+    padding: 1rem 1.15rem;
+}
+.wb-card + .wb-card { margin-top: 1rem; }
+.wb-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 .75rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.wb-card-title .wb-hint { font-weight: 400; font-size: .8rem; color: var(--wb-ink-soft); }
+
+/* การ์ดตัวเลข */
+.wb-stats { display: grid; gap: .85rem; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.wb-stat {
+    background: var(--wb-surface);
+    border: 1px solid var(--wb-border);
+    border-left: 3px solid var(--wb-green);
+    border-radius: var(--wb-radius);
+    padding: .85rem 1rem;
+    box-shadow: var(--wb-shadow-sm);
+}
+.wb-stat .label { font-size: .78rem; color: var(--wb-ink-soft); }
+.wb-stat .value { font-size: 1.5rem; font-weight: 600; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.wb-stat .sub { font-size: .78rem; color: var(--wb-ink-faint); }
+.wb-stat.is-muted { border-left-color: var(--wb-border-strong); }
+.wb-stat.is-warn { border-left-color: var(--wb-amber); }
+
+/* ตัวเลขขึ้น/ลงเทียบงวดก่อน */
+.wb-delta { font-size: .78rem; font-weight: 500; }
+.wb-delta.up { color: var(--wb-green); }
+.wb-delta.down { color: var(--wb-red); }
+.wb-delta.flat { color: var(--wb-ink-faint); }
+
+/* แถบกรอง — ใช้ผ่าน partials/filter-bar.ejs */
+.wb-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: .75rem;
+    background: var(--wb-surface);
+    border: 1px solid var(--wb-border);
+    border-radius: var(--wb-radius);
+    padding: .9rem 1rem;
+    box-shadow: var(--wb-shadow-sm);
+}
+.wb-filter .field { display: flex; flex-direction: column; gap: .25rem; }
+.wb-filter label { font-size: .78rem; color: var(--wb-ink-soft); margin: 0; }
+.wb-filter .form-control,
+.wb-filter .form-select { min-width: 9.5rem; border-color: var(--wb-border-strong); }
+.wb-filter .actions { display: flex; gap: .5rem; margin-left: auto; }
+
+/* ตาราง */
+/* ตารางเลื่อนตามหน้า ไม่มีกล่องเลื่อนซ้อนกล่อง
+   scrollbar ซ้อนกันทำให้ล้อเมาส์ไปโดนตัวในบ้างตัวนอกบ้าง และหัวตารางที่
+   sticky อยู่ก็ค้างอยู่ในกรอบเล็ก ๆ แทนที่จะค้างที่ขอบบนของหน้าจอ
+   เหลือ overflow-x ไว้เฉพาะตารางที่กว้างเกินจอจริง ๆ */
+.wb-table-wrap {
+    background: var(--wb-surface);
+    border: 1px solid var(--wb-border);
+    border-radius: var(--wb-radius);
+    box-shadow: var(--wb-shadow-sm);
     overflow-x: auto;
+    overflow-y: visible;
 }
+/* หัวตารางเกาะใต้ topbar ตอนเลื่อนหน้า แทนการเกาะขอบกล่องเลื่อนของตัวเอง */
+.wb-table thead th { top: var(--wb-topbar-h); }
 
+.wb-table { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; font-size: .88rem; }
+.wb-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--wb-green-soft);
+    color: var(--wb-green-dark);
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--wb-border-strong);
+    padding: .6rem .7rem;
+}
+.wb-table tbody td { padding: .5rem .7rem; border-bottom: 1px solid var(--wb-border); }
+.wb-table tbody tr:hover td { background: #f7fbf9; }
+.wb-table tfoot td {
+    padding: .6rem .7rem;
+    font-weight: 600;
+    background: #fbfdfc;
+    border-top: 2px solid var(--wb-border-strong);
+}
+/* ตัวเลขต้องชิดขวาและกว้างเท่ากันทุกหลัก ไม่งั้นเทียบด้วยตาไม่ได้ */
+.wb-table .num, td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.wb-table .is-zero { color: var(--wb-ink-faint); }
 
+/* ป้ายสถานะ */
+.wb-chip {
+    display: inline-block;
+    padding: .1rem .55rem;
+    border-radius: 1rem;
+    font-size: .76rem;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+.wb-chip-line { background: var(--wb-line); color: #fff; }
+.wb-chip-normal { background: #e4eae7; color: var(--wb-ink-soft); }
+.wb-chip-ok { background: var(--wb-green-soft); color: var(--wb-green-dark); }
+.wb-chip-warn { background: #fdf3dd; color: #8a6100; }
+.wb-chip-bad { background: #fbe6e8; color: var(--wb-red); }
 
-/* เดิม display:none ซ่อน scrollbar ทั้งหมด รายงานยาวเป็นพันแถวจึงไม่มีอะไร
+.wb-empty { padding: 2rem 1rem; text-align: center; color: var(--wb-ink-soft); }
+
+/* scrollbar: เดิม display:none ซ่อนทั้งหมด รายงานยาวเป็นพันแถวจึงไม่มีอะไร
    บอกว่าอยู่ตรงไหนของตาราง หรือว่ายังเลื่อนต่อได้อีก — ทำให้บางแทนซ่อน */
 body::-webkit-scrollbar,
 .scroll-content::-webkit-scrollbar,
+.wb-table-wrap::-webkit-scrollbar,
+.wb-sidebar::-webkit-scrollbar,
 .table-responsive::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
-
 body::-webkit-scrollbar-thumb,
 .scroll-content::-webkit-scrollbar-thumb,
+.wb-table-wrap::-webkit-scrollbar-thumb,
+.wb-sidebar::-webkit-scrollbar-thumb,
 .table-responsive::-webkit-scrollbar-thumb {
     background: #b9c9c1;
     border-radius: 5px;
 }
-
 body::-webkit-scrollbar-thumb:hover,
 .scroll-content::-webkit-scrollbar-thumb:hover,
+.wb-table-wrap::-webkit-scrollbar-thumb:hover,
 .table-responsive::-webkit-scrollbar-thumb:hover {
-    background: #198754;
+    background: var(--wb-green);
 }
-
 body::-webkit-scrollbar-track,
 .scroll-content::-webkit-scrollbar-track,
+.wb-table-wrap::-webkit-scrollbar-track,
+.sidebar::-webkit-scrollbar-track,
 .table-responsive::-webkit-scrollbar-track {
     background: transparent;
+}
+
+/* ── 4. legacy ────────────────────────────────────────────────
+   หน้าเก่ายาวหลักพันบรรทัดและมี logic ผูกกับ selector เดิมอยู่
+   แก้ markup ทีละหน้าเสี่ยงพังโดยที่การนับ tag ไม่ช่วยอะไร (เคยเจอมาแล้ว)
+   จึงปรับหน้าตาผ่าน CSS ให้เข้าชุดกับ module ใหม่แทน
+   ------------------------------------------------------------ */
+
+/* โลโก้ในเนื้อหน้า 150px กินพื้นที่เหนือ fold ทั้งแถบ และคอลัมน์ col-lg-3
+   ที่ครอบมันไว้ดันเนื้อหาที่เหลือไปกองขวาโดยเหลือที่ว่างกว้าง ๆ ทางซ้าย
+   แบรนด์อยู่ที่ sidebar แล้ว ในหน้าจึงเหลือไว้เพื่อ print เป็นหลัก */
+.logo img { height: 56px !important; }
+.row.logo > [class*="col-"]:first-child,
+.content.row > .logo.col-lg-3 { flex: 0 0 auto; width: auto !important; }
+.row.logo > [class*="col-"]:last-child,
+.content.row > .col-lg-9 { flex: 1 1 auto; width: auto !important; max-width: none; }
+.content h2.fs-1, .row.logo h2.fs-1 { font-size: 1.35rem !important; }
+.content .lead p.fs-4, .row.logo .lead p.fs-4 {
+    font-size: 1.05rem !important;
+    font-weight: 600;
+    margin-bottom: .15rem;
+}
+.content .lead p.fs-5, .row.logo .lead p.fs-5 {
+    font-size: .88rem !important;
+    color: var(--wb-ink-soft);
+}
+.content.row.py-5, .row.py-5.logo { padding-top: 1.25rem !important; padding-bottom: .75rem !important; }
+
+/* ปุ่มในหน้าเก่าตั้ง height 30px + rounded-5 + font 12px เอง เตี้ยจนกดยาก */
+.btn.rounded-5 { height: auto !important; font-size: .85rem !important; padding: .35rem 1.1rem !important; }
+
+/* ตาราง Bootstrap ในหน้าเก่าให้หัวตารางเป็นสีเดียวกับ .wb-table */
+.table > thead > tr > th, .table-success > th { white-space: nowrap; }
+
+/* แถวคั่นหมวดสินค้าเลือกสี Bootstrap มาคนละสีต่อหมวด (แดง/ฟ้า/ส้ม/น้ำเงิน)
+   ซึ่งเป็นสีเตือนภัยของ Bootstrap ไม่ใช่สีของหมวด อ่านแล้วเหมือนมีอะไรผิด
+   ทำให้เป็นแถบคั่นเรียบ ๆ สีเดียวกันทุกหมวดแทน */
+th[scope="rowgroup"].bg-danger,
+th[scope="rowgroup"].bg-info,
+th[scope="rowgroup"].bg-warning,
+th[scope="rowgroup"].bg-primary,
+th[scope="rowgroup"].bg-success {
+    background: var(--wb-green-soft) !important;
+    color: var(--wb-green-dark) !important;
+    font-size: .95rem !important;
+    letter-spacing: .02em;
+    border-top: 2px solid var(--wb-border-strong);
 }
 
 .search-bar i {
     display: flex;
     padding: 9px;
     position: relative;
-    top:2px;
+    top: 2px;
     right: 35px;
     cursor: pointer;
     background-color: white;
     border-radius: 100%;
 }
-
 .search-bar input {
-    border-color: #6c757d;
     border-radius: 20px;
     height: 37.5px;
     padding: 0 30px;
-    border: 1px solid #6c757d;
-    transform: border-color 0.5;
+    border: 1px solid var(--wb-border-strong);
 }
-
 .search-bar input:focus {
-    border-color: #198754;
+    border-color: var(--wb-green);
     outline: none;
-    box-shadow: 0 0 5px rgba(25, 135, 84, 0.5);
+    box-shadow: 0 0 5px rgba(25, 135, 84, .5);
 }
 
-
-.nav-link a {
-    color: white;
-    text-decoration: none;   
-}
-
-.nav-link a:hover {
-    background-color: #ffff;
-    color: #198754;
-}
-
-.body-content:hover {
-    background-color: #198754;
-    opacity: 0.7;
-    color: white;
-}
-
-
+.body-content:hover,
 .body-content a div:hover {
-    background-color: #198754;
-    opacity: 0.7;
+    background-color: var(--wb-green);
+    opacity: .7;
     color: white;
 }
 
+.dropdown-menu li { padding: 5px; }
 
-.dropdown-menu li {
-    padding: 5px;
+.scroll-content .item { color: black; text-decoration: none; cursor: pointer; }
+.scroll-content .item:hover { color: white; background-color: var(--wb-green); opacity: .7; }
+
+#MainPieChart { max-width: 400px; max-height: 400px; position: relative; }
+#SubPieChart { max-width: 400px; max-height: 400px; position: relative; top: 120px; }
+
+/* ── 5. responsive + print ───────────────────────────────── */
+@media (max-width: 991.98px) {
+    .wb-sidebar { width: var(--wb-sidebar-w-collapsed); }
+    .wb-sidebar .wb-brand span,
+    .wb-sidebar .wb-nav span,
+    .wb-sidebar .wb-nav-group { display: none; }
+    .wb-sidebar .wb-brand { justify-content: center; padding: .8rem .4rem; }
+    .wb-sidebar .wb-nav a { justify-content: center; }
+    .wb-burger { display: none; }
+    .wb-page-head, .wb-body { padding-left: 1rem; padding-right: 1rem; }
 }
 
+/* ── หน้าวิเคราะห์รอบใหม่ ───────────────────────────────── */
 
-.scroll-content .item {
-    color: black;
+/* หัวการ์ดที่มีชื่อเรื่องซ้ายและปุ่ม/คำอธิบายขวา */
+.wb-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .5rem 1rem;
+    margin-bottom: .75rem;
+}
+.wb-card-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--wb-ink);
+}
+
+/* Chart.js เขียนความสูง canvas เองตอน resize ถ้าไม่ล็อกกรอบไว้
+   กราฟจะสูงขึ้นเรื่อย ๆ ทุกครั้งที่ย่อ/ขยายหน้าต่าง */
+.wb-chart-wrap {
+    position: relative;
+    height: 260px;
+}
+
+.wb-grid-2 {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    margin-top: 1rem;
+}
+.wb-grid-2 .wb-card { margin-top: 0; }
+
+/* การ์ดตัวเลขที่กดเพื่อกรองได้ ต้องดูกดได้และบอกได้ว่าอันไหนถูกเลือกอยู่ */
+a.wb-stat { text-decoration: none; color: inherit; transition: border-color .12s, box-shadow .12s; }
+a.wb-stat:hover { border-left-color: var(--wb-green); box-shadow: 0 2px 10px rgba(0,0,0,.09); }
+.wb-stat.is-active { border-left-color: var(--wb-green); background: var(--wb-green-soft); }
+
+/* คำสรุปจาก AI — ข้อความยาว ต้องอ่านง่ายกว่าตารางตัวเลข */
+.wb-prose {
+    white-space: pre-wrap;
+    line-height: 1.7;
+    font-size: .93rem;
+    color: var(--wb-ink);
+    max-width: 68ch;
+}
+
+.wb-table tr.is-current td { background: var(--wb-green-soft); font-weight: 600; }
+
+/* ตัวเรียกรายงานบนหน้าแรก */
+.wb-launcher {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+}
+.wb-launch {
+    display: flex;
+    gap: .9rem;
+    align-items: flex-start;
+    background: var(--wb-surface);
+    border: 1px solid var(--wb-border);
+    border-radius: var(--wb-radius);
+    box-shadow: var(--wb-shadow-sm);
+    padding: 1.1rem;
     text-decoration: none;
-    cursor: pointer;
+    color: inherit;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.wb-launch:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--wb-shadow);
+    border-color: var(--wb-green);
+    color: inherit;
+}
+.wb-launch .icon {
+    width: 2.4rem;
+    height: 2.4rem;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: var(--wb-radius-sm);
+    background: var(--wb-green-soft);
+    color: var(--wb-green-dark);
+    font-size: 1.05rem;
+}
+.wb-launch .title { font-weight: 600; }
+.wb-launch .desc { font-size: .84rem; color: var(--wb-ink-soft); }
+
+/* แถบบอกว่าตัวเลขบนหน้าตรงกับข้อมูลล่าสุดหรือยัง */
+.wb-cache-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem 1rem;
+    margin: .75rem 0 0;
+    padding: .5rem .85rem;
+    border-radius: var(--wb-radius-sm);
+    background: var(--wb-green-soft);
+    color: var(--wb-green-dark);
+    font-size: .84rem;
 }
 
-.scroll-content .item:hover {
-    color: white;
-    background-color: #198754;
-    opacity: 0.7;
+@media print {
+    .wb-sidebar, .wb-topbar, .no-print { display: none !important; }
+    .wb-shell { display: block; }
+    body { background: #fff; }
+    .logo img { height: 110px !important; }
+    .wb-table-wrap { border: 0; box-shadow: none; overflow: visible; max-height: none; }
+    .wb-table thead th { position: static; }
+    .wb-card, .wb-stat { box-shadow: none; break-inside: avoid; }
 }
-
-#MainPieChart {
-    max-width: 400px; 
-    max-height: 400px;
-    position: relative;
-    /* top: -20px; */
-}
-#SubPieChart {
-    max-width: 400px; 
-    max-height: 400px;
-    position: relative;
-    top: 120px;
-}
-

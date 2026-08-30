@@ -1,0 +1,538 @@
+<%- include('partials/header') %>
+
+<style>
+    .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--wb-border); }
+    .cal .head {
+        background: var(--wb-green-soft);
+        color: var(--wb-green-dark);
+        text-align: center;
+        font-size: .78rem;
+        font-weight: 600;
+        padding: .35rem 0;
+    }
+    .cal .day {
+        background: var(--wb-surface);
+        min-height: 96px;
+        padding: .3rem .35rem;
+        font-size: .76rem;
+    }
+    .cal .day.is-out { background: #f6f8f7; }
+    .cal .day.is-holiday { background: #fdf6e6; }
+    .cal .day .num { font-weight: 600; color: var(--wb-ink-soft); }
+    .cal .day .num .tag { font-weight: 400; font-size: .68rem; color: var(--wb-amber); }
+    .cal .day.is-today .num { color: var(--wb-green); }
+    .cal .add {
+        float: right;
+        border: 0;
+        background: none;
+        color: var(--wb-green-dark);
+        cursor: pointer;
+        font-size: .8rem;
+        line-height: 1;
+        padding: 0 .1rem;
+        opacity: 0;
+    }
+    .cal .day:hover .add { opacity: 1; }
+    .pin {
+        display: block;
+        margin-top: .2rem;
+        padding: .18rem .3rem;
+        border-radius: var(--wb-radius-sm);
+        background: var(--wb-green-soft);
+        color: var(--wb-green-dark);
+        cursor: pointer;
+        line-height: 1.25;
+    }
+    .pin.is-done { background: #e4f0ea; }
+    .pin.is-cancel { background: #fbe6e8; color: var(--wb-red); }
+    .pin.is-orphan { background: #eee; color: var(--wb-ink-soft); }
+    .pin.is-draft {
+        background: transparent;
+        border: 1px dashed var(--wb-green);
+        color: var(--wb-green-dark);
+    }
+    .pin.is-draft.was-shifted { border-color: var(--wb-amber); color: #7a5600; }
+    .pin b { display: block; font-weight: 600; }
+    .pin small { font-size: .68rem; opacity: .85; }
+
+    .slot-status { font-weight: 600; font-size: 1rem; }
+    .member-table { font-size: .8rem; background: #fbfdfc; }
+    .member-table td { border-bottom: 1px solid var(--wb-border); }
+    .history-detail > td { background: #fbfdfc; }
+
+    .member-picker { max-height: 260px; overflow-y: auto; border: 1px solid var(--wb-border);
+                     border-radius: var(--wb-radius-sm); padding: .4rem; }
+    .member-picker label { display: block; font-size: .82rem; padding: .12rem 0; }
+    .chosen { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .4rem; }
+    .chosen span { background: var(--wb-green-soft); color: var(--wb-green-dark);
+                   border-radius: 1rem; padding: .1rem .5rem; font-size: .76rem; }
+</style>
+
+<%- include('partials/page-head', {
+        heading: 'งานประจำ และ ตารางเข้ารับ',
+        lead: 'ตั้งงานประจำจากรายชื่อสมาชิก จัดลงปฏิทิน มอบหมายคนขับ แล้วดูผลย้อนหลัง',
+        note: 'แก้หรือลบงานประจำไม่กระทบประวัติเดิม — แต่ละนัดเก็บชื่องานและรายชื่อของตัวเองไว้',
+        printable: true
+    }) %>
+
+<div class="wb-body">
+    <% if (err) { %>
+        <div class="alert alert-warning"><%= err %></div>
+    <% } %>
+
+    <form class="wb-filter no-print" method="get" action="/report-recurring-jobs"
+          data-wb-filter>
+        <div class="field">
+            <label for="f-month">เดือน</label>
+            <input type="month" class="form-control form-control-sm" id="f-month"
+                   name="month" value="<%= month %>">
+        </div>
+        <div class="field">
+            <label for="f-job">งานประจำ (เฉพาะส่วนวิเคราะห์)</label>
+            <select class="form-select form-select-sm" id="f-job" name="job">
+                <option value="">ทุกงาน</option>
+                <% [...new Set(analysis.byDate.map(d => d.job_name_snapshot))].sort()
+                       .forEach(function (name) { %>
+                    <option value="<%= name %>" <%= jobFilter === name ? 'selected' : '' %>>
+                        <%= name %>
+                    </option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-success btn-sm">ดู</button>
+            <a href="/report-recurring-jobs" class="btn btn-outline-secondary btn-sm">ล้าง</a>
+        </div>
+    </form>
+
+    <div class="row g-3 mt-0">
+        <!-- ── ปฏิทิน ─────────────────────────────────────── -->
+        <div class="col-12 col-xl-8">
+            <div class="wb-card h-100">
+                <h3 class="wb-card-title">
+                    ตารางเข้ารับ <%= month %>
+                    <span class="wb-hint">
+                        <%= schedule.length %> นัด
+                        <% if (suggestions.length) { %>
+                            · แนะนำจากเดือนก่อน <%= suggestions.length %>
+                        <% } %>
+                    </span>
+                    <span class="ms-auto no-print">
+                        <% if (suggestions.length) { %>
+                            <button type="button" class="btn btn-success btn-sm"
+                                    id="accept-suggestions">
+                                รับนัดที่แนะนำ (<%= suggestions.length %>)
+                            </button>
+                        <% } %>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                id="sync-holiday" title="ดึงวันหยุดไทยจากปฏิทินสาธารณะ">
+                            ดึงวันหยุด
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                id="add-holiday">+ วันหยุด</button>
+                    </span>
+                </h3>
+                <% if (suggestions.length) { %>
+                    <p class="text-muted small mb-2">
+                        เส้นประ = นัดที่แนะนำจากแบบแผนเดือนก่อน ยังไม่บันทึก
+                        <% const shifted = suggestions.filter(x => x.shifted); %>
+                        <% if (shifted.length) { %>
+                            · <b><%= shifted.length %></b> นัดถูกเลื่อนเพราะตรงวันหยุด
+                        <% } %>
+                    </p>
+                <% } %>
+                <div class="cal" id="calendar"></div>
+                <p class="text-muted small mt-2 mb-0">
+                    พื้นเหลือง = เสาร์-อาทิตย์ หรือวันหยุดที่บันทึกไว้ ·
+                    วางนัดในวันหยุดได้ แต่จะถามยืนยันก่อน
+                </p>
+            </div>
+        </div>
+
+        <!-- ── งานประจำ ───────────────────────────────────── -->
+        <div class="col-12 col-xl-4">
+            <div class="wb-card h-100">
+                <h3 class="wb-card-title">
+                    งานประจำ
+                    <span class="wb-hint"><%= jobs.length %> งาน</span>
+                    <button type="button" class="btn btn-success btn-sm ms-auto no-print"
+                            id="new-job">+ เพิ่ม</button>
+                </h3>
+                <div class="wb-table-wrap">
+                    <table class="wb-table" id="job-table">
+                        <thead>
+                            <tr>
+                                <th>ชื่องาน</th>
+                                <th class="num">สมาชิก</th>
+                                <th class="no-print"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (!jobs.length) { %>
+                                <tr><td colspan="3" class="wb-empty">ยังไม่มีงานประจำ</td></tr>
+                            <% } %>
+                            <% jobs.forEach(function (j) { %>
+                                <tr data-job='<%- JSON.stringify(j) %>'>
+                                    <td>
+                                        <%= j.job_name %>
+                                        <% if (!j.is_active) { %>
+                                            <span class="wb-chip wb-chip-normal">ปิดใช้</span>
+                                        <% } %>
+                                        <% if (j.note) { %>
+                                            <small class="d-block text-muted"><%= j.note %></small>
+                                        <% } %>
+                                    </td>
+                                    <td class="num"><%= j.member_count %></td>
+                                    <td class="no-print text-end">
+                                        <button type="button" class="btn btn-link btn-sm p-0 me-2"
+                                                data-edit-job>แก้ไข</button>
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-danger"
+                                                data-delete-job>ลบ</button>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-muted small mt-2 mb-0">
+                    ลบงานประจำไม่ลบรายชื่อสมาชิกในระบบ และไม่ลบนัดที่ผ่านมาแล้ว
+                    ชื่อเดิมนำกลับมาตั้งใหม่ได้
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── วิเคราะห์ ────────────────────────────────────── -->
+    <% if (analysis.byDate.length) { %>
+        <%
+            const totals = analysis.byDate.reduce(function (acc, r) {
+                return {
+                    jobs: acc.jobs + 1,
+                    kg: acc.kg + Number(r.total_kg || 0),
+                    baht: acc.baht + Number(r.total_baht || 0),
+                    bills: acc.bills + Number(r.bills || 0),
+                };
+            }, { jobs: 0, kg: 0, baht: 0, bills: 0 });
+        %>
+        <div class="wb-stats mt-3">
+            <div class="wb-stat">
+                <div class="label">นัดทั้งหมด</div>
+                <div class="value"><%= totals.jobs.toLocaleString() %></div>
+                <div class="sub"><%= jobFilter || 'ทุกงานประจำ' %></div>
+            </div>
+            <div class="wb-stat">
+                <div class="label">บิลรับซื้อ</div>
+                <div class="value"><%= totals.bills.toLocaleString() %></div>
+                <div class="sub">จากนัดเหล่านี้</div>
+            </div>
+            <div class="wb-stat">
+                <div class="label">น้ำหนักรวม</div>
+                <div class="value"><%= Math.round(totals.kg).toLocaleString() %></div>
+                <div class="sub">กก.</div>
+            </div>
+            <div class="wb-stat">
+                <div class="label">ยอดรวม</div>
+                <div class="value"><%= Math.round(totals.baht).toLocaleString() %></div>
+                <div class="sub">บาท</div>
+            </div>
+        </div>
+
+        <div class="wb-card mt-3">
+            <h3 class="wb-card-title">
+                ประวัติรายวัน
+                <span class="wb-hint">ชื่องานเป็นชื่อ ณ วันที่นัด ไม่เปลี่ยนตามการแก้ภายหลัง</span>
+                <button type="button" class="btn btn-outline-success btn-sm ms-auto no-print"
+                        data-wb-export="#history-table">
+                    <i class="fa-solid fa-file-csv" aria-hidden="true"></i> CSV
+                </button>
+            </h3>
+            <div class="wb-table-wrap">
+                <table class="wb-table" id="history-table">
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>งานประจำ</th>
+                            <th>สถานะ</th>
+                            <th>คนขับที่มอบหมาย</th>
+                            <th>คนขับที่ไปจริง</th>
+                            <th class="num">บิล</th>
+                            <th class="num">สมาชิกที่รับได้</th>
+                            <th class="num">กก.</th>
+                            <th class="num">บาท</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% analysis.byDate.forEach(function (r, i) { %>
+                            <tr class="history-row" data-history="<%= i %>"
+                                style="cursor: pointer;" title="คลิกเพื่อดูรายเจ้า">
+                                <td><%= r.scheduled_date %></td>
+                                <td><%= r.job_name_snapshot %></td>
+                                <td>
+                                    <span class="wb-chip <%= r.status === 'สำเร็จ' ? 'wb-chip-ok'
+                                        : r.status === 'ยกเลิก' ? 'wb-chip-bad'
+                                        : r.status === 'ไม่มีข้อมูล' ? 'wb-chip-normal'
+                                        : 'wb-chip-warn' %>"><%= r.status %></span>
+                                </td>
+                                <td><%= r.assigned_driver || '—' %></td>
+                                <td>
+                                    <%= (r.actual_drivers || []).join(', ') || '—' %>
+                                </td>
+                                <td class="num"><%= Number(r.bills || 0).toLocaleString() %></td>
+                                <td class="num"><%= Number(r.members_served || 0).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(r.total_kg || 0).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(r.total_baht || 0).toLocaleString() %></td>
+                            </tr>
+                            <tr class="history-detail" hidden>
+                                <td colspan="9" class="p-0">
+                                    <table class="wb-table member-table">
+                                        <tbody>
+                                            <% (r.member_breakdown || []).forEach(function (m) { %>
+                                                <tr>
+                                                    <td><%= m.member_name %></td>
+                                                    <td class="num"><%= Number(m.bills).toLocaleString() %> บิล</td>
+                                                    <td class="num"><%= Math.round(m.total_kg).toLocaleString() %> กก.</td>
+                                                    <td class="num"><%= Math.round(m.total_baht).toLocaleString() %> บาท</td>
+                                                </tr>
+                                            <% }) %>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row g-3 mt-0">
+            <div class="col-12 col-xl-7">
+                <div class="wb-card h-100">
+                    <h3 class="wb-card-title">
+                        วัสดุที่รับเข้าได้มากที่สุด
+                        <span class="wb-hint">เรียงตามน้ำหนัก</span>
+                    </h3>
+                    <div class="wb-table-wrap">
+                        <table class="wb-table" id="material-table">
+                            <thead>
+                                <tr>
+                                    <th>หมวด</th>
+                                    <th>สินค้า</th>
+                                    <th class="num">บิล</th>
+                                    <th class="num">กก.</th>
+                                    <th class="num">บาท</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (!analysis.materials.length) { %>
+                                    <tr><td colspan="5" class="wb-empty">ยังไม่มีข้อมูล</td></tr>
+                                <% } %>
+                                <% analysis.materials.slice(0, 30).forEach(function (m) { %>
+                                    <tr>
+                                        <td><%= m.category || '—' %></td>
+                                        <td><%= m.item_name %></td>
+                                        <td class="num"><%= Number(m.bills).toLocaleString() %></td>
+                                        <td class="num"><%= Math.round(m.total_kg).toLocaleString() %></td>
+                                        <td class="num"><%= Math.round(m.total_baht).toLocaleString() %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-xl-5">
+                <div class="wb-card h-100">
+                    <h3 class="wb-card-title">
+                        คนขับที่ไปรับงานประจำ
+                        <span class="wb-hint">จากบิลจริง ไม่ใช่ช่องที่มอบหมาย</span>
+                    </h3>
+                    <div class="wb-table-wrap">
+                        <table class="wb-table" id="driver-table">
+                            <thead>
+                                <tr>
+                                    <th>คนขับ</th>
+                                    <th class="num">นัด</th>
+                                    <th class="num">บิล</th>
+                                    <th class="num">กก.</th>
+                                    <th class="num">บาท</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (!analysis.drivers.length) { %>
+                                    <tr><td colspan="5" class="wb-empty">ยังไม่มีข้อมูล</td></tr>
+                                <% } %>
+                                <% analysis.drivers.forEach(function (d) { %>
+                                    <tr>
+                                        <td><%= d.driver %></td>
+                                        <td class="num"><%= Number(d.jobs).toLocaleString() %></td>
+                                        <td class="num"><%= Number(d.bills).toLocaleString() %></td>
+                                        <td class="num"><%= Math.round(d.total_kg).toLocaleString() %></td>
+                                        <td class="num"><%= Math.round(d.total_baht).toLocaleString() %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<!-- ── modal งานประจำ ─────────────────────────────────── -->
+<div class="modal fade" id="job-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="job-modal-title">งานประจำ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="job-id">
+                <div class="mb-3">
+                    <label class="form-label" for="job-name">ชื่องานประจำ</label>
+                    <input type="text" class="form-control" id="job-name"
+                           placeholder="เช่น รอบเช้าลาดกระบัง">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="job-note">หมายเหตุ</label>
+                    <input type="text" class="form-control" id="job-note">
+                </div>
+                <label class="form-label">เลือกสมาชิก</label>
+                <input type="search" class="form-control form-control-sm mb-2"
+                       id="member-search" placeholder="พิมพ์ชื่อสมาชิกเพื่อค้นหา..."
+                       autocomplete="off">
+                <div class="member-picker" id="member-picker">
+                    <p class="text-muted small mb-0">พิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา</p>
+                </div>
+                <div class="chosen" id="chosen-members"></div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-danger small me-auto" id="job-error"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success btn-sm" id="save-job">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── modal นัด ──────────────────────────────────────── -->
+<div class="modal fade" id="slot-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="slot-title">นัดเข้ารับ</h5>
+                    <p class="modal-sub mb-0" id="slot-sub"></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="slot-id">
+                <input type="hidden" id="slot-date">
+                <div class="mb-3" id="slot-job-wrap">
+                    <label class="form-label" for="slot-job">งานประจำ</label>
+                    <select class="form-select" id="slot-job">
+                        <% jobs.filter(j => j.is_active).forEach(function (j) { %>
+                            <option value="<%= j.id %>"><%= j.job_name %>
+                                (<%= j.member_count %> สมาชิก)</option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="slot-driver">คนขับที่รับงาน</label>
+                    <input class="form-control" id="slot-driver" list="driver-list"
+                           placeholder="พิมพ์หรือเลือกจากรายชื่อ">
+                    <datalist id="driver-list">
+                        <% drivers.forEach(function (d) { %>
+                            <option value="<%= d %>"></option>
+                        <% }) %>
+                    </datalist>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">สถานะ</label>
+                    <div id="slot-status-view" class="slot-status">—</div>
+                    <div class="form-text">
+                        คำนวณจากบิลรับซื้อจริงและใบจองของวันนั้น แก้เองไม่ได้
+                    </div>
+                </div>
+                <div class="mb-3" id="slot-members-wrap" hidden>
+                    <label class="form-label">ผลรายสมาชิก</label>
+                    <div class="wb-table-wrap">
+                        <table class="wb-table" id="slot-members">
+                            <thead>
+                                <tr>
+                                    <th>สมาชิก</th>
+                                    <th class="num">บิล</th>
+                                    <th class="num">กก.</th>
+                                    <th class="num">บาท</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="slot-note">หมายเหตุ</label>
+                    <input class="form-control" id="slot-note">
+                </div>
+                <div id="slot-history" class="text-muted small"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger btn-sm me-auto"
+                        id="delete-slot" hidden>ลบนัดนี้</button>
+                <span class="text-danger small" id="slot-error"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success btn-sm" id="save-slot">บันทึก</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── modal วันหยุด ──────────────────────────────────── -->
+<div class="modal fade" id="holiday-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">เพิ่มวันหยุด</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label" for="holiday-date">วันที่</label>
+                    <input type="date" class="form-control" id="holiday-date">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="holiday-name">ชื่อวันหยุด</label>
+                    <input type="text" class="form-control" id="holiday-name"
+                           placeholder="เช่น วันแม่">
+                </div>
+                <p class="text-muted small mb-0">
+                    วันหยุดที่บันทึกไว้จะถูกใช้เลี่ยงตอนเสนอนัดของเดือนถัดไป
+                </p>
+            </div>
+            <div class="modal-footer">
+                <span class="text-danger small me-auto" id="holiday-error"></span>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-success btn-sm" id="save-holiday">
+                    บันทึก
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="recurring-payload" type="application/json">
+    <%- JSON.stringify({ month: month, from: from, to: to,
+                         schedule: schedule, holidays: holidays,
+                         suggestions: suggestions,
+                         history: analysis.byDate }) %>
+</script>
+
+<script src="/scripts/recurring-jobs.js?v=<%= assetVersion %>"></script>
+
+<%- include('partials/footer') %>

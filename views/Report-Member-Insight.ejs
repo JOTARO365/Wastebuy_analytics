@@ -1,0 +1,164 @@
+<%- include('partials/header.ejs') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<%- include('partials/page-head.ejs', {
+    heading: 'สมาชิก · ความถี่และการหายไป',
+    lead: 'แบ่งกลุ่มสมาชิกจากพฤติกรรมจริง — มาบ่อยแค่ไหน ครั้งล่าสุดเมื่อไร ยอดเท่าไร',
+    note: 'นับ "หายไป" จากวันล่าสุดที่ระบบมีข้อมูล (' + (dataDate || '—') + ') ไม่ใช่วันนี้ '
+        + 'เพราะข้อมูลเข้าเป็นรอบเดือน ถ้านับจากวันนี้ทุกคนจะดูเหมือนหายหมด',
+    printable: true,
+}) %>
+
+<% if (err) { %>
+    <div class="alert alert-warning"><%= err %></div>
+<% } else { %>
+
+<%- include('partials/filter-bar.ejs', {
+    action: '/report-member-insight',
+    fields: [
+        { name: 'segment', label: 'กลุ่ม', type: 'select',
+          value: filters.segment, options: segments, anyLabel: 'ทุกกลุ่ม' },
+        { name: 'q', label: 'ชื่อสมาชิก', type: 'text', value: filters.q,
+          placeholder: 'พิมพ์บางส่วนของชื่อ' },
+        { name: 'sort', label: 'เรียงตาม', type: 'select', value: filters.sort,
+          anyLabel: 'ยอดซื้อสูงสุด',
+          options: [
+              { value: 'baht',   label: 'ยอดซื้อสูงสุด' },
+              { value: 'kg',     label: 'น้ำหนักมากสุด' },
+              { value: 'visits', label: 'มาบ่อยสุด' },
+              { value: 'stale',  label: 'หายนานสุด' },
+              { value: 'recent', label: 'มาล่าสุด' },
+          ] },
+    ],
+}) %>
+
+<!-- การ์ดสรุปคิดจากสมาชิกทั้งหมดเสมอ ไม่ใช่จากที่กรองอยู่
+     ไม่งั้นเลือกกลุ่มหนึ่งแล้วตัวเลขเปลี่ยนตามจนเทียบกลุ่มกันไม่ได้ -->
+<div class="wb-stats mt-3">
+    <% summary.forEach(function (s) { %>
+        <a class="wb-stat <%= filters.segment === s.segment ? 'is-active' : '' %>"
+           href="/report-member-insight?segment=<%= encodeURIComponent(s.segment) %>">
+            <div class="label"><%= s.segment %></div>
+            <div class="value"><%= Number(s.members).toLocaleString() %></div>
+            <div class="sub">
+                <%= Math.round(s.total_baht).toLocaleString() %> บาท ·
+                เฉลี่ย <%= Math.round(s.avg_baht_per_visit).toLocaleString() %>/ครั้ง
+            </div>
+        </a>
+    <% }) %>
+</div>
+
+<div class="wb-card">
+    <div class="wb-card-head">
+        <h3>สัดส่วนกลุ่ม</h3>
+        <span class="text-muted small">
+            จำนวนคน เทียบกับ ยอดซื้อ — กลุ่มที่คนน้อยแต่ยอดสูงคือกลุ่มที่เสียไม่ได้
+        </span>
+    </div>
+    <div class="wb-chart-wrap">
+        <canvas id="segment-chart" height="90"></canvas>
+    </div>
+</div>
+
+<div class="wb-card">
+    <div class="wb-card-head">
+        <h3>รายชื่อสมาชิก</h3>
+        <span class="text-muted small">
+            แสดง <%= members.length.toLocaleString() %> คนแรก จากที่กรองได้
+        </span>
+    </div>
+    <div class="wb-table-wrap">
+        <table class="wb-table" id="member-table">
+            <thead>
+                <tr>
+                    <th>สมาชิก</th>
+                    <th>กลุ่ม</th>
+                    <th class="num">มา (ครั้ง)</th>
+                    <th class="num">บิล</th>
+                    <th class="num">กก.</th>
+                    <th class="num">บาท</th>
+                    <th class="num">บาท/ครั้ง</th>
+                    <th class="num">ห่างเฉลี่ย (วัน)</th>
+                    <th class="num">หายไป (วัน)</th>
+                    <th>ครั้งแรก</th>
+                    <th>ครั้งล่าสุด</th>
+                    <th class="num">R</th>
+                    <th class="num">F</th>
+                    <th class="num">M</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% members.forEach(function (m) { %>
+                    <tr>
+                        <td><%= m.member_name %></td>
+                        <td>
+                            <span class="wb-chip <%= m.segment === 'ประจำ' ? 'wb-chip-ok'
+                                : (m.segment === 'หายแล้ว' || m.segment === 'มาครั้งเดียวแล้วหาย')
+                                    ? 'wb-chip-bad'
+                                : m.segment === 'เสี่ยงหาย' ? 'wb-chip-warn'
+                                : 'wb-chip-normal' %>"><%= m.segment %></span>
+                        </td>
+                        <td class="num"><%= Number(m.visits).toLocaleString() %></td>
+                        <td class="num"><%= Number(m.bills).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(m.total_kg).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(m.total_baht).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(m.baht_per_visit || 0).toLocaleString() %></td>
+                        <td class="num"><%= m.avg_gap_days === null ? '—' : m.avg_gap_days %></td>
+                        <td class="num"><%= Number(m.days_since).toLocaleString() %></td>
+                        <td><%= m.first_date %></td>
+                        <td><%= m.last_date %></td>
+                        <td class="num"><%= m.r_score %></td>
+                        <td class="num"><%= m.f_score %></td>
+                        <td class="num"><%= m.m_score %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // ข้อมูลกราฟมาจากฝั่ง server แล้ว ไม่ต้องคำนวณซ้ำในเบราว์เซอร์
+    const SEGMENTS = <%- JSON.stringify(summary) %>;
+
+    window.addEventListener('DOMContentLoaded', function () {
+        const el = document.getElementById('segment-chart');
+        if (!el || !window.Chart) return;
+
+        new Chart(el, {
+            type: 'bar',
+            data: {
+                labels: SEGMENTS.map(s => s.segment),
+                datasets: [
+                    {
+                        label: 'จำนวนคน',
+                        data: SEGMENTS.map(s => Number(s.members)),
+                        backgroundColor: '#2f855a',
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'ยอดซื้อ (บาท)',
+                        data: SEGMENTS.map(s => Number(s.total_baht)),
+                        backgroundColor: '#c6a15b',
+                        yAxisID: 'y1',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y:  { beginAtZero: true, position: 'left',
+                          title: { display: true, text: 'คน' } },
+                    y1: { beginAtZero: true, position: 'right',
+                          grid: { drawOnChartArea: false },
+                          title: { display: true, text: 'บาท' } },
+                },
+            },
+        });
+    });
+</script>
+
+<% } %>
+
+<%- include('partials/footer.ejs') %>

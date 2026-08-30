@@ -30,6 +30,15 @@
     }
 </style>
     <div class="container scroll-content ">
+        <% if (typeof unknownMaterials !== 'undefined' && unknownMaterials.length) { %>
+            <div class="alert alert-warning mx-4 mt-3 no-print">
+                <strong>มีวัสดุที่ยังไม่มีค่าแฟกเตอร์คาร์บอน</strong>
+                — <%= unknownMaterials.length %> ชื่อ ถูกคิดเป็น 0 ในยอด GHG:
+                <%= unknownMaterials.slice(0, 8).map(u => u.item_name).join(' · ') %><%
+                    %><% if (unknownMaterials.length > 8) { %> และอีก <%= unknownMaterials.length - 8 %> ชื่อ<% } %>
+                <br><span class="small">ตั้งค่า GHG ให้สินค้าเหล่านี้ในระบบ admin แล้ว restart จะหายไปเอง</span>
+            </div>
+        <% } %>
         <div class="content row py-5 px-4 ">
             <div class="col-lg-3 col-xxl-2 col-sm-12 logo">
                 <img src="/images/logo3.png" height="150" alt="">
@@ -43,11 +52,11 @@
                     <div class="d-flex align-items-center no-print">
                         <div class="mx-2 d-flex flex-column">
                             <label for="startDate">Start date</label>
-                            <input class="form-control" type="date" id="startDate" name="startDate" required>
+                            <input class="form-control" type="date" id="startDate" name="startDate" value="<%= isoValue(startDate) %>" required>
                         </div>
                         <div class="mx-2 d-flex flex-column">
                             <label for="endDate">End date</label>
-                            <input class="form-control" type="date" id="endDate" name="endDate" required>
+                            <input class="form-control" type="date" id="endDate" name="endDate" value="<%= isoValue(endDate) %>" required>
                         </div>
                         <div class="d-flex p-2 mx-3 mt-2 justify-content-between" style="position: relative; top: 10px;">
                                 <button type="button" class="btn btn-warning mx-1 px-4 my-4 text-white shadow-sm rounded-5" style="height: 30px; font-size: 12px;" id="export-excel">Excel</button>

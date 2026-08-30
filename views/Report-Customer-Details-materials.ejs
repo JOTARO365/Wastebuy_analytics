@@ -115,229 +115,55 @@
                     <div class="d-flex align-items-center no-print">
                         <div class="mx-2 d-flex flex-column">
                             <label for="startDate">Start date</label>
-                            <input class="form-control" type="date" id="startDate" name="startDate" required>
+                            <input class="form-control" type="date" id="startDate" name="startDate" value="<%= isoValue(startDate) %>" required>
                         </div>
                         <div class="mx-2 d-flex flex-column">
                             <label for="endDate">End date</label>
-                            <input class="form-control" type="date" id="endDate" name="endDate" required>
+                            <input class="form-control" type="date" id="endDate" name="endDate" value="<%= isoValue(endDate) %>" required>
                         </div>
                         <div class="dropdown  p-2" style="margin-top: 25px;">
                             <button class="btn btn-success dropdown-toggle " type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                 กลุ่มสมาชิก
                             </button>
-                            <ul class="overflow-auto dropdown-menu scroll-content fw-bold" aria-labelledby="dropdownMenuButton" style="height: 100px; font-size: 10px;">
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox1" name="customer_group" value="B2B-AP Thailand">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-AP Thailand
-                                        </label>
+                            <ul class="dropdown-menu scroll-content fw-bold p-2"
+                                aria-labelledby="dropdownMenuButton"
+                                style="max-height: 320px; overflow-y: auto; min-width: 320px;">
+                                <%
+                                    // ค่าที่เลือกมาเป็น string เดี่ยวเมื่อติ๊กช่องเดียว
+                                    // เป็น array เมื่อติ๊กหลายช่อง ต้องทำให้เป็น array เสมอ
+                                    const selectedGroups = []
+                                        .concat(typeof customer_group === 'undefined' ? [] : customer_group)
+                                        .filter(Boolean).map(String);
+                                    const groupList = typeof customerGroups !== 'undefined' ? customerGroups : [];
+                                %>
+                                <li class="px-1 pb-2 border-bottom mb-2">
+                                    <input type="search" class="form-control form-control-sm"
+                                           id="group-filter-search" placeholder="ค้นหากลุ่ม..."
+                                           autocomplete="off">
+                                    <div class="small text-muted mt-1">
+                                        <%= groupList.length.toLocaleString() %> กลุ่ม
+                                        <% if (selectedGroups.length) { %>
+                                            · เลือกแล้ว <%= selectedGroups.length %>
+                                        <% } %>
                                     </div>
                                 </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox2" name="customer_group" value="B2B-CirPlas">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-CirPlas
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox3" name="customer_group" value="B2B-Frsasers Property">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-Frsasers Property
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox4" name="customer_group" value="B2B-สถานีบริการน้ำมัน PTT">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-สถานีบริการน้ำมัน PTT
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox5" name="customer_group" value="B2B-GC YOUTURN">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-GC YOUTURN
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox6" name="customer_group" value="B2B-Ritta">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-Ritta
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox7" name="customer_group" value="B2B-งานการตลาด">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-งานการตลาด
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox8" name="customer_group" value="B2B-CP ALL (7-11)">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-CP ALL (7-11)
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox9" name="customer_group" value="B2B-GTC">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-GTC
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox10" name="customer_group" value="B2B-กลุ่มCPN">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-กลุ่มCPN
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox11" name="customer_group" value="B2B-ปั๊มPT">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-ปั๊มPT
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox12" name="customer_group" value="B2C-ลูกค้าทั่วไป">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2C-ลูกค้าทั่วไป
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox13" name="customer_group" value="B2C-โรงพยาบาล">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2C-โรงพยาบาล
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox14" name="customer_group" value="B2C-สถานศึกษา">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2C-สถานศึกษา
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox15" name="customer_group" value="B2C-ผู้ประกอบการ">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2C-ผู้ประกอบการ
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox16" name="customer_group" value="B2C-ชุมชนที่พักอาศัย">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2C-ชุมชนที่พักอาศัย
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2C-องค์กรภาคเอกชน">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2C-องค์กรภาคเอกชน
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-แสงฟ้าก่อสร้าง">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-แสงฟ้าก่อสร้าง
-                                        </label>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-VS8">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-VS8
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-เครือข่ายวัดทอง">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-เครือข่ายวัดทอง
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-DAD Asset">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-DAD Asset
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-Nestle">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-Nestle
-                                        </label>
-                                    </div>
-									<div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-ดอยคำ">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-ดอยคำ
-                                        </label>
-                                    </div>
-									<div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2C-knock Door">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2C-knock Door
-                                        </label>
-                                    </div>
-									<div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-RAC">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-RAC
-                                        </label>
-                                    </div>
-									<div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-CUสิ่งแวดล้อม">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-CUสิ่งแวดล้อม
-                                        </label>
-                                    </div>
-									<div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-CP ALL ร.ร.ต้นกล้าไร้ถังกทม">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-CP ALL ร.ร.ต้นกล้าไร้ถังกทม
-                                        </label>
-                                    </div>
-									<div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-CP ALL อาคารสำนักงาน">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-CP ALL อาคารสำนักงาน
-                                        </label>
-                                    </div>
-									<div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="checkbox17" name="customer_group" value="B2B-SWUศรีนครินทรวิโรฒ">
-                                        <label class="form-check-label" for="checkbox1">
-                                            B2B-SWUศรีนครินทรวิโรฒ
-                                        </label>
-                                    </div>
-                                </li>
+                                <% if (!groupList.length) { %>
+                                    <li class="px-1 text-muted small">โหลดรายชื่อกลุ่มไม่ได้</li>
+                                <% } %>
+                                <% groupList.forEach(function (g, idx) { %>
+                                    <li class="group-option" data-group="<%= g.customer_group %>">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="cg-<%= idx %>" name="customer_group"
+                                                   value="<%= g.customer_group %>"
+                                                   <%= selectedGroups.includes(String(g.customer_group)) ? 'checked' : '' %>>
+                                            <label class="form-check-label" for="cg-<%= idx %>">
+                                                <%= g.customer_group %>
+                                                <span class="text-muted">(<%= Number(g.members).toLocaleString() %>)</span>
+                                            </label>
+                                        </div>
+                                    </li>
+                                <% }) %>
                             </ul>
                         </div>
                         <div class="d-flex p-2 mx-3 mt-2 justify-content-between" style="position: relative; top: 10px;">
@@ -463,8 +289,8 @@
                                                         <th scope="col">กระดาษ</th>
                                                         <th scope="col">แก้ว</th>
                                                         <th scope="col">พลาสติก</th>
-                                                        <th scope="col">โลหะมีค่า</th>
                                                         <th scope="col">เหล็ก</th>
+                                                        <th scope="col">โลหะมีค่า</th>
                                                         <th scope="col">น้ำมัน</th>
                                                         <th scope="col">เบ็ตเตล็ด</th>
                                                     </tr>
@@ -935,9 +761,9 @@ function showAllData(event) {
 
         if (item.customer_group === customerGroup) {
             if (!MonthghgData[key]) {
-                MonthghgData[key] = (item.ghg) / 2;
+                MonthghgData[key] = (item.ghg);
             } else {
-                MonthghgData[key] += (item.ghg) / 2;
+                MonthghgData[key] += (item.ghg);
             }
         }
     });
@@ -1070,9 +896,9 @@ function showAllData(event) {
 
         if (item.customer_group === customerGroup) {
             if (!MonthweightData[key]) {
-                MonthweightData[key] = (item.kg_delivery) / 2;
+                MonthweightData[key] = (item.kg_delivery);
             } else {
-                MonthweightData[key] += (item.kg_delivery) / 2;
+                MonthweightData[key] += (item.kg_delivery);
             }
         }
     });
@@ -1205,9 +1031,9 @@ materialData.forEach(item => {
 
     if (item.customer_group === customerGroup) {
         if (!MonthPriceData[key]) {
-        MonthPriceData[key] = (item.total_delivery) / 2;
+        MonthPriceData[key] = (item.total_delivery);
         } else {
-        MonthPriceData[key] += (item.total_delivery) / 2;
+        MonthPriceData[key] += (item.total_delivery);
         }
     }
 });
@@ -1406,8 +1232,8 @@ function modalPrint() {
                         </tr>
                         <tr>
                             <th>GHG</th><th>TREE</th>
-                            <th>กระดาษ</th><th>แก้ว</th><th>พลาสติก</th><th>โลหะมีค่า</th>
-                            <th>เหล็ก</th><th>น้ำมัน</th><th>เบ็ตเตล็ด</th>
+                            <th>กระดาษ</th><th>แก้ว</th><th>พลาสติก</th><th>เหล็ก</th>
+                            <th>โลหะมีค่า</th><th>น้ำมัน</th><th>เบ็ตเตล็ด</th>
                         </tr>
                     </thead>
                     <tbody id="content-customer">
@@ -1670,14 +1496,14 @@ document.getElementById('export-excel').addEventListener('click', function() {
 
     // ดึงข้อมูลจากแต่ละแถว
     rows.forEach(row => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = Array.from(cells).map(cell => cell.textContent.trim());
         data.push(rowData);
     });
 
     // ดึงข้อมูลจากแถวรายละเอียด
     rowsDetail.forEach(row => {
-        const cells = row.querySelectorAll('div');
+        const cells = row.querySelectorAll('td');
         const rowData = Array.from(cells).map((cell, index) => {
             let cellValue = cell.textContent.trim();
             if (index === 1) {
@@ -1737,6 +1563,31 @@ function processCalc(part, totalPart) {
 };
 
 
+</script>
+
+<script>
+    // dropdown มี 167 กลุ่ม เลื่อนหาเองไม่ไหว — กรองด้วยคำค้นในตัว
+    (function () {
+        const box = document.getElementById('group-filter-search');
+        if (!box) return;
+        const options = [...document.querySelectorAll('.group-option')];
+
+        box.addEventListener('input', function () {
+            const q = box.value.trim().toLowerCase();
+            options.forEach(function (li) {
+                const name = (li.dataset.group || '').toLowerCase();
+                // กลุ่มที่ติ๊กไว้แล้วต้องไม่หายไปตอนพิมพ์ค้นหา
+                // ไม่งั้น submit แล้วตัวเลือกที่มองไม่เห็นยังถูกส่งไปด้วยแบบงง ๆ
+                const picked = li.querySelector('input')?.checked;
+                li.style.display = (!q || picked || name.includes(q)) ? '' : 'none';
+            });
+        });
+
+        // กันไม่ให้ dropdown ปิดตอนคลิกในช่องค้นหาหรือติ๊ก checkbox
+        box.closest('.dropdown-menu')?.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    })();
 </script>
 
 <%- include('partials/footer') %>

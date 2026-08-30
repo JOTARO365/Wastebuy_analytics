@@ -1,0 +1,214 @@
+<%- include('partials/header') %>
+
+<%- include('partials/page-head', {
+        heading: 'สมาชิกรายเขต และ Station ที่ใกล้ที่สุด',
+        lead: 'ใครอยู่เขตไหน ใกล้คลังไหน และใช้บริการจริงแค่ไหน',
+        note: 'เขตของสมาชิกใช้ที่อยู่ในใบจองก่อน ถ้าไม่เคยจองจึงใช้ที่อยู่ทะเบียนสมาชิก',
+        printable: true
+    }) %>
+
+<%
+    /* เตือนเฉพาะคลังที่พิกัดยังเดา ไม่เหมารวมทั้งหมด
+       คลังที่ผู้ใช้ยืนยันหมุดแล้วต้องไม่ถูกลากไปอยู่ในคำเตือนด้วย */
+    const unverified = (stations || []).filter(s => !s.coord_verified);
+%>
+<% if (unverified.length) { %>
+<div class="alert alert-warning no-print py-2 px-3 small mb-3">
+    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+    <b>พิกัดยังไม่ยืนยัน <%= unverified.length %> จาก <%= stations.length %> คลัง</b> —
+    <%= unverified.map(s => s.station_name).join(' · ') %>
+    · ระยะทางและวงแหวนที่เกี่ยวกับคลังเหล่านี้ใช้เทียบคร่าว ๆ ได้ แต่ยังอ้างอิง
+    เป็นตัวเลขจริงไม่ได้ (ที่เหลือยืนยันด้วยหมุด Google Maps แล้ว)
+</div>
+<% } %>
+
+<div class="wb-body">
+    <% if (err) { %>
+        <div class="alert alert-warning"><%= err %></div>
+    <% } %>
+
+    <%- include('partials/filter-bar', {
+            action: '/report-zone-members',
+            fields: [
+                { type: 'select', name: 'district', label: 'เขต',
+                  value: filters.district, options: districts },
+                { type: 'select', name: 'segment', label: 'ประเภทสมาชิก',
+                  value: filters.segment, options: ['สมาชิก', 'LINE', 'ทั่วไป'] },
+                { type: 'select', name: 'group', label: 'กลุ่มสมาชิก',
+                  value: filters.group,
+                  options: groups.map(g => ({
+                      value: g.customer_group,
+                      label: g.customer_group + ' (' + Number(g.members).toLocaleString() + ')'
+                  })) },
+                { type: 'select', name: 'station', label: 'Station',
+                  value: filters.station, options: stations },
+                { type: 'select', name: 'ring', label: 'วงแหวน',
+                  value: filters.ring, options: rings },
+                { type: 'check', name: 'active', label: 'เฉพาะที่ใช้บริการจริง',
+                  checked: filters.active === '1' },
+            ]
+        }) %>
+
+    <% if (segments.length) { %>
+        <%
+            // ยอดรวมทั้ง 3 กลุ่ม ใช้เป็นตัวหารของ % ส่วนแบ่ง
+            const segTotal = segments.reduce(function (n, x) { return n + x.members; }, 0);
+            const SEGMENT_NOTE = {
+                'สมาชิก': 'ช่องทางปกติ และเคยซื้อขายจริง',
+                'LINE': 'สมัคร/จองผ่าน LINE',
+                'ทั่วไป': 'สมัครแล้วยังไม่เคยใช้บริการ',
+            };
+        %>
+        <div class="wb-stats mt-3">
+            <% segments.forEach(function (seg) { %>
+                <div class="wb-stat <%= seg.segment === 'ทั่วไป' ? 'is-muted' : '' %>">
+                    <div class="label">
+                        <%= seg.segment %>
+                        <span class="text-muted">
+                            · <%= segTotal ? (100 * seg.members / segTotal).toFixed(1) : '0.0' %>%
+                        </span>
+                    </div>
+                    <div class="value"><%= seg.members.toLocaleString() %></div>
+                    <div class="sub">
+                        <%= SEGMENT_NOTE[seg.segment] || '' %>
+                        <% if (seg.baht) { %>
+                            <br><%= Math.round(seg.baht).toLocaleString() %> บาท ·
+                            <%= seg.purchases.toLocaleString() %> ครั้ง
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+            <div class="wb-stat">
+                <div class="label">รวมในเงื่อนไขที่เลือก</div>
+                <div class="value"><%= totals.members.toLocaleString() %></div>
+                <div class="sub">
+                    ใช้จริง <%= totals.active.toLocaleString() %> ·
+                    <%= Math.round(totals.baht).toLocaleString() %> บาท
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <% if (summary.length) { %>
+
+        <div class="wb-card mt-3">
+            <h3 class="wb-card-title">
+                สรุปตามเขต
+                <span class="wb-hint"><%= summary.length.toLocaleString() %> แถว</span>
+            </h3>
+            <div class="wb-table-wrap">
+                <table class="wb-table" id="zone-summary-table">
+                    <thead>
+                        <tr>
+                            <th>เขต</th>
+                            <th>Station ที่ใกล้ที่สุด</th>
+                            <th class="num">km</th>
+                            <th>วงแหวน</th>
+                            <th>ประเภท</th>
+                            <th class="num">สมาชิก</th>
+                            <th class="num">ใช้จริง</th>
+                            <th class="num">% ใช้จริง</th>
+                            <th class="num">ใบจอง</th>
+                            <th class="num">ครั้งซื้อ</th>
+                            <th class="num">น้ำหนัก (kg)</th>
+                            <th class="num">ยอด (บาท)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% summary.forEach(function (r) { %>
+                            <% const pct = Number(r.members)
+                                   ? 100 * r.active_members / r.members : 0; %>
+                            <tr>
+                                <td><%= r.district_label || '(ไม่ทราบเขต)' %></td>
+                                <td><%= r.nearest_station || '—' %></td>
+                                <td class="num"><%= r.km === null ? '—' : Number(r.km).toFixed(1) %></td>
+                                <td><%= r.ring || '—' %></td>
+                                <td>
+                                    <span class="wb-chip <%= r.segment === 'LINE' ? 'wb-chip-line'
+                                        : r.segment === 'สมาชิก' ? 'wb-chip-ok' : 'wb-chip-normal' %>">
+                                        <%= r.segment %>
+                                    </span>
+                                </td>
+                                <td class="num"><%= Number(r.members).toLocaleString() %></td>
+                                <td class="num"><%= Number(r.active_members).toLocaleString() %></td>
+                                <td class="num">
+                                    <span class="wb-chip <%= pct >= 70 ? 'wb-chip-ok' : pct >= 40 ? 'wb-chip-warn' : 'wb-chip-bad' %>">
+                                        <%= pct.toFixed(1) %>%
+                                    </span>
+                                </td>
+                                <td class="num"><%= Number(r.bookings).toLocaleString() %></td>
+                                <td class="num"><%= Number(r.purchases).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(r.total_kg).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(r.total_baht).toLocaleString() %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% } else if (!err) { %>
+        <div class="wb-card mt-3"><div class="wb-empty">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</div></div>
+    <% } %>
+
+    <% if (members.length) { %>
+        <div class="wb-card mt-3">
+            <h3 class="wb-card-title">
+                รายชื่อสมาชิก
+                <span class="wb-hint">
+                    แสดงสูงสุด <%= memberLimit.toLocaleString() %> คน เรียงตามยอดซื้อ
+                </span>
+                <button type="button" class="btn btn-outline-success btn-sm ms-auto no-print"
+                        data-wb-export="#zone-member-table">
+                    <i class="fa-solid fa-file-csv" aria-hidden="true"></i> CSV
+                </button>
+            </h3>
+            <div class="wb-table-wrap">
+                <table class="wb-table" id="zone-member-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อสมาชิก</th>
+                            <th>กลุ่ม</th>
+                            <th>ประเภท</th>
+                            <th>เขต</th>
+                            <th>ที่มาของเขต</th>
+                            <th>Station</th>
+                            <th class="num">km</th>
+                            <th class="num">ใบจอง</th>
+                            <th class="num">ครั้งซื้อ</th>
+                            <th class="num">kg</th>
+                            <th class="num">บาท</th>
+                            <th>ซื้อล่าสุด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% members.forEach(function (m) { %>
+                            <tr>
+                                <td><%= m.fullname %></td>
+                                <td><%= m.customer_group || '—' %></td>
+                                <td>
+                                    <span class="wb-chip <%= m.segment === 'LINE' ? 'wb-chip-line'
+                                        : m.segment === 'สมาชิก' ? 'wb-chip-ok' : 'wb-chip-normal' %>">
+                                        <%= m.segment %>
+                                    </span>
+                                </td>
+                                <td><%= m.district_label || '—' %></td>
+                                <td class="text-muted small"><%= m.district_source %></td>
+                                <td><%= m.nearest_station || '—' %></td>
+                                <td class="num"><%= m.km === null ? '—' : Number(m.km).toFixed(1) %></td>
+                                <td class="num"><%= Number(m.bookings).toLocaleString() %></td>
+                                <td class="num"><%= Number(m.purchases).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(m.total_kg).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(m.total_baht).toLocaleString() %></td>
+                                <td><%= m.last_purchase ? String(m.last_purchase).slice(0, 10) : '—' %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <% } else if (!filters.district && summary.length) { %>
+        <p class="text-muted mt-3">เลือกเขตก่อน แล้วรายชื่อสมาชิกจะขึ้นด้านล่าง</p>
+    <% } %>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,75 @@
+<%
+/* แถบกรองมาตรฐาน — module ใหม่ประกาศ field เป็นข้อมูล ไม่ต้องเขียน HTML เอง
+   ทุกหน้าจะได้แถบกรองหน้าตาเดียวกัน ตำแหน่งปุ่มเดียวกัน
+
+   include ด้วย object:
+     action       URL ปลายทางของ form (บังคับ)
+     fields       array ของ field
+     method       default get
+     submitLabel  default "ค้นหา"
+     clearHref    default = action
+
+   field รองรับ 3 แบบ
+     type date/text/number   ใช้ name, label, value, placeholder
+     type select             ใช้ name, label, value, options, anyLabel
+     type check              ใช้ name, label, checked
+   options รับได้ทั้ง ['ก','ข'] และ [{value,label}]
+
+   ค่าว่างจะถูกตัดออกจาก query string ตอน submit (ดู data-wb-filter ใน footer)
+
+   หมายเหตุ: ห้ามเขียนตัวอย่าง EJS ในคอมเมนต์นี้ ตัวปิดสคริปเล็ตในตัวอย่าง
+   จะไปปิดบล็อกนี้ก่อนเวลา แล้วทั้งไฟล์ compile ไม่ผ่าน */
+const _fields = typeof fields !== 'undefined' ? fields : [];
+const _method = typeof method !== 'undefined' ? method : 'get';
+const _submitLabel = typeof submitLabel !== 'undefined' ? submitLabel : 'ค้นหา';
+const _clearHref = typeof clearHref !== 'undefined' ? clearHref : action;
+
+function _opt(option) {
+    return (option && typeof option === 'object')
+        ? { value: option.value, label: option.label }
+        : { value: option, label: option };
+}
+%>
+<form class="wb-filter no-print" method="<%= _method %>" action="<%= action %>"
+      data-wb-filter>
+    <% _fields.forEach(function (f) { %>
+        <% if (f.type === 'check') { %>
+            <div class="field">
+                <label>&nbsp;</label>
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" value="1"
+                           id="f-<%= f.name %>" name="<%= f.name %>"
+                           <%= f.checked ? 'checked' : '' %>>
+                    <label class="form-check-label" for="f-<%= f.name %>"><%= f.label %></label>
+                </div>
+            </div>
+        <% } else if (f.type === 'select') { %>
+            <div class="field">
+                <label for="f-<%= f.name %>"><%= f.label %></label>
+                <select class="form-select form-select-sm" id="f-<%= f.name %>"
+                        name="<%= f.name %>">
+                    <option value=""><%= f.anyLabel || 'ทั้งหมด' %></option>
+                    <% (f.options || []).forEach(function (raw) { %>
+                        <% const o = _opt(raw); %>
+                        <option value="<%= o.value %>"
+                            <%= String(f.value || '') === String(o.value) ? 'selected' : '' %>>
+                            <%= o.label %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+        <% } else { %>
+            <div class="field">
+                <label for="f-<%= f.name %>"><%= f.label %></label>
+                <input class="form-control form-control-sm" type="<%= f.type || 'text' %>"
+                       id="f-<%= f.name %>" name="<%= f.name %>"
+                       value="<%= f.value || '' %>"
+                       placeholder="<%= f.placeholder || '' %>">
+            </div>
+        <% } %>
+    <% }) %>
+    <div class="actions">
+        <button type="submit" class="btn btn-success btn-sm"><%= _submitLabel %></button>
+        <a href="<%= _clearHref %>" class="btn btn-outline-secondary btn-sm">ล้าง</a>
+    </div>
+</form>

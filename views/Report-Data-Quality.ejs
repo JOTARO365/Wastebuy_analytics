@@ -1,0 +1,218 @@
+<%- include('partials/header.ejs') %>
+
+<%- include('partials/page-head.ejs', {
+    heading: 'คุณภาพข้อมูล · หมวดสินค้า',
+    lead: 'สินค้าที่ระบบต้นทางใส่ "ชื่อโครงการ" ไว้ในช่องหมวด ต้องเลือกหมวดวัสดุจริงให้',
+    note: 'การแก้ตรงนี้ไม่แตะข้อมูลต้นทาง — เก็บเป็นตารางแมปคุมทับตอนอ่าน '
+        + 'รอบ import หน้าจึงไม่ทับกลับ',
+    printable: false,
+}) %>
+
+<% if (err) { %>
+    <div class="alert alert-warning"><%= err %></div>
+<% } else { %>
+
+<div class="wb-stats mt-3">
+    <div class="wb-stat">
+        <div class="label">ต้องตัดสิน</div>
+        <div class="value"><%= counts.pending.toLocaleString() %></div>
+        <div class="sub">ยังไม่มีหมวดวัสดุ</div>
+    </div>
+    <div class="wb-stat">
+        <div class="label">AI เสนอไว้</div>
+        <div class="value"><%= counts.ai.toLocaleString() %></div>
+        <div class="sub">รอคนยืนยัน</div>
+    </div>
+    <div class="wb-stat">
+        <div class="label">จับคู่อัตโนมัติ</div>
+        <div class="value"><%= counts.auto.toLocaleString() %></div>
+        <div class="sub">ชื่อตรงกับสินค้าในระบบ</div>
+    </div>
+    <div class="wb-stat">
+        <div class="label">คนยืนยันแล้ว</div>
+        <div class="value"><%= counts.manual.toLocaleString() %></div>
+        <div class="sub">ล็อกไว้ ระบบไม่เขียนทับ</div>
+    </div>
+</div>
+
+<div class="wb-card">
+    <div class="wb-card-head">
+        <h3>รายการสินค้า</h3>
+        <div class="wb-actions no-print">
+            <% if (ai.ready) { %>
+                <button type="button" class="btn btn-outline-success btn-sm" id="ai-suggest">
+                    <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                    ให้ AI เสนอหมวด
+                </button>
+            <% } else { %>
+                <span class="text-muted small" title="<%= ai.hint %>">
+                    <i class="fa-solid fa-plug-circle-xmark" aria-hidden="true"></i>
+                    ยังไม่ได้ตั้งค่า AI
+                </span>
+            <% } %>
+        </div>
+    </div>
+
+    <% if (!ai.ready) { %>
+        <p class="text-muted small mb-3">
+            ใส่ <code>GEMINI_API_KEY</code> ใน <code>.env</code> แล้วรีสตาร์ท
+            <code>server.js</code> จึงจะใช้ปุ่มเสนอหมวดได้ ·
+            ไม่มีคีย์ก็ยังกรอกหมวดเองได้ตามปกติ
+        </p>
+    <% } %>
+
+    <div class="wb-table-wrap">
+        <table class="wb-table" id="item-table">
+            <thead>
+                <tr>
+                    <th>รหัส</th>
+                    <th>ชื่อสินค้า</th>
+                    <th>โครงการ</th>
+                    <th class="num">รายการ</th>
+                    <th class="num">กก.</th>
+                    <th class="num">บาท</th>
+                    <th>ที่มา</th>
+                    <th style="min-width: 11rem;">หมวดวัสดุ</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% items.forEach(function (it) { %>
+                    <tr data-code="<%= it.item_code %>">
+                        <td><%= it.item_code %></td>
+                        <td><%= it.item_name %></td>
+                        <td class="text-muted small"><%= it.project_name || '—' %></td>
+                        <td class="num"><%= Number(it.lines).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(it.total_kg).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(it.total_baht).toLocaleString() %></td>
+                        <td>
+                            <% if (!it.category) { %>
+                                <span class="wb-chip wb-chip-warn">ต้องตัดสิน</span>
+                            <% } else if (it.source === 'manual') { %>
+                                <span class="wb-chip wb-chip-ok">คนยืนยัน</span>
+                            <% } else if (it.source === 'ai') { %>
+                                <span class="wb-chip wb-chip-normal"
+                                      title="<%= it.note || '' %>">
+                                    AI<%= it.confidence ? ' ' + Math.round(it.confidence * 100) + '%' : '' %>
+                                </span>
+                            <% } else { %>
+                                <span class="wb-chip wb-chip-normal">อัตโนมัติ</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm" data-category>
+                                <option value="">— ยังไม่เลือก —</option>
+                                <% groups.forEach(function (g) { %>
+                                    <option value="<%= g %>"
+                                        <%= it.category === g ? 'selected' : '' %>><%= g %></option>
+                                <% }) %>
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-success btn-sm"
+                                    data-save>บันทึก</button>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<% if (orphanCategories.length) { %>
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>หมวดที่ไม่มีสินค้าผูกอยู่</h3>
+            <span class="text-muted small">
+                หน้ารายงานสินค้า join ด้วยตัวอักษรนำหน้ารหัส หมวดที่รหัสเป็นตัวเลข
+                จึงไม่มีวันถูกใช้ — ต้องให้ฝ่ายปฏิบัติการยืนยันรหัสจริงก่อนแก้
+            </span>
+        </div>
+        <div class="wb-table-wrap">
+            <table class="wb-table">
+                <thead>
+                    <tr><th>รหัสหมวด</th><th>ชื่อหมวด</th><th>สินค้าที่ผูกอยู่</th></tr>
+                </thead>
+                <tbody>
+                    <% orphanCategories.forEach(function (c) { %>
+                        <tr>
+                            <td><code><%= c.category_code %></code></td>
+                            <td><%= c.material_group %></td>
+                            <td>0</td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+<% } %>
+
+<script>
+    // บันทึกทีละแถว ไม่ใช่ทั้งตารางรวดเดียว
+    // คนตรวจทีละตัวแล้วกดบันทึกทันที ปิดหน้าไปกลางทางก็ไม่เสียของที่กดไปแล้ว
+    async function callApi(method, path, body) {
+        const res = await fetch('/api/analysis' + path, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || data.hint || 'ทำรายการไม่สำเร็จ');
+        return data;
+    }
+
+    document.getElementById('item-table').addEventListener('click', async function (e) {
+        const btn = e.target.closest('[data-save]');
+        if (!btn) return;
+
+        const row = btn.closest('tr');
+        const code = row.dataset.code;
+        const category = row.querySelector('[data-category]').value;
+        if (!category) { window.notify('เลือกหมวดก่อน'); return; }
+
+        btn.disabled = true;
+        try {
+            await callApi('PUT', '/items/' + encodeURIComponent(code), { category });
+            window.notify('บันทึก ' + code + ' แล้ว');
+            setTimeout(function () { location.reload(); }, 700);
+        } catch (err) {
+            btn.disabled = false;
+            window.notify(err.message);
+        }
+    });
+
+    const suggestBtn = document.getElementById('ai-suggest');
+    if (suggestBtn) {
+        suggestBtn.addEventListener('click', async function () {
+            const ok = await wbConfirm({
+                title: 'ให้ AI เสนอหมวด',
+                message: 'ส่งชื่อสินค้าที่ยังไม่มีหมวดไปให้ Gemini ช่วยจัดหมวด?',
+                detail: [
+                    'ส่งไปแค่ชื่อสินค้า ไม่มีชื่อ/ที่อยู่/เบอร์ของสมาชิก',
+                    'ผลที่ได้เป็นข้อเสนอ ต้องกดบันทึกเองอีกครั้งจึงถือว่ายืนยัน',
+                ],
+                confirmText: 'ให้ AI เสนอ',
+                danger: false,
+            });
+            if (!ok) return;
+
+            suggestBtn.disabled = true;
+            suggestBtn.textContent = 'กำลังถาม...';
+            try {
+                const res = await callApi('POST', '/items/suggest', {});
+                window.notify('AI เสนอมา ' + res.suggested + ' รายการ'
+                    + (res.rejected && res.rejected.length
+                        ? ' · ทิ้ง ' + res.rejected.length + ' ที่หมวดไม่ถูกต้อง' : ''));
+                setTimeout(function () { location.reload(); }, 1000);
+            } catch (err) {
+                suggestBtn.disabled = false;
+                suggestBtn.textContent = 'ให้ AI เสนอหมวด';
+                window.notify(err.message);
+            }
+        });
+    }
+</script>
+
+<% } %>
+
+<%- include('partials/footer.ejs') %>

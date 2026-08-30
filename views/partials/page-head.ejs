@@ -1,0 +1,38 @@
+<%
+/* หัวเรื่องของหน้า — module ใหม่ใช้ตัวนี้แทนการก๊อปบล็อกโลโก้+ชื่อบริษัท
+   ที่หน้าเก่าทำซ้ำกันทุกไฟล์
+
+   include ด้วย object:
+     heading   ชื่อหน้า (บังคับ)
+     lead      คำอธิบายสั้น
+     note      หมายเหตุตัวเล็ก
+     printable true = โชว์ปุ่มพิมพ์ + CSV
+
+   หมายเหตุ: ห้ามเขียนตัวอย่าง EJS ในคอมเมนต์นี้ ตัวปิดสคริปเล็ตในตัวอย่าง
+   จะไปปิดบล็อกนี้ก่อนเวลา แล้วทั้งไฟล์ compile ไม่ผ่าน */
+const _lead = typeof lead !== 'undefined' ? lead : '';
+const _note = typeof note !== 'undefined' ? note : '';
+const _printable = typeof printable !== 'undefined' ? printable : false;
+%>
+<div class="wb-page-head">
+    <div class="logo d-none d-print-block">
+        <img src="/images/logo3.png" alt="Wastebuy">
+        <div class="fw-bold text-success">Wastebuy Delivery Co., Ltd.</div>
+    </div>
+    <div>
+        <h2><%= heading %></h2>
+        <% if (_lead) { %><p><%= _lead %></p><% } %>
+        <% if (_note) { %><p class="text-muted small mb-0"><%= _note %></p><% } %>
+    </div>
+    <% if (_printable) { %>
+        <div class="wb-actions no-print">
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    onclick="window.print()">
+                <i class="fa-solid fa-print" aria-hidden="true"></i> พิมพ์
+            </button>
+            <button type="button" class="btn btn-outline-success btn-sm" data-wb-export>
+                <i class="fa-solid fa-file-csv" aria-hidden="true"></i> CSV
+            </button>
+        </div>
+    <% } %>
+</div>

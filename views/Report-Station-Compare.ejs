@@ -1,0 +1,178 @@
+<%- include('partials/header.ejs') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<%- include('partials/page-head.ejs', {
+    heading: 'เทียบผลงานคลัง',
+    lead: 'ปริมาณ ยอดเงิน และประเภทวัสดุของแต่ละจุดรับซื้อ',
+    note: coverage
+        ? 'ใช้ได้เฉพาะช่วง ' + coverage.first_date + ' ถึง ' + coverage.last_date
+          + ' — คอลัมน์คลังเพิ่งเริ่มเก็บ ครอบคลุม '
+          + Number(coverage.rows_with_station).toLocaleString() + ' จาก '
+          + Number(coverage.rows_total).toLocaleString() + ' แถว '
+          + '(' + Math.round(coverage.rows_with_station / coverage.rows_total * 100) + '%) '
+          + 'คลังที่ตัวเลขน้อยไม่ได้แปลว่าทำงานน้อย'
+        : '',
+    printable: true,
+}) %>
+
+<% if (err) { %>
+    <div class="alert alert-warning"><%= err %></div>
+<% } else { %>
+
+<div class="wb-stats mt-3">
+    <div class="wb-stat">
+        <div class="label">คลังที่มีข้อมูล</div>
+        <div class="value"><%= stations.length %></div>
+        <div class="sub">ที่มีข้อมูลในช่วงที่วัดได้</div>
+    </div>
+    <div class="wb-stat">
+        <div class="label">น้ำหนักรวม</div>
+        <div class="value"><%= Math.round(totals.kg).toLocaleString() %></div>
+        <div class="sub">กก. ในช่วงที่วัดได้</div>
+    </div>
+    <div class="wb-stat">
+        <div class="label">ยอดรวม</div>
+        <div class="value"><%= Math.round(totals.baht).toLocaleString() %></div>
+        <div class="sub">บาท</div>
+    </div>
+    <div class="wb-stat">
+        <div class="label">บิลรวม</div>
+        <div class="value"><%= Number(totals.bills).toLocaleString() %></div>
+        <div class="sub">ใบ</div>
+    </div>
+</div>
+
+<div class="wb-card">
+    <div class="wb-card-head">
+        <h3>เทียบรายคลัง</h3>
+        <span class="text-muted small">
+            เรียงตามน้ำหนัก · บาท/บิล บอกว่าแต่ละคลังรับงานก้อนใหญ่หรือก้อนเล็ก
+        </span>
+    </div>
+    <div class="wb-table-wrap">
+        <table class="wb-table" id="station-table">
+            <thead>
+                <tr>
+                    <th>คลัง</th>
+                    <th class="num">วันทำงาน</th>
+                    <th class="num">บิล</th>
+                    <th class="num">บิล/วัน</th>
+                    <th class="num">รายการ</th>
+                    <th class="num">คนขับ</th>
+                    <th class="num">สมาชิก</th>
+                    <th class="num">รถ</th>
+                    <th class="num">กก.</th>
+                    <th class="num">กก./วัน</th>
+                    <th class="num">บาท</th>
+                    <th class="num">บาท/บิล</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% stations.forEach(function (s) { %>
+                    <tr>
+                        <td><%= s.station %></td>
+                        <td class="num"><%= Number(s.work_days).toLocaleString() %></td>
+                        <td class="num"><%= Number(s.bills).toLocaleString() %></td>
+                        <td class="num"><%= Number(s.bills_per_day).toLocaleString() %></td>
+                        <td class="num"><%= Number(s.lines).toLocaleString() %></td>
+                        <td class="num"><%= Number(s.drivers).toLocaleString() %></td>
+                        <td class="num"><%= Number(s.members).toLocaleString() %></td>
+                        <td class="num"><%= Number(s.vehicles).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(s.total_kg).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(s.kg_per_day).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(s.total_baht).toLocaleString() %></td>
+                        <td class="num"><%= Math.round(s.baht_per_bill).toLocaleString() %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="wb-grid-2">
+    <div class="wb-card">
+        <div class="wb-card-head"><h3>แนวโน้มรายเดือน</h3></div>
+        <div class="wb-chart-wrap">
+            <canvas id="monthly-chart" height="130"></canvas>
+        </div>
+    </div>
+    <div class="wb-card">
+        <div class="wb-card-head">
+            <h3>สัดส่วนวัสดุ</h3>
+            <span class="text-muted small">ใช้หมวดที่แก้แล้ว ไม่ใช่ช่องดิบจากระบบ</span>
+        </div>
+        <div class="wb-chart-wrap">
+            <canvas id="material-chart" height="130"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MONTHLY = <%- JSON.stringify(monthly) %>;
+    const MATERIALS = <%- JSON.stringify(materials) %>;
+    const STATION_NAMES = <%- JSON.stringify(stations.map(s => s.station)) %>;
+
+    // สีคงที่ต่อคลัง ไม่ใช่สุ่มตอน render — คลังเดิมต้องเป็นสีเดิมทุกกราฟ
+    const COLORS = ['#2f855a', '#c6a15b', '#4c6ef5', '#e8590c', '#9c36b5', '#0b7285'];
+    const colorOf = name => COLORS[STATION_NAMES.indexOf(name) % COLORS.length];
+
+    window.addEventListener('DOMContentLoaded', function () {
+        if (!window.Chart) return;
+
+        const months = [...new Set(MONTHLY.map(r => r.month))].sort();
+        const lineEl = document.getElementById('monthly-chart');
+        if (lineEl) {
+            new Chart(lineEl, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: STATION_NAMES.map(name => ({
+                        label: name,
+                        borderColor: colorOf(name),
+                        backgroundColor: colorOf(name),
+                        tension: 0.25,
+                        data: months.map(m => {
+                            const hit = MONTHLY.find(r => r.month === m && r.station === name);
+                            return hit ? Number(hit.total_kg) : null;
+                        }),
+                    })),
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'กก.' } } },
+                },
+            });
+        }
+
+        const cats = [...new Set(MATERIALS.map(r => r.category))];
+        const barEl = document.getElementById('material-chart');
+        if (barEl) {
+            new Chart(barEl, {
+                type: 'bar',
+                data: {
+                    labels: cats,
+                    datasets: STATION_NAMES.map(name => ({
+                        label: name,
+                        backgroundColor: colorOf(name),
+                        data: cats.map(c => {
+                            const hit = MATERIALS.find(r => r.category === c && r.station === name);
+                            return hit ? Number(hit.total_kg) : 0;
+                        }),
+                    })),
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true,
+                             title: { display: true, text: 'กก.' } },
+                    },
+                },
+            });
+        }
+    });
+</script>
+
+<% } %>
+
+<%- include('partials/footer.ejs') %>

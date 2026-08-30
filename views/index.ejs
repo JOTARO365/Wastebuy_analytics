@@ -1,41 +1,65 @@
-<%- include('partials/header', { pageTitle: 'Wastebuy Automate' }) %>
+<%- include('partials/header') %>
 
-<div class="p-5">
-    <h1 class="fs-2 fw-bold text-success mb-1">Wastebuy Delivery Co., Ltd.</h1>
-    <p class="text-secondary mb-4">เลือกรายงานจากเมนูด้านซ้าย หรือกดจากรายการด้านล่าง</p>
+<style>
+    .wb-launcher {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    }
+    .wb-launch {
+        display: flex;
+        gap: .9rem;
+        align-items: flex-start;
+        background: var(--wb-surface);
+        border: 1px solid var(--wb-border);
+        border-radius: var(--wb-radius);
+        box-shadow: var(--wb-shadow-sm);
+        padding: 1.1rem;
+        text-decoration: none;
+        color: inherit;
+        transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .wb-launch:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--wb-shadow);
+        border-color: var(--wb-green);
+        color: inherit;
+    }
+    .wb-launch .icon {
+        width: 2.4rem;
+        height: 2.4rem;
+        flex: none;
+        display: grid;
+        place-items: center;
+        border-radius: var(--wb-radius-sm);
+        background: var(--wb-green-soft);
+        color: var(--wb-green-dark);
+        font-size: 1.05rem;
+    }
+    .wb-launch .title { font-weight: 600; }
+    .wb-launch .desc { font-size: .84rem; color: var(--wb-ink-soft); }
+</style>
 
-    <div class="row g-3">
-        <div class="col-12 col-lg-6 col-xxl-4">
-            <a class="d-block text-decoration-none text-dark border rounded-3 p-4 h-100 item" href="/Scheduling-system">
-                <div class="fw-bold text-success">Scheduling System</div>
-                <div class="small text-secondary">จัดคิวรถเข้ารับวัสดุ พร้อมแผนที่จุดรับ</div>
-            </a>
+<%- include('partials/page-head', {
+        heading: 'Wastebuy Delivery Co., Ltd.',
+        lead: 'ศูนย์รวมรายงานและการวิเคราะห์'
+    }) %>
+
+<div class="wb-body">
+    <% nav.forEach(function (section) { %>
+        <h3 class="wb-card-title mt-2"><%= section.group %></h3>
+        <div class="wb-launcher mb-4">
+            <% section.items.forEach(function (item) { %>
+                <a class="wb-launch" href="<%= item.path %>">
+                    <span class="icon"><i class="fa-solid <%= item.icon %>" aria-hidden="true"></i></span>
+                    <span>
+                        <span class="title d-block"><%= item.title %></span>
+                        <span class="desc"><%= item.subtitle %></span>
+                    </span>
+                </a>
+            <% }) %>
         </div>
-        <div class="col-12 col-lg-6 col-xxl-4">
-            <a class="d-block text-decoration-none text-dark border rounded-3 p-4 h-100 item" href="/material-information">
-                <div class="fw-bold text-success">Material Information</div>
-                <div class="small text-secondary">รายงานรับซื้อวัสดุ แยกตามชนิดและราคา</div>
-            </a>
-        </div>
-        <div class="col-12 col-lg-6 col-xxl-4">
-            <a class="d-block text-decoration-none text-dark border rounded-3 p-4 h-100 item" href="/report-50-Districts">
-                <div class="fw-bold text-success">Report 50 Districts</div>
-                <div class="small text-secondary">น้ำหนักและก๊าซเรือนกระจก แยกราย 50 เขต</div>
-            </a>
-        </div>
-        <div class="col-12 col-lg-6 col-xxl-4">
-            <a class="d-block text-decoration-none text-dark border rounded-3 p-4 h-100 item" href="/report-carbon-credit">
-                <div class="fw-bold text-success">Report Carbon Credit</div>
-                <div class="small text-secondary">ยอดคาร์บอนเครดิตรายชื่อสมาชิก</div>
-            </a>
-        </div>
-        <div class="col-12 col-lg-6 col-xxl-4">
-            <a class="d-block text-decoration-none text-dark border rounded-3 p-4 h-100 item" href="/report-customer-details-materials">
-                <div class="fw-bold text-success">Report Customer Details Material</div>
-                <div class="small text-secondary">รับซื้อวัสดุแยกตามกลุ่มสมาชิก</div>
-            </a>
-        </div>
-    </div>
+    <% }) %>
 </div>
 
 <%- include('partials/footer') %>

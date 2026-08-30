@@ -1,0 +1,1307 @@
+<%- include('partials/header') %>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<style>
+    #zone-map {
+        /* วงแหวนนอกสุด 30 km กินความสูงราว 600px ที่ zoom 10 ถ้ากรอบเตี้ยกว่านั้น
+           Leaflet จะถอยไป zoom 9 แล้วแผนที่กว้างจนเห็นทั้งอ่าวไทย */
+        height: 640px;
+        border-radius: var(--wb-radius);
+        border: 1px solid var(--wb-border);
+    }
+    .map-layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: .85rem;
+        align-items: stretch;
+    }
+    .map-aside {
+        border: 1px solid var(--wb-border);
+        border-radius: var(--wb-radius);
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+    .map-aside-head {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .55rem .7rem;
+        border-bottom: 1px solid var(--wb-border);
+        font-size: .82rem;
+        font-weight: 600;
+    }
+    .map-aside-foot {
+        padding: .55rem .7rem;
+        border-top: 1px solid var(--wb-border);
+    }
+    .link-btn {
+        background: none;
+        border: 0;
+        padding: 0;
+        margin-left: auto;
+        color: var(--wb-green-dark);
+        font-size: .76rem;
+        font-weight: 400;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    .station-list { list-style: none; margin: 0; padding: .35rem; overflow-y: auto; flex: 1; }
+    .station-list li {
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .3rem .35rem;
+        border-radius: var(--wb-radius-sm);
+    }
+    .station-list li:hover { background: var(--wb-green-soft); }
+    .station-list label {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        margin: 0;
+        cursor: pointer;
+        min-width: 0;
+        flex: 1;
+    }
+    .station-list .dot {
+        width: .7rem;
+        height: .7rem;
+        border-radius: 50%;
+        background: var(--dot);
+        flex: none;
+    }
+    .station-list .name { min-width: 0; }
+    .station-list .name b { display: block; font-size: .8rem; font-weight: 500; }
+    .station-list .name small { font-size: .72rem; color: var(--wb-ink-soft); }
+    .legend { display: flex; flex-direction: column; gap: .2rem; font-size: .72rem;
+              color: var(--wb-ink-soft); }
+    .legend i {
+        display: inline-block;
+        width: .6rem;
+        height: .6rem;
+        border-radius: 50%;
+        background: var(--dot);
+        margin-right: .3rem;
+    }
+
+    .modal-sub { font-size: .82rem; color: var(--wb-ink-soft); }
+    .route-option {
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+        border: 1px solid var(--wb-border);
+        border-radius: var(--wb-radius);
+        padding: .6rem .8rem;
+        margin-bottom: .5rem;
+        cursor: pointer;
+    }
+    .route-option:hover { border-color: var(--wb-green); }
+    .route-option.is-active { border-color: var(--wb-green); background: var(--wb-green-soft); }
+    .route-option .rank {
+        width: 1.6rem;
+        height: 1.6rem;
+        flex: none;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--wb-border);
+        font-size: .78rem;
+        font-weight: 600;
+    }
+    .route-option.is-best .rank { background: var(--wb-green); color: #fff; }
+    .route-option .info { flex: 1; min-width: 0; }
+    .route-option .info b { display: block; font-size: .9rem; }
+    .route-option .info small { font-size: .76rem; color: var(--wb-ink-soft); }
+    .route-option .km {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        text-align: right;
+        min-width: 8rem;
+    }
+    .route-option .straight { display: block; font-size: .74rem; font-weight: 400;
+                              color: var(--wb-ink-faint); }
+    .route-option .road { display: block; font-size: .82rem; font-weight: 600;
+                          color: var(--wb-ink); }
+    /* LRM ใส่ panel ของตัวเองมาด้วยแม้ตั้ง show:false — กันไม่ให้บังแผนที่ */
+    .leaflet-routing-container { display: none !important; }
+
+    .station-list li .only { opacity: 0; }
+    .station-list li:hover .only { opacity: 1; }
+
+    @media (max-width: 991.98px) {
+        .map-layout { grid-template-columns: 1fr; }
+        .map-aside { max-height: 220px; }
+    }
+    @media print { .map-layout { grid-template-columns: 1fr; } }
+
+    .thin-pins { color: var(--wb-amber); }
+
+    /* รายการแขวงในโซนของ station — โผล่ตอนคลิกหมุด */
+    .station-popup h4 { font-size: 1rem; font-weight: 600; margin: 0 0 .15rem; }
+    .station-popup .meta { font-size: .78rem; color: var(--wb-ink-soft); margin-bottom: .5rem; }
+    .station-popup ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 220px;
+        overflow-y: auto;
+    }
+    .station-popup li {
+        display: flex;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: .22rem 0;
+        border-bottom: 1px solid var(--wb-border);
+        font-size: .82rem;
+    }
+    .station-popup li:last-child { border-bottom: 0; }
+    .station-popup li em { font-style: normal; color: var(--wb-ink-faint); font-size: .76rem; }
+    .station-popup li b { font-variant-numeric: tabular-nums; }
+    .station-popup .more { font-size: .76rem; color: var(--wb-ink-faint); padding-top: .35rem; }
+
+    /* การ์ดสถานะรายเขต — popup บนแผนที่แสดงได้จำกัดและกดดูทีละอัน
+       ส่วนนี้เห็นทุกเขตพร้อมกัน กรองและเรียงได้ */
+    .zone-cards {
+        display: grid;
+        gap: .85rem;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    }
+    .zone-card {
+        border: 1px solid var(--wb-border);
+        border-radius: var(--wb-radius);
+        padding: .85rem .95rem;
+        background: var(--wb-surface);
+    }
+    .zone-card header { display: flex; align-items: flex-start; gap: .5rem; }
+    .zone-card h4 { font-size: .98rem; font-weight: 600; margin: 0; }
+    .zone-card header p { margin: .1rem 0 0; font-size: .76rem; color: var(--wb-ink-soft); }
+    .zone-card header .wb-chip { margin-left: auto; flex: none; }
+
+    .zone-card .counts {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: .35rem;
+        margin: .7rem 0 .5rem;
+        text-align: center;
+    }
+    .zone-card .count b {
+        display: block;
+        font-size: 1.05rem;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+    }
+    .zone-card .count span { font-size: .7rem; color: var(--wb-ink-soft); }
+    .zone-card .count.is-done b { color: var(--wb-green); }
+    .zone-card .count.is-cancel b { color: var(--wb-red); }
+
+    /* แถบสัดส่วนสถานะ อ่านรูปทรงได้เร็วกว่าตัวเลข 4 ตัว */
+    .zone-card .bar {
+        display: flex;
+        height: 6px;
+        border-radius: 3px;
+        overflow: hidden;
+        background: var(--wb-border);
+    }
+    .zone-card .seg.is-done { background: var(--wb-green); }
+    .zone-card .seg.is-cancel { background: var(--wb-red); }
+    .zone-card .seg.is-progress { background: #6ea8fe; }
+    .zone-card .seg.is-pending { background: #e0c56a; }
+
+    .zone-card footer {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        margin-top: .55rem;
+        font-size: .78rem;
+        color: var(--wb-ink-soft);
+    }
+    .zone-card footer b { color: var(--wb-ink); font-variant-numeric: tabular-nums; }
+    .zone-card .link-toggle {
+        margin-left: auto;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: var(--wb-green-dark);
+        font-size: .78rem;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    .zone-card .areas {
+        list-style: none;
+        margin: .55rem 0 0;
+        padding: .5rem 0 0;
+        border-top: 1px solid var(--wb-border);
+        max-height: 190px;
+        overflow-y: auto;
+    }
+    .zone-card .areas li {
+        display: flex;
+        justify-content: space-between;
+        gap: .5rem;
+        font-size: .78rem;
+        padding: .16rem 0;
+    }
+    .zone-card .areas b { font-variant-numeric: tabular-nums; }
+
+    @media print {
+        .zone-cards { grid-template-columns: repeat(2, 1fr); }
+        .zone-card { break-inside: avoid; }
+        .zone-card .areas[hidden] { display: none; }
+    }
+
+    @media print { #zone-map { height: 380px; } }
+</style>
+
+<%
+    // สีประจำ station ใช้ทั้งในแถบด้านข้างและบนแผนที่ ต้องเป็นชุดเดียวกัน
+    // ไม่งั้นจุดสีในลิสต์กับวงบนแผนที่จะคนละสีจนอ่านไม่ออกว่าอันไหนคืออันไหน
+    const STATION_COLORS = ['#198754', '#0d6efd', '#d63384', '#fd7e14', '#6f42c1',
+                            '#20c997', '#dc3545', '#6610f2'];
+%>
+<%- include('partials/page-head', {
+        heading: 'โซนวิ่งรถ และ รัศมีรอบ Station',
+        lead: 'แต่ละเขตจับคู่กับ station ที่ใกล้ที่สุด แล้วจัดกลุ่มตามระยะทางเป็นวงแหวน',
+        printable: true
+    }) %>
+
+<%
+    /* เตือนเฉพาะคลังที่พิกัดยังเดา ไม่เหมารวมทั้งหมด
+       คลังที่ผู้ใช้ยืนยันหมุดแล้วต้องไม่ถูกลากไปอยู่ในคำเตือนด้วย */
+    const unverified = (stations || []).filter(s => !s.coord_verified);
+%>
+<% if (unverified.length) { %>
+<div class="alert alert-warning no-print py-2 px-3 small mb-3">
+    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+    <b>พิกัดยังไม่ยืนยัน <%= unverified.length %> จาก <%= stations.length %> คลัง</b> —
+    <%= unverified.map(s => s.station_name).join(' · ') %>
+    · ระยะทางและวงแหวนที่เกี่ยวกับคลังเหล่านี้ใช้เทียบคร่าว ๆ ได้ แต่ยังอ้างอิง
+    เป็นตัวเลขจริงไม่ได้ (ที่เหลือยืนยันด้วยหมุด Google Maps แล้ว)
+</div>
+<% } %>
+<p class="text-muted small mb-3">
+    ตัวเลขออร์เดอร์บนหน้านี้ = ใบจองที่ยังไม่จบ + บิลจริงของงานที่จบแล้ว
+    (หน้า Reservation ของระบบต้นทางเก็บใบจองเก่าไว้ไม่ครบ)
+</p>
+
+<div class="wb-body">
+    <% if (err) { %>
+        <div class="alert alert-warning"><%= err %></div>
+    <% } %>
+
+    <%- include('partials/filter-bar', {
+            action: '/report-zone-coverage',
+            fields: [
+                { type: 'date', name: 'startDate', label: 'วันที่จอง ตั้งแต่', value: startDate },
+                { type: 'date', name: 'endDate', label: 'ถึง', value: endDate },
+            ]
+        }) %>
+
+    <% if (stations.length) { %>
+        <div class="wb-card mt-3">
+            <h3 class="wb-card-title">
+                แผนที่ความครอบคลุม
+                <span class="wb-hint">
+                    วงกลม = รัศมีรอบ station · ฟอง = จุดกลางเขต ขนาดตามยอดจอง
+                </span>
+            </h3>
+            <div class="map-layout">
+                <aside class="map-aside no-print">
+                    <div class="map-aside-head">
+                        <span>Station</span>
+                        <button type="button" class="link-btn" data-station-all>เลือกทั้งหมด</button>
+                    </div>
+                    <ul class="station-list">
+                        <% stations.forEach(function (st, i) { %>
+                            <li>
+                                <label>
+                                    <input type="checkbox" class="form-check-input"
+                                           data-station-toggle value="<%= st.station_name %>" checked>
+                                    <span class="dot" style="--dot: <%= STATION_COLORS[i % STATION_COLORS.length] %>"></span>
+                                    <span class="name">
+                                        <b><%= st.station_name %></b>
+                                        <small data-station-count="<%= st.station_name %>"></small>
+                                    </span>
+                                </label>
+                                <button type="button" class="link-btn only" data-station-only="<%= st.station_name %>"
+                                        title="ดูเฉพาะ station นี้">เฉพาะนี้</button>
+                            </li>
+                        <% }) %>
+                    </ul>
+                    <div class="map-aside-foot">
+                        <label class="form-check-label small d-block mb-2">
+                            <input type="checkbox" class="form-check-input" id="toggle-rings" checked>
+                            แสดงวงแหวนรัศมี
+                        </label>
+                        <div class="legend">
+                            <span><i style="--dot: #2b8cff"></i> อยู่ในรัศมี station เดียว</span>
+                            <span><i style="--dot: #ff3fa4"></i> คาบเกี่ยวหลาย station</span>
+                            <span><i style="--dot: #93a7ac"></i> นอกรัศมีที่เลือก</span>
+                        </div>
+                    </div>
+                </aside>
+                <div id="zone-map"></div>
+            </div>
+        </div>
+    <% } %>
+
+    <% if (rings.length) { %>
+        <% let grandBookings = 0; rings.forEach(r => { grandBookings += r.bookings }); %>
+        <div class="wb-stats mt-3">
+            <div class="wb-stat">
+                <div class="label">ออร์เดอร์ในตาราง</div>
+                <div class="value"><%= grandBookings.toLocaleString() %></div>
+                <div class="sub">
+                    <%= allDistricts.length.toLocaleString() %> เขต
+                    <% if (dropped && (Number(dropped.no_district) || Number(dropped.outside_area))) { %>
+                        <br>ไม่อยู่ในตาราง
+                        <%= (Number(dropped.no_district) + Number(dropped.outside_area)).toLocaleString() %>
+                        (ไม่ระบุเขต <%= Number(dropped.no_district).toLocaleString() %> ·
+                        นอกพื้นที่ <%= Number(dropped.outside_area).toLocaleString() %>)
+                    <% } %>
+                </div>
+            </div>
+            <% const near = rings.find(r => r.ring_order === 1); %>
+            <div class="wb-stat">
+                <div class="label">อยู่ในรัศมีวงในสุด</div>
+                <div class="value"><%= near ? near.bookings.toLocaleString() : '0' %></div>
+                <div class="sub">
+                    <%= grandBookings && near ? (100 * near.bookings / grandBookings).toFixed(1) : '0.0' %>%
+                    ของใบจอง
+                </div>
+            </div>
+            <% const far = rings[rings.length - 1]; %>
+            <div class="wb-stat is-warn">
+                <div class="label">ไกลที่สุด (<%= far.ring %>)</div>
+                <div class="value"><%= far.bookings.toLocaleString() %></div>
+                <div class="sub">
+                    ยกเลิก
+                    <%= far.bookings ? (100 * far.cancelled / far.bookings).toFixed(1) : '0.0' %>%
+                </div>
+            </div>
+            <div class="wb-stat">
+                <div class="label">Station</div>
+                <div class="value"><%= stations.length %></div>
+                <div class="sub">จุดรับซื้อที่มีพิกัด</div>
+            </div>
+        </div>
+
+        <div class="wb-card mt-3">
+            <h3 class="wb-card-title">ยอดจองตามระยะจาก station ที่ใกล้ที่สุด</h3>
+            <div class="wb-table-wrap">
+                <table class="wb-table" id="ring-table">
+                    <thead>
+                        <tr>
+                            <th>วงแหวน</th>
+                            <th class="num">จำนวนเขต</th>
+                            <th class="num">ยอดจอง</th>
+                            <th class="num">สำเร็จ</th>
+                            <th class="num">ยกเลิก</th>
+                            <th class="num">% ยกเลิก</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% rings.forEach(function (r) { %>
+                            <% const pct = r.bookings ? 100 * r.cancelled / r.bookings : 0; %>
+                            <tr>
+                                <td class="fw-semibold"><%= r.ring %></td>
+                                <td class="num"><%= r.districts.toLocaleString() %></td>
+                                <td class="num"><%= r.bookings.toLocaleString() %></td>
+                                <td class="num"><%= r.done.toLocaleString() %></td>
+                                <td class="num"><%= r.cancelled.toLocaleString() %></td>
+                                <td class="num">
+                                    <span class="wb-chip <%= pct < 15 ? 'wb-chip-ok' : pct < 25 ? 'wb-chip-warn' : 'wb-chip-bad' %>">
+                                        <%= pct.toFixed(1) %>%
+                                    </span>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td>รวม</td>
+                            <td class="num"><%= allDistricts.length.toLocaleString() %></td>
+                            <td class="num"><%= grandBookings.toLocaleString() %></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    <% } %>
+
+
+    <div class="wb-card mt-3" id="status-cards">
+        <h3 class="wb-card-title">
+            สถานะการจองรายเขต
+            <span class="wb-hint">
+                <%= districts.length.toLocaleString() %> เขต
+                <% if (filters.station || filters.ring) { %>(กรองแล้ว)<% } %>
+            </span>
+            <button type="button" class="btn btn-outline-success btn-sm ms-auto no-print"
+                    id="export-status-cards">
+                <i class="fa-solid fa-file-csv" aria-hidden="true"></i> CSV
+            </button>
+        </h3>
+
+        <form class="wb-filter no-print mb-3" method="get" action="/report-zone-coverage"
+              data-wb-filter>
+            <input type="hidden" name="startDate" value="<%= startDate || '' %>">
+            <input type="hidden" name="endDate" value="<%= endDate || '' %>">
+            <div class="field">
+                <label for="f-station">Station</label>
+                <select class="form-select form-select-sm" id="f-station" name="station">
+                    <option value="">ทุก station</option>
+                    <% stationNames.forEach(function (name) { %>
+                        <option value="<%= name %>"
+                            <%= filters.station === name ? 'selected' : '' %>><%= name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="field">
+                <label for="f-ring">วงแหวน</label>
+                <select class="form-select form-select-sm" id="f-ring" name="ring">
+                    <option value="">ทุกวง</option>
+                    <% ringNames.forEach(function (name) { %>
+                        <option value="<%= name %>"
+                            <%= filters.ring === name ? 'selected' : '' %>><%= name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="field">
+                <label for="f-sort">เรียงตาม</label>
+                <select class="form-select form-select-sm" id="f-sort" name="sort">
+                    <option value="bookings" <%= filters.sort === 'bookings' ? 'selected' : '' %>>ยอดจองมากสุด</option>
+                    <option value="cancelled" <%= filters.sort === 'cancelled' ? 'selected' : '' %>>ยกเลิกมากสุด</option>
+                    <option value="cancel_rate" <%= filters.sort === 'cancel_rate' ? 'selected' : '' %>>% ยกเลิกสูงสุด (เขตที่มี 10 ใบขึ้นไปก่อน)</option>
+                    <option value="km" <%= filters.sort === 'km' ? 'selected' : '' %>>ใกล้ station ที่สุด</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="card-search">ค้นหาเขต</label>
+                <input type="search" class="form-control form-control-sm" id="card-search"
+                       placeholder="พิมพ์ชื่อเขต..." autocomplete="off">
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-success btn-sm">ค้นหา</button>
+                <a href="/report-zone-coverage" class="btn btn-outline-secondary btn-sm">ล้าง</a>
+            </div>
+        </form>
+
+        <% if (!districts.length) { %>
+            <div class="wb-empty">ไม่มีเขตตามเงื่อนไขที่เลือก</div>
+        <% } %>
+
+        <div class="zone-cards">
+            <% districts.forEach(function (d) {
+                   const total = Number(d.bookings);
+                   const done = Number(d.done);
+                   const cancelled = Number(d.cancelled);
+                   const pending = Number(d.pending || 0);
+                   const inProgress = Number(d.in_progress || 0);
+                   // นับ % จากใบที่ปิดแล้วเท่านั้น ใบที่ยังค้างอยู่ยังไม่รู้ผล
+                   // ถ้าหารด้วยยอดรวมทั้งหมด เขตที่งานยังค้างเยอะจะดูเหมือนล้มเหลว
+                   const closed = done + cancelled;
+                   const successRate = closed ? 100 * done / closed : null;
+                   const areas = subdistrictsByDistrict[d.district] || [];
+                   const segments = [['done', done], ['cancel', cancelled],
+                                     ['progress', inProgress], ['pending', pending]];
+            %>
+                <article class="zone-card" data-district="<%= d.district %>">
+                    <header>
+                        <div>
+                            <h4><%= d.district %></h4>
+                            <p><%= d.nearest_station || '—' %> ·
+                               <%= d.km === null ? '—' : Number(d.km).toFixed(1) %> km ·
+                               <%= d.ring || '—' %></p>
+                        </div>
+                        <span class="wb-chip <%= successRate === null ? 'wb-chip-normal'
+                                : successRate >= 70 ? 'wb-chip-ok'
+                                : successRate >= 50 ? 'wb-chip-warn' : 'wb-chip-bad' %>">
+                            <%= successRate === null ? 'ยังไม่ปิดงาน'
+                                : successRate.toFixed(0) + '% สำเร็จ' %>
+                        </span>
+                    </header>
+
+                    <div class="counts">
+                        <div class="count is-done">
+                            <b><%= done.toLocaleString() %></b>
+                            <span>สำเร็จ</span>
+                        </div>
+                        <div class="count is-cancel">
+                            <b><%= cancelled.toLocaleString() %></b>
+                            <span>ยกเลิก</span>
+                        </div>
+                        <div class="count">
+                            <b><%= inProgress.toLocaleString() %></b>
+                            <span>กำลังเข้ารับ</span>
+                        </div>
+                        <div class="count">
+                            <b><%= pending.toLocaleString() %></b>
+                            <span>รอยืนยัน</span>
+                        </div>
+                    </div>
+
+                    <div class="bar" title="สำเร็จ <%= done %> · ยกเลิก <%= cancelled %> · กำลังเข้ารับ <%= inProgress %> · รอยืนยัน <%= pending %>">
+                        <% segments.forEach(function (part) { %>
+                            <% if (part[1]) { %>
+                                <span class="seg is-<%= part[0] %>"
+                                      style="width: <%= (100 * part[1] / Math.max(total, 1)).toFixed(2) %>%"></span>
+                            <% } %>
+                        <% }) %>
+                    </div>
+
+                    <footer>
+                        <span>ทั้งหมด <b><%= total.toLocaleString() %></b> ใบ</span>
+                        <% if (areas.length) { %>
+                            <button type="button" class="link-toggle no-print"
+                                    data-toggle-areas>ดูแขวง (<%= areas.length %>)</button>
+                        <% } %>
+                    </footer>
+
+                    <% if (areas.length) { %>
+                        <ul class="areas" hidden>
+                            <% areas.forEach(function (a) { %>
+                                <li>
+                                    <span><%= a.subdistrict %></span>
+                                    <b><%= Number(a.bookings).toLocaleString() %></b>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    <% } %>
+                </article>
+            <% }) %>
+        </div>
+    </div>
+
+    <div class="row g-3 mt-0">
+        <% if (vehiclesByStation.length) { %>
+            <div class="col-12 col-xl-5">
+                <div class="wb-card h-100">
+                    <h3 class="wb-card-title">
+                        รถที่วิ่งเข้าแต่ละ station
+                        <span class="wb-hint">รถคันเดียววิ่งได้หลาย station จึงนับซ้ำได้</span>
+                    </h3>
+                    <div class="wb-table-wrap">
+                        <table class="wb-table" id="vehicle-table">
+                            <thead>
+                                <tr>
+                                    <th>Station</th>
+                                    <th class="num">จำนวนรถ</th>
+                                    <th class="num">แถวรับซื้อ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% vehiclesByStation.forEach(function (v) { %>
+                                    <tr>
+                                        <td><%= v.station_name %></td>
+                                        <td class="num"><%= Number(v.vehicles).toLocaleString() %></td>
+                                        <td class="num"><%= Number(v.trip_rows).toLocaleString() %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <% if (allDistricts.length) { %>
+            <div class="col-12 col-xl-7">
+                <div class="wb-card h-100">
+                    <h3 class="wb-card-title">
+                        เขตที่จองเยอะที่สุด
+                        <button type="button" class="btn btn-outline-success btn-sm ms-auto no-print"
+                                data-wb-export="#district-table">
+                            <i class="fa-solid fa-file-csv" aria-hidden="true"></i> CSV
+                        </button>
+                    </h3>
+                    <div class="wb-table-wrap">
+                        <table class="wb-table" id="district-table">
+                            <thead>
+                                <tr>
+                                    <th>เขต</th>
+                                    <th>Station ที่ใกล้ที่สุด</th>
+                                    <th class="num">km</th>
+                                    <th>วงแหวน</th>
+                                    <th class="num">จอง</th>
+                                    <th class="num">ยกเลิก</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% allDistricts.forEach(function (d) { %>
+                                    <tr class="district-row" data-district="<%= d.district %>"
+                                        style="cursor: pointer;" title="คลิกเพื่อดูเส้นทาง">
+                                        <td>
+                                            <%= d.district %>
+                                            <% if (Number(d.source_pins) < 3) { %>
+                                                <i class="fa-solid fa-triangle-exclamation thin-pins"
+                                                   title="จุดกลางเขตมาจากหมุดแค่ <%= d.source_pins %> จุด — ระยะอาจคลาดเคลื่อน"></i>
+                                            <% } %>
+                                        </td>
+                                        <td><%= d.nearest_station %></td>
+                                        <td class="num"><%= Number(d.km).toFixed(1) %></td>
+                                        <td><%= d.ring %></td>
+                                        <td class="num"><%= Number(d.bookings).toLocaleString() %></td>
+                                        <td class="num"><%= Number(d.cancelled).toLocaleString() %></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="fa-solid fa-triangle-exclamation thin-pins"></i>
+                        = จุดกลางเขตคำนวณจากหมุดน้อยกว่า 3 จุด
+                    </p>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+
+<div class="modal fade" id="route-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="route-title">—</h5>
+                    <p class="modal-sub mb-0" id="route-sub"></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="ปิด"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-2">
+                    ระยะและเวลาตามถนนคำนวณให้ครบทุก station ทันทีที่เปิดหน้านี้
+                    แล้วเรียงใหม่ตาม<b>เวลาถึง</b> ไม่ใช่ระยะทาง
+                    กดเลือกเพื่อวาดเส้นบนแผนที่ เลือกได้ครั้งละ 1 เส้นทาง
+                </p>
+                <div id="route-options"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        id="route-clear">ล้างเส้นทางบนแผนที่</button>
+                <button type="button" class="btn btn-success btn-sm"
+                        data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="zone-payload" type="application/json">
+    <%- JSON.stringify({ stations: stations, districts: allDistricts,
+                         subdistricts: subdistricts }) %>
+</script>
+
+<script>
+    (function () {
+        const holder = document.getElementById('zone-payload');
+        const mapEl = document.getElementById('zone-map');
+        if (!holder || !mapEl) return;
+
+        const data = JSON.parse(holder.textContent);
+        if (!data.stations.length) return;
+
+        // รัศมีต้องตรงกับ RINGS ใน generate_zone_analysis_sql.py
+        const RINGS_KM = [5, 10, 15, 20, 30];
+
+        const STATION_COLORS = <%- JSON.stringify(STATION_COLORS) %>;
+
+        // ปิดซูมด้วยล้อเมาส์เป็นค่าเริ่มต้น — แผนที่สูง 640px อยู่กลางหน้าที่ต้องเลื่อน
+        // ถ้าเปิดไว้ ผู้ใช้เลื่อนหน้าผ่านแผนที่แล้วหน้าไม่ไปไหน กลายเป็นซูมแผนที่แทน
+        // คลิกบนแผนที่ก่อนถึงจะซูมด้วยล้อได้ เลื่อนเมาส์ออกแล้วปิดกลับเอง
+        const map = L.map('zone-map', { scrollWheelZoom: false });
+        mapEl.addEventListener('click', function () { map.scrollWheelZoom.enable(); });
+        mapEl.addEventListener('mouseleave', function () { map.scrollWheelZoom.disable(); });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        // แต่ละ station มีชั้นของตัวเอง ปิด/เปิดได้โดยไม่ต้องวาดแผนที่ใหม่
+        // เขตก็เข้าชั้นตาม station ที่ใกล้ที่สุด ปิด station แล้วเขตของมันหายตาม
+        const stationLayers = new Map();
+        const ringLayers = new Map();
+        function layerFor(name) {
+            if (!stationLayers.has(name)) stationLayers.set(name, L.layerGroup().addTo(map));
+            return stationLayers.get(name);
+        }
+        function ringLayerFor(name) {
+            if (!ringLayers.has(name)) ringLayers.set(name, L.layerGroup().addTo(map));
+            return ringLayers.get(name);
+        }
+
+        // จัดแขวงเข้ากลุ่มตาม station ไว้ก่อน จะได้ไม่ต้องกรองซ้ำทุกครั้งที่คลิก
+        const POPUP_LIMIT = 12;
+        const byStation = new Map();
+        (data.subdistricts || []).forEach(function (row) {
+            const list = byStation.get(row.station_name) || [];
+            list.push(row);
+            byStation.set(row.station_name, list);
+        });
+
+        // กรอบแผนที่ยึดจาก station + วงแหวนนอกสุดเท่านั้น
+        // ถ้ารวมจุดกลางเขตด้วย ใบจองหลงจากเชียงใหม่ใบเดียวจะดันให้ซูมออกทั้งประเทศ
+        const bounds = [];
+
+        data.stations.forEach(function (s, sIndex) {
+            const point = [Number(s.lat), Number(s.lng)];
+            const color = STATION_COLORS[sIndex % STATION_COLORS.length];
+            bounds.push(point);
+
+            RINGS_KM.forEach(function (km) {
+                L.circle(point, {
+                    radius: km * 1000,
+                    color: color,
+                    weight: 1,
+                    opacity: .45,
+                    fill: false,
+                }).addTo(ringLayerFor(s.station_name));
+                if (km === RINGS_KM[RINGS_KM.length - 1]) {
+                    // คำนวณมุมของวงเองแทน circle.getBounds() ที่ต้องรอให้ map
+                    // มี view ก่อน ซึ่งตอนนี้ยังไม่มี (fitBounds คือคนตั้ง view)
+                    const dLat = km / 110.574;
+                    const dLng = km / (111.320 * Math.cos(point[0] * Math.PI / 180));
+                    bounds.push([point[0] - dLat, point[1] - dLng],
+                                [point[0] + dLat, point[1] + dLng]);
+                }
+            });
+
+            // คลิกหมุด station แล้วเห็นว่าโซนนั้นครอบคลุมแขวงไหนบ้าง
+            // ตัวเลขในวงเล็บคือยอดจองของแขวงนั้น เรียงจากมากไปน้อย
+            const areas = byStation.get(s.station_name) || [];
+            const shown = areas.slice(0, POPUP_LIMIT);
+            const rows = shown.map(function (a) {
+                return '<li><span>' + a.subdistrict +
+                    '<em> · ' + a.district + '</em></span>' +
+                    '<b>' + Number(a.bookings).toLocaleString() + '</b></li>';
+            }).join('');
+            const more = areas.length > shown.length
+                ? '<div class="more">และอีก ' +
+                  (areas.length - shown.length).toLocaleString() + ' แขวง</div>'
+                : '';
+            const totalBookings = areas.reduce(function (sum, a) {
+                return sum + Number(a.bookings);
+            }, 0);
+
+            L.marker(point).addTo(layerFor(s.station_name)).bindPopup(
+                '<div class="station-popup">' +
+                '<h4>' + s.station_name + '</h4>' +
+                '<div class="meta">' + (s.branch_code || '') + ' · ' +
+                    areas.length.toLocaleString() + ' แขวง · จอง ' +
+                    totalBookings.toLocaleString() + ' ใบ</div>' +
+                (rows ? '<ul>' + rows + '</ul>' + more
+                      : '<div class="more">ยังไม่มีข้อมูลแขวงในโซนนี้</div>') +
+                '</div>',
+                { maxWidth: 320 });
+        });
+
+        const maxBookings = Math.max.apply(null, data.districts.map(function (d) {
+            return Number(d.bookings);
+        }).concat([1]));
+
+        // เก็บหมุดเขตไว้ เพราะสีของมันขึ้นกับว่า station ไหนถูกเลือกอยู่
+        // ต้องระบายใหม่ทุกครั้งที่ติ๊ก ไม่ใช่ตั้งสีตายตัวตอนวาด
+        const districtMarkers = [];
+        const OUTER_RING_KM = RINGS_KM[RINGS_KM.length - 1];
+
+        // เลือกสีสว่างไว้ เพราะต้องอ่านออกบนพื้นแผนที่ที่มีทั้งเขียว ฟ้า และเทา
+        const COLOR_EXCLUSIVE = '#2b8cff';   // อยู่ในรัศมี station เดียว
+        const COLOR_OVERLAP   = '#ff3fa4';   // คาบเกี่ยวหลาย station
+        const COLOR_OUTSIDE   = '#93a7ac';   // ไม่อยู่ในรัศมีของ station ที่เลือก
+
+        function kmBetween(lat1, lng1, lat2, lng2) {
+            const rad = Math.PI / 180;
+            const dLat = (lat2 - lat1) * rad;
+            const dLng = (lng2 - lng1) * rad;
+            const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2;
+            return 6371 * 2 * Math.asin(Math.sqrt(a));
+        }
+
+        // นับว่าจุดนี้ตกอยู่ในรัศมีวงนอกสุดของ station ที่เปิดอยู่กี่แห่ง
+        //   1 แห่ง  = station นั้นดูแลคนเดียว
+        //   2+ แห่ง = พื้นที่ทับกัน ส่งรถไปได้จากหลายคลัง
+        //   0 แห่ง  = อยู่นอกรัศมีทั้งหมด
+        function coveringStations(lat, lng, selected) {
+            return selected.filter(function (s) {
+                return kmBetween(lat, lng, Number(s.lat), Number(s.lng)) <= OUTER_RING_KM;
+            });
+        }
+
+        function paintDistricts() {
+            const selectedNames = new Set(
+                [...document.querySelectorAll('[data-station-toggle]')]
+                    .filter(function (b) { return b.checked; })
+                    .map(function (b) { return b.value; }));
+            const selected = data.stations.filter(function (s) {
+                return selectedNames.has(s.station_name);
+            });
+
+            districtMarkers.forEach(function (item) {
+                const covering = coveringStations(item.lat, item.lng, selected);
+                const color = covering.length === 0 ? COLOR_OUTSIDE
+                    : covering.length === 1 ? COLOR_EXCLUSIVE : COLOR_OVERLAP;
+
+                item.marker.setStyle({
+                    color: color,
+                    fillColor: color,
+                    // จุดที่อยู่ในรัศมีทึบและมีขอบหนา ให้เด่นกว่าจุดนอกรัศมี
+                    fillOpacity: covering.length ? .6 : .18,
+                    weight: covering.length ? 2 : 1,
+                    opacity: covering.length ? 1 : .45,
+                });
+
+                item.marker.setPopupContent(
+                    '<strong>' + item.data.district + '</strong><br>' +
+                    'จอง ' + Number(item.data.bookings).toLocaleString() + ' ใบ<br>' +
+                    'ใกล้สุด: ' + item.data.nearest_station +
+                        ' (' + Number(item.data.km).toFixed(1) + ' km)<br>' +
+                    'วงแหวน: ' + item.data.ring + '<br>' +
+                    (covering.length === 0
+                        ? '<em>อยู่นอกรัศมีของ station ที่เลือก</em>'
+                        : covering.length === 1
+                            ? 'อยู่ในรัศมีของ ' + covering[0].station_name + ' เท่านั้น'
+                            : '<b>คาบเกี่ยว ' + covering.length + ' station:</b> ' +
+                              covering.map(function (s) { return s.station_name; }).join(', '))
+                );
+            });
+        }
+
+        data.districts.forEach(function (d) {
+            if (d.lat === null || d.lng === null) return;
+            const point = [Number(d.lat), Number(d.lng)];
+
+            // รัศมีตาม sqrt ของยอดจอง — พื้นที่วงกลมจึงแปรตามยอดตรง ๆ
+            // ถ้าใช้ยอดเป็นรัศมี เขตอันดับ 1 จะกลบทั้งแผนที่
+            const scale = Math.sqrt(Number(d.bookings) / maxBookings);
+
+            const owner = d.nearest_station;
+
+            const marker = L.circleMarker(point, {
+                radius: 4 + scale * 16,
+                weight: 1,
+            }).addTo(layerFor(owner));
+            const item = { marker: marker, lat: point[0], lng: point[1], data: d };
+            districtMarkers.push(item);
+            marker.on('click', function () { openRoutes(item); });
+
+            marker.bindPopup(
+                '<strong>' + d.district + '</strong><br>' +
+                'จอง ' + Number(d.bookings).toLocaleString() + ' ใบ<br>' +
+                'ใกล้สุด: ' + d.nearest_station + ' (' + Number(d.km).toFixed(1) + ' km)<br>' +
+                'วงแหวน: ' + d.ring
+            );
+        });
+
+        paintDistricts();
+
+        const mapBounds = L.latLngBounds(bounds).pad(0.05);
+        map.fitBounds(mapBounds, { maxZoom: 13 });
+
+        // ── เส้นทางจาก station ไปเขต ────────────────────────────
+        // ยังเป็นเส้นตรง ไม่ใช่เส้นทางถนนจริง (รอต่อ routing engine)
+        // แต่โครง UI พร้อมรับหลายเส้นทางแล้ว: เขตที่คาบเกี่ยวจะเห็นทางเลือก
+        // จากทุก station ที่ครอบถึง เลือกดูได้ทีละเส้น
+        const routeLayer = L.layerGroup().addTo(map);
+        const routeModalEl = document.getElementById('route-modal');
+        const routeModal = routeModalEl ? new bootstrap.Modal(routeModalEl) : null;
+
+        // leaflet-routing-machine ใช้ OSRM สาธารณะเป็นตัวคำนวณเส้นทางถนนจริง
+        // profile ที่ใช้ได้คือ 'driving' ซึ่งเป็นรถยนต์ทั่วไป ใกล้เคียงรถตู้ทึบที่สุด
+        // เท่าที่ server สาธารณะมีให้ (ไม่มี profile รถบรรทุก/ความสูง-น้ำหนัก)
+        let routingControl = null;
+
+        function clearRoute() {
+            if (routingControl) {
+                map.removeControl(routingControl);
+                routingControl = null;
+            }
+            routeLayer.clearLayers();
+        }
+
+        function drawRoute(station, item, onDone) {
+            clearRoute();
+            const from = L.latLng(Number(station.lat), Number(station.lng));
+            const to = L.latLng(item.lat, item.lng);
+
+            if (typeof L.Routing === 'undefined') {
+                // โหลด routing ไม่สำเร็จ (ออฟไลน์/CDN ล่ม) — ยังต้องเห็นเส้นเชื่อม
+                L.polyline([from, to], {
+                    color: '#0b7bd8', weight: 3, opacity: .85, dashArray: '6 6',
+                }).addTo(routeLayer);
+                map.fitBounds(L.latLngBounds([from, to]).pad(0.35), { maxZoom: 12 });
+                onDone && onDone(null, 'ใช้เส้นตรงแทน — โหลดตัวคำนวณเส้นทางไม่ได้');
+                return;
+            }
+
+            routingControl = L.Routing.control({
+                waypoints: [from, to],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1',
+                    profile: 'driving',
+                }),
+                // ปิดทุกอย่างที่ให้ผู้ใช้แก้เส้นทางเอง หน้านี้ใช้ดูอย่างเดียว
+                addWaypoints: false,
+                draggableWaypoints: false,
+                routeWhileDragging: false,
+                show: false,                 // ใช้รายการของหน้าเราเอง ไม่ใช่ panel ของ LRM
+                fitSelectedRoutes: true,
+                lineOptions: {
+                    styles: [
+                        // ขอบขาวหนารองไว้ ให้เส้นฟ้าอ่านออกทั้งบนถนนสีอ่อนและพื้นที่สีเข้ม
+                        { color: '#fff', opacity: .9, weight: 8 },
+                        { color: '#0b7bd8', opacity: .95, weight: 4 },
+                    ],
+                },
+                createMarker: function () { return null; },   // หมุดมีอยู่แล้วบนแผนที่
+            }).addTo(map);
+
+            routingControl.on('routesfound', function (e) {
+                const best = e.routes[0];
+                onDone && onDone({
+                    km: best.summary.totalDistance / 1000,
+                    minutes: best.summary.totalTime / 60,
+                    alternatives: e.routes.length,
+                }, null);
+            });
+
+            routingControl.on('routingerror', function (e) {
+                L.polyline([from, to], {
+                    color: '#0b7bd8', weight: 3, opacity: .85, dashArray: '6 6',
+                }).addTo(routeLayer);
+                map.fitBounds(L.latLngBounds([from, to]).pad(0.35), { maxZoom: 12 });
+                onDone && onDone(null,
+                    'คำนวณเส้นทางไม่ได้ (' + ((e.error && e.error.message) || 'ไม่ทราบสาเหตุ') +
+                    ') — แสดงเส้นตรงแทน');
+            });
+        }
+
+        // OSRM มี service 'table' ที่คืนระยะ+เวลาของหลายคู่ในคำขอเดียว
+        // ใช้ตัวนี้ตอนเปิด modal จะได้เห็นตัวเลขของทุก station พร้อมกันทันที
+        // ไม่ต้องกดทีละอันแล้วรอทีละครั้ง (5 station = 5 คำขอ กลายเป็น 1)
+        const matrixCache = new Map();
+
+        async function roadMatrix(item) {
+            const key = item.data.district;
+            if (matrixCache.has(key)) return matrixCache.get(key);
+
+            // OSRM รับพิกัดเป็น lng,lat ไม่ใช่ lat,lng — สลับแล้วผลจะเพี้ยนไปคนละทวีป
+            const coords = data.stations
+                .map(function (st) { return Number(st.lng) + ',' + Number(st.lat); })
+                .concat([item.lng + ',' + item.lat])
+                .join(';');
+            const target = data.stations.length;
+            const sources = data.stations.map(function (_, i) { return i; }).join(';');
+            const url = 'https://router.project-osrm.org/table/v1/driving/' + coords +
+                '?sources=' + sources + '&destinations=' + target +
+                '&annotations=duration,distance';
+
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const json = await res.json();
+                if (json.code !== 'Ok') throw new Error(json.code);
+                const out = data.stations.map(function (_, i) {
+                    const meters = json.distances && json.distances[i] && json.distances[i][0];
+                    const seconds = json.durations && json.durations[i] && json.durations[i][0];
+                    return (meters === null || meters === undefined)
+                        ? null
+                        : { km: meters / 1000, minutes: seconds / 60 };
+                });
+                matrixCache.set(key, out);
+                return out;
+            } catch (err) {
+                matrixCache.set(key, null);
+                return null;
+            }
+        }
+
+        function openRoutes(item) {
+            if (!routeModal) return;
+            const selectedNames = new Set(
+                [...document.querySelectorAll('[data-station-toggle]')]
+                    .filter(function (b) { return b.checked; })
+                    .map(function (b) { return b.value; }));
+
+            // เรียงทุก station ตามระยะ ไม่ใช่เฉพาะที่ครอบถึง เพื่อให้เห็นตัวเลือกรอง
+            const options = data.stations.map(function (st) {
+                return {
+                    station: st,
+                    km: kmBetween(item.lat, item.lng, Number(st.lat), Number(st.lng)),
+                    covers: kmBetween(item.lat, item.lng,
+                                      Number(st.lat), Number(st.lng)) <= OUTER_RING_KM,
+                    shown: selectedNames.has(st.station_name),
+                };
+            }).sort(function (a, b) { return a.km - b.km; });
+
+            const covering = options.filter(function (o) { return o.covers; });
+
+            document.getElementById('route-title').textContent = item.data.district;
+            document.getElementById('route-sub').textContent =
+                'จอง ' + Number(item.data.bookings).toLocaleString() + ' ใบ · ' +
+                (covering.length > 1
+                    ? 'คาบเกี่ยว ' + covering.length + ' station'
+                    : covering.length === 1
+                        ? 'อยู่ในรัศมี ' + covering[0].station.station_name + ' เท่านั้น'
+                        : 'อยู่นอกรัศมีทุก station');
+
+            const box = document.getElementById('route-options');
+            box.innerHTML = '';
+            options.forEach(function (opt, index) {
+                const row = document.createElement('div');
+                row.className = 'route-option' + (index === 0 ? ' is-best' : '');
+                row.dataset.stationIndex = data.stations.indexOf(opt.station);
+                row.innerHTML =
+                    '<span class="rank">' + (index + 1) + '</span>' +
+                    '<span class="info"><b>' + opt.station.station_name + '</b>' +
+                    '<small><span class="best-hint">' +
+                        (index === 0 ? 'ใกล้ที่สุดตามเส้นตรง · ' : '') + '</span>' +
+                        (opt.covers ? 'อยู่ในรัศมี ' + OUTER_RING_KM + ' km'
+                                    : 'นอกรัศมี ' + OUTER_RING_KM + ' km') +
+                        (opt.shown ? '' : ' · ถูกซ่อนอยู่ในแถบด้านซ้าย') +
+                    '</small></span>' +
+                    '<span class="km"><span class="straight">เส้นตรง ' +
+                    opt.km.toFixed(1) + ' km</span>' +
+                    '<small class="road"></small></span>';
+
+                row.addEventListener('click', function () {
+                    // เลือกได้ทีละเส้น — ต้องยกเลิกเส้นเดิมก่อนถึงจะวาดเส้นใหม่
+                    box.querySelectorAll('.route-option')
+                        .forEach(function (r) { r.classList.remove('is-active'); });
+                    row.classList.add('is-active');
+
+                    // ระยะกับเวลาคำนวณไปแล้วตอนเปิด modal คลิกนี้แค่วาดเส้นบนแผนที่
+                    drawRoute(opt.station, item, function (result, error) {
+                        if (error) window.notify(error);
+                    });
+                });
+                box.appendChild(row);
+            });
+
+            routeModal.show();
+
+            // ยิงขอระยะจริงทันทีที่เปิด ไม่ต้องรอให้กด
+            box.querySelectorAll('.road').forEach(function (el) {
+                el.textContent = 'กำลังวัดระยะตามถนน...';
+            });
+
+            roadMatrix(item).then(function (matrix) {
+                const rows = [...box.querySelectorAll('.route-option')];
+                if (!matrix) {
+                    rows.forEach(function (r) {
+                        r.querySelector('.road').textContent = 'วัดระยะตามถนนไม่ได้';
+                    });
+                    return;
+                }
+
+                rows.forEach(function (r) {
+                    const idx = Number(r.dataset.stationIndex);
+                    const road = matrix[idx];
+                    const el = r.querySelector('.road');
+                    if (!road) { el.textContent = 'ไม่มีเส้นทางถนนถึงจุดนี้'; return; }
+                    el.textContent = 'ราว ' + Math.round(road.minutes) + ' นาที · ' +
+                        'ตามถนน ' + road.km.toFixed(1) + ' km';
+                    r.dataset.roadKm = road.km;
+                    r.dataset.roadMin = road.minutes;
+                });
+
+                // เรียงตามเวลาถึง ไม่ใช่ระยะทาง — station ที่ไกลกว่าแต่ขึ้นทางด่วนได้
+                // ถึงก่อน ซึ่งเป็นสิ่งที่ใช้ตัดสินใจจริงตอนจัดรถ
+                // ระยะเท่ากันให้ตัวที่ทางสั้นกว่าชนะ (ประหยัดน้ำมันกว่า)
+                const ranked = rows.slice().sort(function (a, b) {
+                    const ma = a.dataset.roadMin === undefined ? Infinity : Number(a.dataset.roadMin);
+                    const mb = b.dataset.roadMin === undefined ? Infinity : Number(b.dataset.roadMin);
+                    if (ma !== mb) return ma - mb;
+                    const ka = a.dataset.roadKm === undefined ? Infinity : Number(a.dataset.roadKm);
+                    const kb = b.dataset.roadKm === undefined ? Infinity : Number(b.dataset.roadKm);
+                    return ka - kb;
+                });
+                ranked.forEach(function (r, i) {
+                    r.querySelector('.rank').textContent = i + 1;
+                    r.classList.toggle('is-best', i === 0);
+                    const hint = r.querySelector('.best-hint');
+                    if (hint) hint.textContent = i === 0 ? 'ถึงเร็วที่สุด · ' : '';
+                    box.appendChild(r);
+                });
+            });
+        }
+
+        // แถวในตาราง "เขตที่จองเยอะที่สุด" เปิด modal เดียวกันได้
+        document.querySelectorAll('.district-row').forEach(function (row) {
+            row.addEventListener('click', function () {
+                const item = districtMarkers.find(function (m) {
+                    return m.data.district === row.dataset.district;
+                });
+                if (item) openRoutes(item);
+            });
+        });
+
+        document.getElementById('route-clear')?.addEventListener('click', function () {
+            clearRoute();
+            document.querySelectorAll('#route-options .route-option')
+                .forEach(function (r) { r.classList.remove('is-active'); });
+            map.fitBounds(mapBounds, { maxZoom: 13 });
+        });
+
+        // ── แถบเลือก station ────────────────────────────────────
+        const counts = {};
+        data.districts.forEach(function (d) {
+            if (!d.nearest_station) return;
+            const c = counts[d.nearest_station] ||= { districts: 0, bookings: 0 };
+            c.districts += 1;
+            c.bookings += Number(d.bookings);
+        });
+        document.querySelectorAll('[data-station-count]').forEach(function (el) {
+            const c = counts[el.dataset.stationCount];
+            el.textContent = c
+                ? c.districts + ' เขต · ' + c.bookings.toLocaleString() + ' ใบ'
+                : 'ไม่มีเขตในโซนนี้';
+        });
+
+        const boxes = [...document.querySelectorAll('[data-station-toggle]')];
+        const ringToggle = document.getElementById('toggle-rings');
+
+        function apply() {
+            paintDistricts();
+            boxes.forEach(function (box) {
+                const on = box.checked;
+                const layer = stationLayers.get(box.value);
+                const rings = ringLayers.get(box.value);
+                if (layer) on ? map.addLayer(layer) : map.removeLayer(layer);
+                if (rings) {
+                    (on && ringToggle.checked) ? map.addLayer(rings) : map.removeLayer(rings);
+                }
+            });
+        }
+
+        boxes.forEach(function (box) { box.addEventListener('change', apply); });
+        ringToggle?.addEventListener('change', apply);
+
+        document.querySelector('[data-station-all]')?.addEventListener('click', function () {
+            // เลือกทั้งหมดอย่างเดียว ไม่สลับไปล้างทั้งหมด
+            // เดิมทำเป็น toggle แล้วกดพลาดตอนเลือกครบอยู่ = หายทั้งแผนที่ในคลิกเดียว
+            // ถ้าจะดูทีละที่ ใช้ปุ่ม "เฉพาะนี้" ของแต่ละแถวแทน ซึ่งย้อนกลับง่ายกว่า
+            boxes.forEach(function (b) { b.checked = true; });
+            apply();
+        });
+
+        document.querySelectorAll('[data-station-only]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                boxes.forEach(function (b) { b.checked = b.value === btn.dataset.stationOnly; });
+                apply();
+                const layer = stationLayers.get(btn.dataset.stationOnly);
+                if (layer && layer.getLayers().length) {
+                    map.fitBounds(L.featureGroup(layer.getLayers()).getBounds().pad(0.2),
+                                  { maxZoom: 12 });
+                }
+            });
+        });
+
+        // CSS ของ Leaflet กับ layout ของการ์ดมาถึงคนละจังหวะ ตอน fitBounds ครั้งแรก
+        // กรอบแผนที่ยังเตี้ยกว่าของจริง Leaflet จึงเลือก zoom ต่ำเกินไปแล้วค้างอยู่แบบนั้น
+        // ตั้ง setTimeout เดาเวลาไม่ได้ผล เพราะแต่ละเครื่องเสร็จไม่พร้อมกัน
+        // จับตอนกรอบเปลี่ยนขนาดจริงแทน แล้วหยุดเองเมื่อผู้ใช้เริ่มขยับแผนที่
+        let userMoved = false;
+        map.on('zoomstart dragstart', function () { userMoved = true; });
+
+        if (window.ResizeObserver) {
+            const observer = new ResizeObserver(function () {
+                if (userMoved) { observer.disconnect(); return; }
+                map.invalidateSize({ animate: false });
+                map.fitBounds(mapBounds, { maxZoom: 13, animate: false });
+            });
+            observer.observe(mapEl);
+            // เลิกจับหลังหน้านิ่งแล้ว ไม่งั้นย่อหน้าต่างทีไรแผนที่เด้งกลับทุกครั้ง
+            setTimeout(function () { observer.disconnect(); }, 3000);
+        } else {
+            setTimeout(function () {
+                map.invalidateSize();
+                map.fitBounds(mapBounds, { maxZoom: 13 });
+            }, 300);
+        }
+    })();
+</script>
+
+
+<script>
+    // การ์ดสถานะรายเขต: ค้นหาชื่อเขตแบบทันที + กางรายชื่อแขวง + export CSV
+    (function () {
+        const wrap = document.getElementById('status-cards');
+        if (!wrap) return;
+
+        const cards = [...wrap.querySelectorAll('.zone-card')];
+
+        const search = document.getElementById('card-search');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = search.value.trim().toLowerCase();
+                cards.forEach(function (card) {
+                    const name = (card.dataset.district || '').toLowerCase();
+                    card.style.display = (!q || name.includes(q)) ? '' : 'none';
+                });
+            });
+            // ช่องค้นหาอยู่ในฟอร์ม กด Enter แล้วจะ submit ทั้งที่ตั้งใจแค่กรองในหน้า
+            search.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+        }
+
+        wrap.addEventListener('click', function (e) {
+            const toggle = e.target.closest('[data-toggle-areas]');
+            if (!toggle) return;
+            const list = toggle.closest('.zone-card').querySelector('.areas');
+            if (!list) return;
+            list.hidden = !list.hidden;
+            toggle.textContent = list.hidden
+                ? toggle.textContent.replace('ซ่อนแขวง', 'ดูแขวง')
+                : toggle.textContent.replace('ดูแขวง', 'ซ่อนแขวง');
+        });
+
+        const exportBtn = document.getElementById('export-status-cards');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function () {
+                const header = ['เขต', 'Station', 'km', 'วงแหวน', 'ทั้งหมด',
+                                'สำเร็จ', 'ยกเลิก', 'กำลังเข้ารับ', 'รอยืนยัน'];
+                const rows = [header];
+                cards.filter(function (c) { return c.style.display !== 'none'; })
+                    .forEach(function (card) {
+                        const meta = card.querySelector('header p').innerText
+                            .split('·').map(function (x) { return x.trim(); });
+                        const counts = [...card.querySelectorAll('.count b')]
+                            .map(function (b) { return b.innerText.replace(/,/g, ''); });
+                        const total = card.querySelector('footer b').innerText.replace(/,/g, '');
+                        rows.push([card.dataset.district, meta[0] || '',
+                                   (meta[1] || '').replace(' km', ''), meta[2] || '',
+                                   total].concat(counts));
+                    });
+                // BOM ไม่ใช่ของประดับ — Excel บน Windows อ่าน UTF-8 ไม่ออกถ้าไม่มี
+                const csv = rows.map(function (r) {
+                    return r.map(function (c) {
+                        return '"' + String(c).replace(/"/g, '""') + '"';
+                    }).join(',');
+                }).join('\r\n');
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(
+                    new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+                link.download = 'สถานะการจองรายเขต.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            });
+        }
+    })();
+</script>
+
+<%- include('partials/footer') %>

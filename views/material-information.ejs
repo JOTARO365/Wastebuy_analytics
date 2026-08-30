@@ -3,10 +3,14 @@
  
 
 <style>
-    .scroll-content {
-        overflow-x: hidden;
-    }
-        
+    /* ตารางนี้มี 13 คอลัมน์ ต้องกว้างพอสมควรจึงจะอ่านได้ ให้ยืดเต็มพื้นที่
+       ที่มีจริง แล้วเลื่อนแนวนอนเฉพาะตอนจอแคบกว่านั้น */
+    .content-mat { width: 100%; }
+    .content-mat .table-responsive { overflow-x: auto; }
+    .content-mat table { min-width: 1180px; font-size: .72rem !important; }
+    .content-mat .section-1 { width: 100%; }
+    .content-mat thead th { background: var(--wb-green); color: #fff; }
+
     @media print {
         body .no-print {
             display: none !important;
@@ -29,6 +33,13 @@
     }
 </style>
     <div  class="scroll-content">
+        <% if (typeof hiddenCategories !== 'undefined' && hiddenCategories.length) { %>
+            <div class="alert alert-warning mx-4 mt-3 no-print">
+                <strong>มีหมวดสินค้าที่ไม่ได้แสดงในตารางนี้</strong>
+                — หน้านี้รองรับเฉพาะ 7 หมวดหลัก สินค้าในหมวดต่อไปนี้จึงไม่ถูกนับในยอดรวม:
+                <%= hiddenCategories.map(c => `${c.category} (${c.items} รายการ)`).join(' · ') %>
+            </div>
+        <% } %>
         <div class="row py-5 px-4 logo">
             <div class="col-lg-3 col-xxl-2 col-sm-12">
                 <img src="/images/logo3.png" height="150" alt="">
@@ -42,11 +53,11 @@
                         <div class="d-flex no-print align-items-center">
                             <div class="mx-2 d-flex flex-column">
                                 <label for="startDate">Start date</label>
-                                <input class="form-control" type="date" id="startDate" name="startDate" required>
+                                <input class="form-control" type="date" id="startDate" name="startDate" value="<%= isoValue(startDate) %>" required>
                             </div>
                             <div class="mx-2 d-flex flex-column">
                                 <label for="endDate">End date</label>
-                                <input class="form-control" type="date" id="endDate" name="endDate" required>
+                                <input class="form-control" type="date" id="endDate" name="endDate" value="<%= isoValue(endDate) %>" required>
                             </div>
                             <div class="d-flex p-2 mx-3 mt-2 justify-content-between" style="position: relative; top: 10px;">
                                     <button type="button" class="btn btn-warning mx-1 px-4 my-4 text-white shadow-sm rounded-5" style="height: 30px; font-size: 12px;" id="export-excel">Excel</button>
@@ -60,9 +71,12 @@
                 </div>
             </div>
         </div>
-        <div class="mx-4 border-2 border-top content-mat overflow-hidden" style="min-width: 1420px; max-width: 1620px;">
+        <!-- เดิมกล่องนี้ล็อก min-width 1420px / max-width 1620px ตารางจึงไม่ยืดตามจอ
+             และ align-items-center ดันตารางไปกองกลางโดยเหลือที่ว่างสองข้าง
+             ตอนนี้เต็มความกว้างที่มี ให้แคบกว่า 1420px ค่อยเลื่อนแนวนอน -->
+        <div class="mx-4 border-2 border-top content-mat">
             <div class=" px-1 py-2">
-                <div class="d-flex flex-column rounded-2 section-1 border align-items-center" style="width: auto;">
+                <div class="d-flex flex-column rounded-2 section-1 border" style="width: auto;">
                 <div class="table-responsive">
                     <table class="table table-sm align-middle mb-0 text-center" style="font-size: 10px;">
                         <caption class="visually-hidden">รายงานรับซื้อวัสดุ แยกตามชนิด</caption>
@@ -70,20 +84,23 @@
                             <tr>
                                 <th scope="col" rowspan="2" style="width: 4%;">No.</th>
                                 <th scope="col" rowspan="2" class="text-start">Materials</th>
-                                <th scope="colgroup" colspan="2">Weights</th>
+                                <th scope="colgroup" colspan="<%= 2 + stationNames.length %>">Weights</th>
                                 <th scope="colgroup" colspan="3">Prices</th>
                                 <th scope="colgroup" colspan="3">Net Values</th>
                                 <th scope="colgroup" colspan="3">Profit/Loss</th>
                             </tr>
                             <tr>
-                                <th scope="col">Delivery</th><th scope="col">S11</th>
-                                <th scope="col">Delivery</th><th scope="col">S11</th><th scope="col">Factory</th>
-                                <th scope="col">Delivery</th><th scope="col">S11</th><th scope="col">Factory</th>
-                                <th scope="col">Delivery</th><th scope="col">S11</th><th scope="col">Factory</th>
+                                <th scope="col">Delivery</th><th scope="col">Station รวม</th>
+                                <% stationNames.forEach(function (st) { %>
+                                    <th scope="col"><%= st.replace('คลังสินค้า ', '') %></th>
+                                <% }) %>
+                                <th scope="col">Delivery</th><th scope="col">Station</th><th scope="col">Factory</th>
+                                <th scope="col">Delivery</th><th scope="col">Station</th><th scope="col">Factory</th>
+                                <th scope="col">Delivery</th><th scope="col">Station</th><th scope="col">Factory</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><th scope="rowgroup" colspan="13" class="content-papar bg-danger fs-4 text-white text-center">กระดาษ</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="content-papar bg-danger fs-4 text-white text-center">กระดาษ</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "กระดาษ" && mat.quantity_delivery != 0) {%>
                                 <tr class="itemPaper body-content">
@@ -92,6 +109,9 @@
                             <td class="fw-bold"><%= mat.item_name %></td>
                                     <td class="kg_deliTotal kg_deli1"><%= (mat.kg_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                     <td class="kg_staTotal kg_sta1"><%= (mat.kg_station).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% stationNames.forEach(function (st) { %>
+                                        <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% }) %>
                                 </div>
                             
                                     <td> <%= (mat.price_delivery).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
@@ -117,6 +137,9 @@
                         <td></td>
                             <td class="total_deli1"></td>
                             <td class="total_sta1"></td>
+                            <% stationNames.forEach(function () { %>
+                                <td class="total_by_sta"></td>
+                            <% }) %>
                             </div>
                         
                                 <td></td>
@@ -135,7 +158,7 @@
                             </div>
                         
                                 </tr>
-                            <tr><th scope="rowgroup" colspan="13" class="bg-info fs-4 text-white text-center">แก้ว</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="bg-info fs-4 text-white text-center">แก้ว</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "แก้ว" && mat.quantity_delivery != 0) {%>
                                 <tr class="itemGlass body-content">
@@ -145,9 +168,15 @@
                                         <% if (mat.item_name === "เบียร์ช้างใหญ่ (แบบใหม่)" || mat.item_name === "เบียร์ลีโอ " || mat.item_name === "เบียร์สิงห์ใหญ่" || mat.item_name === "เหล้าขาวเล็ก" || mat.item_name === "เหล้าขาวใหญ่") {%>
                                             <td class="kg_deliTotal kg_deli2"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
                                             <td class="kg_staTotal kg_sta2"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
+                                            <% stationNames.forEach(function (st) { %>
+                                                <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% }) %>
                                         <% } else {%>
-                                            <td class="kg_deli2"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
-                                            <td class="kg_sta2"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_deliTotal kg_deli2"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_staTotal kg_sta2"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% stationNames.forEach(function (st) { %>
+                                                <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% }) %>
                                         <% } %>
                                     </div>
                                 
@@ -174,6 +203,9 @@
                             <td></td>
                                 <td class="total_deli2"></td>
                                 <td class="total_sta2"></td>
+                                <% stationNames.forEach(function () { %>
+                                    <td class="total_by_sta"></td>
+                                <% }) %>
                                 </div>
                             
                                     <td></td>
@@ -193,7 +225,7 @@
                             
                                 </tr>
                     <div class="section-2"></div>
-                            <tr><th scope="rowgroup" colspan="13" class="bg-warning fs-4 text-white text-center">น้ำมัน</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="bg-warning fs-4 text-white text-center">น้ำมัน</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "น้ำมัน" && mat.quantity_delivery != 0) {%>
                                 <tr class="itemOil body-content">
@@ -203,9 +235,15 @@
                                         <% if(mat.item_name === "ปิ๊บน้ำมันพืชใหม่ (เปล่า)") {%>
                                             <td class="kg_deliTotal kg_deli3"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
                                             <td class="kg_staTotal kg_sta3"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
+                                            <% stationNames.forEach(function (st) { %>
+                                                <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% }) %>
                                         <% } else { %>
-                                            <td class="kg_deli3"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
-                                            <td class="kg_sta3"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_deliTotal kg_deli3"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_staTotal kg_sta3"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% stationNames.forEach(function (st) { %>
+                                                <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% }) %>
                                         <% } %>
                                     </div>
                                 
@@ -233,6 +271,9 @@
                             <td></td>
                                 <td class="total_deli3"></td>
                                 <td class="total_sta3"></td>
+                                <% stationNames.forEach(function () { %>
+                                    <td class="total_by_sta"></td>
+                                <% }) %>
                                 </div>
                             
                                     <td></td>
@@ -251,7 +292,7 @@
                                 </div>
                             
                                 </tr>
-                            <tr><th scope="rowgroup" colspan="13" class="bg-primary fs-4 text-white text-center">เบ็ตเตล็ด</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="bg-primary fs-4 text-white text-center">เบ็ตเตล็ด</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "เบ็ตเตล็ด" && mat.quantity_delivery != 0) {%>
                                 <tr class="itemOther body-content">
@@ -266,10 +307,16 @@
                                               mat.item_name === "จอคอม 21 นิ้ว ขึ้่นไป") {%>
                                             <td class="kg_deliTotal kg_deli4"><%= (mat.unit_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
                                             <td class="kg_staTotal kg_sta4"><%= (mat.unit_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %> (<%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %>)</td>
+                                            <% stationNames.forEach(function (st) { %>
+                                                <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% }) %>
 
                                         <% } else { %>
-                                            <td class="kg_deli4"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
-                                            <td class="kg_sta4"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_deliTotal kg_deli4"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <td class="kg_staTotal kg_sta4"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% stationNames.forEach(function (st) { %>
+                                                <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                            <% }) %>
                                         <% } %>
                                     </div>
                                 
@@ -297,6 +344,9 @@
                             <td></td>
                                 <td class="total_deli4"></td>
                                 <td class="total_sta4"></td>
+                                <% stationNames.forEach(function () { %>
+                                    <td class="total_by_sta"></td>
+                                <% }) %>
                                 </div>
                             
                                     <td></td>
@@ -316,7 +366,7 @@
                             
                                 </tr>
                         <div class="section-3"></div>
-                            <tr><th scope="rowgroup" colspan="13" class="bg-info fs-4 text-white text-center">พลาสติก</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="bg-info fs-4 text-white text-center">พลาสติก</th></tr>
                     <% materials.forEach(mat => {%>
                         <% if (mat.category === "พลาสติก" && mat.quantity_delivery != 0) {%>
                                 <tr class="itemPlastic body-content">
@@ -325,6 +375,9 @@
                             <td class="fw-bold"><%= mat.item_name %></td>
                                     <td class="kg_deliTotal kg_deli5"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                     <td class="kg_staTotal kg_sta5"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% stationNames.forEach(function (st) { %>
+                                        <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% }) %>
                                 </div>
                             
                                     <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
@@ -350,6 +403,9 @@
                         <td></td>
                             <td class="total_deli5"></td>
                             <td class="total_sta5"></td>
+                            <% stationNames.forEach(function () { %>
+                                <td class="total_by_sta"></td>
+                            <% }) %>
                             </div>
                         
                                 <td></td>
@@ -369,7 +425,7 @@
                         
                                 </tr>
                     <div class="section-4"></div>
-                            <tr><th scope="rowgroup" colspan="13" class="bg-secondary fs-4 text-white text-center">โลหะมีค่า</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="bg-secondary fs-4 text-white text-center">โลหะมีค่า</th></tr>
                         <% materials.forEach(mat => {%>
                         <% if (mat.category === "โลหะมีค่า" && mat.quantity_delivery != 0) {%>
                                 <tr class="itemMetal1 body-content">
@@ -378,6 +434,9 @@
                             <td class="fw-bold"><%= mat.item_name %></td>
                                     <td class="kg_deliTotal kg_deli6"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                     <td class="kg_staTotal kg_sta6"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% stationNames.forEach(function (st) { %>
+                                        <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% }) %>
                                 </div>
                             
                                     <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
@@ -403,6 +462,9 @@
                         <td></td>
                             <td class="total_deli6"></td>
                             <td class="total_sta6"></td>
+                            <% stationNames.forEach(function () { %>
+                                <td class="total_by_sta"></td>
+                            <% }) %>
                             </div>
                         
                                 <td></td>
@@ -422,7 +484,7 @@
                         
                                 </tr>
                     <div class="section-5"></div>
-                            <tr><th scope="rowgroup" colspan="13" class="bg-dark fs-4 text-white text-center">เหล็ก</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="bg-dark fs-4 text-white text-center">เหล็ก</th></tr>
                         <% materials.forEach(mat => {%>
                             <% if (mat.category === "เหล็ก" && mat.quantity_delivery != 0) {%>
                                 <tr class="itemMetal2 body-content">
@@ -431,6 +493,9 @@
                             <td class="fw-bold"><%= mat.item_name %></td>
                                     <td class="kg_deliTotal kg_deli7"><%= (mat.kg_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
                                     <td class="kg_staTotal kg_sta7"><%= (mat.kg_station).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% stationNames.forEach(function (st) { %>
+                                        <td class="kg_by_sta"><%= ((mat.kg_by_station || {})[st] || 0).toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
+                                    <% }) %>
                                 </div>
                             
                                     <td> <%= (mat.price_delivery).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) %></td>
@@ -456,6 +521,9 @@
                         <td></td>
                             <td class="total_deli7"></td>
                             <td class="total_sta7"></td>
+                            <% stationNames.forEach(function () { %>
+                                <td class="total_by_sta"></td>
+                            <% }) %>
                             </div>
                         
                                 <td></td>
@@ -475,7 +543,7 @@
                         
                                 </tr>
                     
-                            <tr><th scope="rowgroup" colspan="13" class="bg-success fs-4 text-white text-center">TOTALS</th></tr>
+                            <tr><th scope="rowgroup" colspan="<%= 13 + stationNames.length %>" class="bg-success fs-4 text-white text-center">TOTALS</th></tr>
                                 <tr class="sumAll border fw-bold">
                         <td></td>
                         <td></td>
@@ -519,6 +587,26 @@
             $(totalPart).html(total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
             
         }
+
+        // ยอดรวมรายคลัง — จำนวนคลังไม่คงที่ (มาจากข้อมูลจริงของช่วงที่เลือก)
+        // จับคู่ด้วยชื่อคลาสทีละตัวแบบคอลัมน์อื่นไม่ได้ จึงรวมตามลำดับคอลัมน์
+        // ภายในบล็อกหมวดเดียวกันแทน
+        ['Paper', 'Glass', 'Oil', 'Other', 'Plastic', 'Metal1', 'Metal2'].forEach(function (group) {
+            const rows = document.querySelectorAll('.item' + group);
+            const sumRow = document.querySelector('.sum' + group);
+            if (!rows.length || !sumRow) return;
+
+            sumRow.querySelectorAll('.total_by_sta').forEach(function (cell, i) {
+                let total = 0;
+                rows.forEach(function (row) {
+                    const c = row.querySelectorAll('.kg_by_sta')[i];
+                    if (c) total += parseFloat(c.innerText.replace(/,/g, '')) || 0;
+                });
+                cell.innerText = total.toLocaleString(undefined,
+                    { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            });
+        });
+
         //Paper
         let pd = '.kg_deli1';
         let ptd = '.total_deli1';
@@ -793,7 +881,8 @@ document.getElementById('export-excel').addEventListener('click', function() {
     const sumAll = table.querySelectorAll('.sumAll');
 
     const header = [['No.', 'Materials', '', 'Weights', '', '', 'Price', '',  '',  'Net Values', '', '', 'Profit/Loss', '']];
-    const subHeader = [['', '', 'Delivery', '', 'S11', 'Delivery', 'S11', 'Factory', 'Delivery', 'S11', 'Factory', 'Delivery', 'S11', 'Factory']];
+    const STATION_COUNT = <%= stationNames.length %>;
+    const subHeader = [['', '', 'Delivery', '', 'Station รวม', 'Delivery', 'Station', 'Factory', 'Delivery', 'Station', 'Factory', 'Delivery', 'Station', 'Factory']];
     const headerPaper = [['', '', '', '', '', '', 'กระดาษ', '', '', '', '', '', '', '', '', '']];
     const headerGlass = [['', '', '', '', '', '', 'แก้ว', '', '', '', '', '', '', '', '', '']];
     const headerOil = [['', '', '', '', '', '', 'น้ำมัน', '', '', '', '', '', '', '', '', '']];
@@ -815,7 +904,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -827,7 +921,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -842,7 +941,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
         data.push(filData);
     });
 
@@ -853,7 +957,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -868,7 +977,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
         data.push(filData);
     });
     
@@ -879,7 +993,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -894,7 +1013,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
         data.push(filData);
     });
 
@@ -905,7 +1029,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -920,7 +1049,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
         data.push(filData);
     });
 
@@ -931,7 +1065,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -946,7 +1085,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
         data.push(filData);
     })
     sumMetal1.forEach((row, index) => {
@@ -956,7 +1100,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -970,7 +1119,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
         data.push(filData);
     })
     sumMetal2.forEach((row, index) => {
@@ -980,7 +1134,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });
@@ -993,7 +1152,12 @@ document.getElementById('export-excel').addEventListener('click', function() {
         cells.forEach(cell => {
             rowData.push(cell.innerText.trim());
         });
-        const filData = [rowData[0], rowData[1], rowData[4], '', rowData[5], rowData[8], rowData[9], rowData[10], rowData[13], rowData[14], rowData[15], rowData[18], rowData[19], rowData[20]]
+        // ตำแหน่งคอลัมน์ขยับตามจำนวนคลัง — คำนวณจาก STATION_COUNT ห้าม hardcode
+        const b = 4 + STATION_COUNT;
+        const filData = [rowData[0], rowData[1], rowData[2], '', rowData[3],
+                         rowData[b], rowData[b + 1], rowData[b + 2],
+                         rowData[b + 3], rowData[b + 4], rowData[b + 5],
+                         rowData[b + 6], rowData[b + 7], rowData[b + 8]]
 
         data.push(filData);
     });

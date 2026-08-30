@@ -1,0 +1,400 @@
+<%- include('partials/header') %>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .driver-row { cursor: pointer; }
+    .driver-row.is-open td { background: var(--wb-green-soft); }
+    .driver-detail > td { background: #fbfdfc; padding: 0 !important; }
+    .driver-panel { padding: 1rem 1.15rem; }
+    .driver-panel .grid {
+        display: grid;
+        gap: .8rem;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        margin-bottom: .9rem;
+    }
+    .driver-panel .fact { border-left: 3px solid var(--wb-border-strong); padding-left: .6rem; }
+    .driver-panel .fact b {
+        display: block;
+        font-size: 1.05rem;
+        font-variant-numeric: tabular-nums;
+    }
+    .driver-panel .fact span { font-size: .74rem; color: var(--wb-ink-soft); }
+    .driver-panel .fact.is-good { border-left-color: var(--wb-green); }
+    .driver-panel .fact.is-warn { border-left-color: var(--wb-amber); }
+    .driver-panel .fact.is-bad { border-left-color: var(--wb-red); }
+    /* Chart.js เขียนความสูง canvas เองตอน resize ถ้าไม่มีกรอบครอบที่ล็อกความสูง
+       กราฟจะยืดจนดันเนื้อหาอื่นหลุดจอ */
+    .driver-chart-wrap { position: relative; height: 220px; }
+    .flag { font-size: .72rem; margin-left: .3rem; }
+    .flag.hot { color: var(--wb-red); }
+    .flag.warm { color: var(--wb-amber); }
+    @media print { .driver-detail { display: none; } }
+</style>
+
+<%- include('partials/page-head', {
+        heading: 'ผลงานและโปรไฟล์คนขับ',
+        lead: 'รับงานไปเท่าไร ปิดงานได้กี่ % และตัวเลขที่ควรตรวจสอบ',
+        note: 'คลิกที่แถวเพื่อดูโปรไฟล์และความคืบหน้ารายเดือน',
+        printable: true
+    }) %>
+
+<div class="wb-body">
+    <% if (err) { %>
+        <div class="alert alert-warning"><%= err %></div>
+    <% } %>
+
+    <% if (computedAt) { %>
+        <p class="text-muted small mb-2">คำนวณเมื่อ <%= computedAt %> (แคช 10 นาที)</p>
+    <% } %>
+
+    <form class="wb-filter no-print" method="get" action="/report-driver-performance"
+          data-wb-filter>
+        <div class="field">
+            <label for="f-kind">ประเภท</label>
+            <select class="form-select form-select-sm" id="f-kind" name="kind">
+                <option value="">ทั้งหมด</option>
+                <% kinds.forEach(function (name) { %>
+                    <option value="<%= name %>"
+                        <%= filters.kind === name ? 'selected' : '' %>>
+                        <%= name %> (<%= kindCounts[name] %>)
+                    </option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="field">
+            <label for="f-station">Station</label>
+            <select class="form-select form-select-sm" id="f-station" name="station">
+                <option value="">ทุก station</option>
+                <% stations.forEach(function (name) { %>
+                    <option value="<%= name %>"
+                        <%= filters.station === name ? 'selected' : '' %>><%= name %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="field">
+            <label for="f-minDays">ทำงานอย่างน้อย</label>
+            <select class="form-select form-select-sm" id="f-minDays" name="minDays">
+                <% [['0','ทุกคน'],['10','10 วัน'],['30','30 วัน'],['100','100 วัน']].forEach(function (o) { %>
+                    <option value="<%= o[0] %>"
+                        <%= filters.minDays === o[0] ? 'selected' : '' %>><%= o[1] %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="field">
+            <label for="f-sort">เรียงตาม</label>
+            <select class="form-select form-select-sm" id="f-sort" name="sort">
+                <% [['bills','จำนวนบิล'],['kg','น้ำหนักรวม'],['baht','ยอดเงินรวม'],
+                    ['productivity','บิลต่อวัน'],['success','% สำเร็จ'],['cancel','% ยกเลิก'],
+                    ['deduct','% น้ำหนักหัก'],['drift','ส่วนต่างราคา']].forEach(function (o) { %>
+                    <option value="<%= o[0] %>"
+                        <%= filters.sort === o[0] ? 'selected' : '' %>><%= o[1] %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="field">
+            <label for="driver-search">ค้นหาคนขับ</label>
+            <input type="search" class="form-control form-control-sm" id="driver-search"
+                   placeholder="พิมพ์ชื่อ..." autocomplete="off">
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn btn-success btn-sm">ค้นหา</button>
+            <a href="/report-driver-performance" class="btn btn-outline-secondary btn-sm">ล้าง</a>
+        </div>
+    </form>
+
+    <% if (drivers.length) { %>
+        <div class="wb-stats mt-3">
+            <div class="wb-stat">
+                <div class="label">คนขับ</div>
+                <div class="value"><%= totals.drivers.toLocaleString() %></div>
+                <div class="sub">ในเงื่อนไขที่เลือก</div>
+            </div>
+            <div class="wb-stat">
+                <div class="label">บิลรับซื้อ</div>
+                <div class="value"><%= totals.bills.toLocaleString() %></div>
+                <div class="sub"><%= Math.round(totals.kg).toLocaleString() %> กก.</div>
+            </div>
+            <div class="wb-stat">
+                <div class="label">ยอดรับซื้อ</div>
+                <div class="value"><%= Math.round(totals.baht).toLocaleString() %></div>
+                <div class="sub">บาท</div>
+            </div>
+            <div class="wb-stat">
+                <div class="label">งานจากใบจอง</div>
+                <div class="value">
+                    <%= totals.done + totals.cancelled
+                        ? (100 * totals.done / (totals.done + totals.cancelled)).toFixed(1)
+                        : '—' %>%
+                </div>
+                <div class="sub">
+                    สำเร็จ <%= totals.done.toLocaleString() %> ·
+                    ยกเลิก <%= totals.cancelled.toLocaleString() %>
+                </div>
+            </div>
+        </div>
+
+        <div class="wb-card mt-3">
+            <h3 class="wb-card-title">
+                <%= filters.kind || 'ทุกประเภท' %>
+                <span class="wb-hint">
+                    น้ำหนักหักของทั้งบริษัทอยู่ที่ <%= company.deductPct ?? '—' %>%
+                </span>
+                <button type="button" class="btn btn-outline-success btn-sm ms-auto no-print"
+                        data-wb-export="#driver-table">
+                    <i class="fa-solid fa-file-csv" aria-hidden="true"></i> CSV
+                </button>
+            </h3>
+            <div class="wb-table-wrap">
+                <table class="wb-table" id="driver-table">
+                    <thead>
+                        <tr>
+                            <th>ชื่อ</th>
+                            <th>ประเภท</th>
+                            <th>รหัสรถ</th>
+                            <th class="num">บิล</th>
+                            <th class="num">วันทำงาน</th>
+                            <th class="num">บิล/วัน</th>
+                            <th class="num">น้ำหนัก (กก.)</th>
+                            <th class="num">ยอด (บาท)</th>
+                            <th class="num">รับงาน</th>
+                            <th class="num">% สำเร็จ</th>
+                            <th class="num">% ยกเลิก</th>
+                            <th class="num">% น้ำหนักหัก</th>
+                            <th class="num">ส่วนต่างราคา</th>
+                            <th class="num">% เงินสด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% drivers.forEach(function (d, index) { %>
+                            <%
+                                const success = d.success_pct === null ? null : Number(d.success_pct);
+                                const cancel = d.cancel_pct === null ? null : Number(d.cancel_pct);
+                                const deduct = Number(d.deduct_pct || 0);
+                                const companyDeduct = Number(company.deductPct || 0);
+                                const drift = d.price_drift_pct === null
+                                    ? null : Number(d.price_drift_pct);
+                                // เกินค่ากลางบริษัทเกิน 2 เท่า = ควรตรวจ ไม่ใช่ข้อสรุปว่าผิด
+                                const deductHot = companyDeduct && deduct >= companyDeduct * 2;
+                                const driftHot = drift !== null && Math.abs(drift) >= 15;
+                            %>
+                            <tr class="driver-row" data-driver="<%= d.driver %>"
+                                data-index="<%= index %>">
+                                <td>
+                                    <i class="fa-solid fa-chevron-right small text-muted"
+                                       aria-hidden="true"></i>
+                                    <%= d.driver %>
+                                    <% if (deductHot) { %>
+                                        <i class="fa-solid fa-scale-unbalanced flag hot"
+                                           title="น้ำหนักหักสูงกว่าค่ากลางบริษัทเกิน 2 เท่า"></i>
+                                    <% } %>
+                                    <% if (driftHot) { %>
+                                        <i class="fa-solid fa-tag flag <%= Math.abs(drift) >= 25 ? 'hot' : 'warm' %>"
+                                           title="ราคาที่จ่ายต่างจากราคากลาง <%= drift %>%"></i>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <span class="wb-chip <%= d.kind === 'คนขับรถ' ? 'wb-chip-ok'
+                                        : d.kind === 'จุดรับเข้า' ? 'wb-chip-normal' : 'wb-chip-warn' %>">
+                                        <%= d.kind %>
+                                    </span>
+                                </td>
+                                <td class="small text-muted"><%= d.vehicle_code || '—' %></td>
+                                <td class="num"><%= Number(d.bills).toLocaleString() %></td>
+                                <td class="num"><%= Number(d.work_days).toLocaleString() %></td>
+                                <td class="num"><%= Number(d.bills_per_day).toFixed(1) %></td>
+                                <td class="num"><%= Math.round(d.total_kg).toLocaleString() %></td>
+                                <td class="num"><%= Math.round(d.total_baht).toLocaleString() %></td>
+                                <td class="num"><%= Number(d.booking_assigned).toLocaleString() %></td>
+                                <td class="num">
+                                    <% if (success === null) { %>—<% } else { %>
+                                        <span class="wb-chip <%= success >= 90 ? 'wb-chip-ok'
+                                            : success >= 75 ? 'wb-chip-warn' : 'wb-chip-bad' %>">
+                                            <%= success.toFixed(1) %>%
+                                        </span>
+                                    <% } %>
+                                </td>
+                                <td class="num"><%= cancel === null ? '—' : cancel.toFixed(1) + '%' %></td>
+                                <td class="num <%= deductHot ? 'text-danger fw-semibold' : '' %>">
+                                    <%= deduct.toFixed(2) %>%
+                                </td>
+                                <td class="num <%= driftHot ? 'text-danger fw-semibold' : '' %>">
+                                    <%= drift === null ? '—'
+                                        : (drift > 0 ? '+' : '') + drift.toFixed(1) + '%' %>
+                                </td>
+                                <td class="num"><%= d.cash_pct === null ? '—' : Number(d.cash_pct).toFixed(0) + '%' %></td>
+                            </tr>
+                            <tr class="driver-detail" hidden>
+                                <td colspan="14">
+                                    <div class="driver-panel">
+                                        <div class="grid">
+                                            <div class="fact">
+                                                <b><%= Number(d.customers).toLocaleString() %></b>
+                                                <span>ลูกค้าที่เคยรับซื้อ</span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= Math.round(d.kg_per_bill).toLocaleString() %></b>
+                                                <span>กก. ต่อบิล</span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= Math.round(d.baht_per_bill).toLocaleString() %></b>
+                                                <span>บาท ต่อบิล</span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= String(d.earliest_time || '').slice(0, 5) %>–<%= String(d.latest_time || '').slice(0, 5) %></b>
+                                                <span>ช่วงเวลาที่เคยบันทึก</span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= Number(d.avg_hour).toFixed(1) %> น.</b>
+                                                <span>เวลาเฉลี่ยที่บันทึกงาน</span>
+                                            </div>
+                                            <div class="fact <%= deductHot ? 'is-bad' : 'is-good' %>">
+                                                <b><%= deduct.toFixed(2) %>%</b>
+                                                <span>น้ำหนักหัก (บริษัท <%= company.deductPct ?? '—' %>%)</span>
+                                            </div>
+                                            <div class="fact <%= driftHot ? 'is-warn' : 'is-good' %>">
+                                                <b><%= drift === null ? '—' : (drift > 0 ? '+' : '') + drift.toFixed(1) + '%' %></b>
+                                                <span>เทียบราคากลาง (<%= Number(d.compared_lines || 0).toLocaleString() %> รายการ)</span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= Number(d.vehicles) %> คัน</b>
+                                                <span><%= d.stations || 'ไม่ทราบ station' %></span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= d.first_date %></b>
+                                                <span>งานแรก</span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= d.last_date %></b>
+                                                <span>งานล่าสุด</span>
+                                            </div>
+                                            <div class="fact <%= Number(d.booking_cancelled) ? 'is-warn' : '' %>">
+                                                <b><%= Number(d.booking_done) %> / <%= Number(d.booking_cancelled) %></b>
+                                                <span>ใบจอง สำเร็จ / ยกเลิก</span>
+                                            </div>
+                                            <div class="fact">
+                                                <b><%= Number(d.booking_districts) %></b>
+                                                <span>เขตที่เคยไปรับ</span>
+                                            </div>
+                                        </div>
+                                        <div class="driver-chart-wrap">
+                                            <canvas id="chart-<%= index %>"></canvas>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mt-2 mb-0">
+                <b>ประเภท:</b> คนขับรถ = มีทะเบียนรถจริง ·
+                ประจำจุดรับซื้อ = คนที่ใช้รหัสจุด (S0xx) ไม่ได้วิ่งรถ ·
+                จุดรับเข้า = ชื่อสถานที่/หน่วยงาน ไม่ใช่คน
+                <br>
+                <i class="fa-solid fa-scale-unbalanced flag hot"></i>
+                น้ำหนักหักเกินค่ากลางบริษัท 2 เท่า ·
+                <i class="fa-solid fa-tag flag hot"></i>
+                ราคาที่จ่ายต่างจากราคากลางเกิน 15% —
+                เป็นสัญญาณให้ไปตรวจสอบ ไม่ใช่ข้อสรุปว่าทำผิด
+            </p>
+        </div>
+    <% } else if (!err) { %>
+        <div class="wb-card mt-3"><div class="wb-empty">ไม่พบคนขับตามเงื่อนไขที่เลือก</div></div>
+    <% } %>
+</div>
+
+<script id="driver-monthly" type="application/json">
+    <%- JSON.stringify(monthly) %>
+</script>
+
+<script>
+    (function () {
+        const table = document.getElementById('driver-table');
+        if (!table) return;
+
+        const monthly = JSON.parse(
+            document.getElementById('driver-monthly').textContent || '{}');
+        const drawn = new Set();
+
+        table.addEventListener('click', function (e) {
+            const row = e.target.closest('.driver-row');
+            if (!row) return;
+
+            const detail = row.nextElementSibling;
+            detail.hidden = !detail.hidden;
+            row.classList.toggle('is-open', !detail.hidden);
+            row.querySelector('.fa-chevron-right, .fa-chevron-down')
+                ?.classList.replace(detail.hidden ? 'fa-chevron-down' : 'fa-chevron-right',
+                                    detail.hidden ? 'fa-chevron-right' : 'fa-chevron-down');
+
+            const index = row.dataset.index;
+            // วาดกราฟตอนกางครั้งแรกเท่านั้น สร้าง 144 กราฟพร้อมกันตอนโหลดหน้า
+            // ทำให้เบราว์เซอร์ค้างหลายวินาทีทั้งที่ส่วนใหญ่ไม่ถูกเปิดดู
+            if (detail.hidden || drawn.has(index)) return;
+            drawn.add(index);
+
+            const rows = monthly[row.dataset.driver] || [];
+            new Chart(document.getElementById('chart-' + index), {
+                data: {
+                    labels: rows.map(r => r.month.slice(0, 7)),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'บิล',
+                            data: rows.map(r => Number(r.bills)),
+                            backgroundColor: '#198754',
+                            yAxisID: 'y',
+                        },
+                        {
+                            type: 'line',
+                            label: 'น้ำหนัก (กก.)',
+                            data: rows.map(r => Number(r.total_kg)),
+                            borderColor: '#0d6efd',
+                            backgroundColor: '#0d6efd',
+                            tension: .25,
+                            yAxisID: 'y1',
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { datalabels: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'บิล' } },
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            title: { display: true, text: 'กก.' },
+                        },
+                    },
+                },
+            });
+        });
+
+        const search = document.getElementById('driver-search');
+        if (search) {
+            search.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+            search.addEventListener('input', function () {
+                const q = search.value.trim().toLowerCase();
+                table.querySelectorAll('.driver-row').forEach(function (row) {
+                    const hit = !q || (row.dataset.driver || '').toLowerCase().includes(q);
+                    row.style.display = hit ? '' : 'none';
+                    // แถวรายละเอียดต้องหายตามแถวหลัก ไม่งั้นจะเหลือกล่องลอย ๆ
+                    if (!hit) {
+                        row.nextElementSibling.hidden = true;
+                        row.classList.remove('is-open');
+                    }
+                    row.nextElementSibling.style.display = hit ? '' : 'none';
+                });
+            });
+        }
+    })();
+</script>
+
+<%- include('partials/footer') %>
