@@ -9,14 +9,11 @@
       3. สร้าง .env จาก .env.example ถ้ายังไม่มี
       4. สร้างฐานข้อมูลถ้ายังไม่มี
       5. กู้ข้อมูลจาก dump (เฉพาะเครื่องเปล่า)
-      6. ตั้งชื่อคอลัมน์ weight_query ให้ตรงความหมาย + เพิ่ม 4 คอลัมน์ที่เคยทิ้ง
-      7. โหลดตารางวิเคราะห์โซน ถ้าระบุ -ZoneSql
-      8. สร้าง view ผลงานคนขับ (ต้องหลังข้อ 6 และ 7 เสมอ)
-      9. สร้างตาราง/view งานประจำ + วันหยุด (ต้องหลังข้อ 6 และ 7 เสมอ)
-     10. สร้าง view วิเคราะห์รอบใหม่ + ชั้น cache (ต้องเป็นขั้นสุดท้าย)
-     11. ตรวจว่าตาราง/view ครบไหม
+      6. โหลดตารางวิเคราะห์โซน ถ้าระบุ -ZoneSql (ต้องมาก่อนข้อ 7)
+      7. รัน database/migrate.sql — ตาราง view และ cache ทั้งหมดในไฟล์เดียว
+      8. ตรวจว่าตาราง/view ครบไหม
 
-    เครื่องที่มีข้อมูลอยู่แล้วใช้แค่ข้อ 1-3 และ 6-11 — ไม่ต้องมี dump
+    เครื่องที่มีข้อมูลอยู่แล้วใช้แค่ข้อ 1-3 และ 6-8 — ไม่ต้องมี dump
 
 .EXAMPLE
     .\scripts\setup.ps1
@@ -193,31 +190,14 @@ if ($DumpFile) {
     }
 }
 
-# ── 6. ชื่อคอลัมน์ weight_query ───────────────────────────────
-# ต้องมาก่อนทุก view ที่อ่าน weight_query — ชื่อเก่าเลื่อนไป 1 ช่อง
-# (customer_name เก็บชื่อคนขับ, price_per_kg เก็บน้ำหนักสุทธิ)
-# ทั้งสองไฟล์รันซ้ำได้ ตรวจสถานะเองแล้วข้ามถ้าทำไปแล้ว
-Write-Step 'ตั้งชื่อคอลัมน์ weight_query'
-
+# ── 6. ตารางวิเคราะห์โซน (ถ้ามีไฟล์) ─────────────────────────
+# ต้องมาก่อน migrate.sql เสมอ ไฟล์นี้ขึ้นต้นด้วย DROP TABLE ... CASCADE
+# ซึ่งลบ view ที่ migrate สร้างไว้ทิ้ง — รันสลับกันแล้ว view หายเงียบ ๆ
 $hasWeight = & $psql @psqlArgs -d $DbName -Atc `
     "SELECT to_regclass('public.weight_query') IS NOT NULL"
-if ($hasWeight -eq 't') {
-    foreach ($file in @('rename_columns.sql', 'add_weight_query_columns.sql')) {
-        $path = Join-Path $root ('database' + [char]92 + $file)
-        if (-not (Invoke-SqlFile $psql $psqlArgs $DbName $path)) {
-            throw "$file ไม่สำเร็จ — หยุดก่อนสร้าง view เพราะ view จะอ้างชื่อผิด"
-        }
-        Write-Ok $file
-    }
-} else {
-    Write-Warn 'ยังไม่มีตาราง weight_query — ข้าม'
-}
 
-# ── 7. ตารางวิเคราะห์โซน ──────────────────────────────────────
-# ต้องมาก่อน driver_performance เสมอ ไฟล์นี้ DROP ... CASCADE ตารางที่
-# v_driver_bookings / v_driver_stations อ้างอยู่ ถ้ารันสลับกัน view คนขับหาย
 if ($ZoneSql) {
-    Write-Step "โหลดตารางวิเคราะห์โซน"
+    Write-Step 'โหลดตารางวิเคราะห์โซน'
     if (-not (Test-Path $ZoneSql)) { throw "ไม่พบไฟล์ $ZoneSql" }
     if (-not (Invoke-SqlFile $psql $psqlArgs $DbName $ZoneSql)) {
         throw 'โหลดตารางโซนไม่สำเร็จ'
@@ -225,69 +205,40 @@ if ($ZoneSql) {
     Write-Ok 'ตารางโซนพร้อม'
 } else {
     Write-Step 'ไม่ได้ระบุ -ZoneSql'
-    Write-Host '       หน้า Zone Coverage / Zone Members จะบอกวิธีโหลดเองเมื่อเปิด'
+    Write-Host '       หน้า Zone Coverage / Zone Members จะยังว่าง (ส่วนอื่นใช้ได้ปกติ)'
     Write-Host '       ไฟล์มาจาก repo automation: tools\scripts\generate_zone_analysis_sql.py'
-    Write-Host '       (ต้องกรอกพิกัด station ใน tools\config\stations.csv ก่อน)'
+    Write-Host '       โหลดเมื่อไรให้รัน .\scripts\setup.ps1 ซ้ำ ระบบจะเติมส่วนที่เหลือให้เอง'
 }
 
-# ── 8. view ผลงานคนขับ ────────────────────────────────────────
-Write-Step 'สร้าง view ผลงานคนขับ'
+# ── 7. ฐานข้อมูลทั้งชุด ───────────────────────────────────────
+# migrate.sql รวมทุกไฟล์ไว้ตามลำดับที่ถูกต้องแล้ว (ดูหัวไฟล์นั้น)
+# ที่นี่จึงเหลือเรียกตัวเดียว — เพิ่มไฟล์ SQL ใหม่ให้ไปต่อใน migrate.sql
+# ไม่ใช่มาเพิ่มขั้นตอนตรงนี้ ไม่งั้นสองที่จะเริ่มไม่ตรงกัน
+Write-Step 'สร้างตาราง/view ทั้งหมด'
 
 if ($hasWeight -eq 't') {
-    $driverSql = Join-Path $root 'database\driver_performance.sql'
-    if (-not (Invoke-SqlFile $psql $psqlArgs $DbName $driverSql)) {
-        throw 'สร้าง view ผลงานคนขับไม่สำเร็จ'
+    $migrateSql = Join-Path $root ('database' + [char]92 + 'migrate.sql')
+    if (-not (Invoke-SqlFile $psql $psqlArgs $DbName $migrateSql)) {
+        throw 'migrate.sql ไม่สำเร็จ — ดู log ด้านบนว่าหยุดที่ขั้นไหน'
     }
-    Write-Ok 'view ผลงานคนขับพร้อม'
-} else {
-    Write-Warn 'ยังไม่มีตาราง weight_query — ข้ามการสร้าง view'
-}
+    Write-Ok 'ตาราง view และ cache พร้อมครบ'
 
-# ── 9. งานประจำ + วันหยุด ─────────────────────────────────────
-# ต้องมาหลัง zone_analysis เหมือนกัน เพราะ v_recurring_status อ่าน booking_queue
-# ถ้ารันก่อน DROP ... CASCADE ของ zone_analysis จะลบ view นี้ไปด้วย
-Write-Step 'สร้างตารางงานประจำ'
-
-if ($hasWeight -eq 't') {
-    $recurringSql = Join-Path $root 'database\recurring_jobs.sql'
-    if (-not (Invoke-SqlFile $psql $psqlArgs $DbName $recurringSql)) {
-        throw 'สร้างตารางงานประจำไม่สำเร็จ'
-    }
-    Write-Ok 'ตารางงานประจำพร้อม'
-
-    # วันหยุดว่างอยู่ ปฏิทินจะไม่รู้ว่าวันไหนหยุด — ดึงจากปฏิทินสาธารณะให้เลย
+    # วันหยุดว่างอยู่ ปฏิทินจะไม่รู้ว่าวันไหนหยุด
     $holidayCount = & $psql @psqlArgs -d $DbName -Atc 'SELECT count(*) FROM holidays'
     if ([int]$holidayCount -eq 0) {
         Write-Warn 'ยังไม่มีวันหยุดในฐาน — กดปุ่ม "ดึงวันหยุด" ในหน้า Recurring Jobs'
-        Write-Host '       หรือเพิ่มเองทีละวันด้วยปุ่ม + วันหยุด (วันหยุดบริษัทที่ไม่มีในปฏิทินสาธารณะ)'
+        Write-Host '       หรือเพิ่มเองทีละวันด้วยปุ่ม + วันหยุด'
     } else {
         Write-Ok "วันหยุด $holidayCount วัน"
     }
-} else {
-    Write-Warn 'ยังไม่มีตาราง weight_query — ข้ามตารางงานประจำ'
-}
 
-# ── 10. วิเคราะห์รอบใหม่ + cache ─────────────────────────────
-# ต้องเป็นขั้นสุดท้ายเสมอ — analysis_cache ทำ materialized view ทับ view
-# ของทุกไฟล์ก่อนหน้า ถ้ารันก่อน จะ cache ของที่ยังไม่มี
-Write-Step 'สร้าง view วิเคราะห์ + cache'
-
-if ($hasWeight -eq 't') {
-    foreach ($file in @('analysis_v2.sql', 'analysis_cache.sql', 'station_coords.sql')) {
-        $path = Join-Path $root ('database' + [char]92 + $file)
-        if (-not (Invoke-SqlFile $psql $psqlArgs $DbName $path)) {
-            throw "$file ไม่สำเร็จ"
-        }
-        Write-Ok $file
-    }
     Write-Host '       cache คำนวณครั้งแรกไว้แล้ว'
     Write-Host '       หลังจากนี้ระบบตรวจและคำนวณใหม่เองทุก 15 นาทีเมื่อข้อมูลเปลี่ยน'
-    Write-Host '       (สั่งเองได้ที่ปุ่มบนหน้าแรก หรือ scripts\refresh-cache.ps1)'
 } else {
-    Write-Warn 'ยังไม่มีตาราง weight_query — ข้าม'
+    Write-Warn 'ยังไม่มีตาราง weight_query — ข้าม (ต้องกู้ข้อมูลจาก dump ก่อน)'
 }
 
-# ── 11. ตรวจความพร้อม ────────────────────────────────────────
+# ── 8. ตรวจความพร้อม ─────────────────────────────────────────
 Write-Step 'ตรวจความพร้อม'
 
 $checks = @(
@@ -337,8 +288,12 @@ if ($missingRequired -gt 0) {
 
 Write-Host @'
 
-รันระบบ (ต้องเปิด 2 ตัวคู่กัน):
-    npm run dev        API  :4000
+เปิดใช้งาน:
+    npm start          เปิดทั้ง API และเว็บให้เอง
+                       แล้วเข้า http://localhost:3000 (ปิดด้วย Ctrl+C ทีเดียว)
+
+สำหรับคนที่แก้โค้ด:
+    npm run dev        API  :4000  (รีสตาร์ทเองเมื่อแก้ไฟล์)
     npm run dev:web    เว็บ :3000
 หรือ
     pm2 start ecosystem.config.cjs

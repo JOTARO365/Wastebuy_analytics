@@ -169,6 +169,28 @@ SELECT DISTINCT ON (plate) plate, driver, trips
  ORDER BY plate, trips DESC;
 
 -- ── งานจากใบจอง ─────────────────────────────────────────────
+-- booking_queue กับ vehicle_station_map มาจาก zone_analysis_*.sql ของ repo
+-- automation ซึ่งเครื่องที่เพิ่งตั้งอาจยังไม่มี — สร้าง view เปล่าไปก่อนแทนที่จะ
+-- ให้ทั้งไฟล์ล้ม ไม่งั้นคนตั้งเครื่องใหม่ต้องมานั่งไล่รันทีละไฟล์เอง
+DO $bookings$
+BEGIN
+    IF to_regclass('public.booking_queue') IS NULL THEN
+        RAISE NOTICE 'ยังไม่มี booking_queue — ฝั่งใบจองของหน้าคนขับจะว่างไว้ก่อน';
+        EXECUTE $sql$
+CREATE OR REPLACE VIEW v_driver_bookings AS
+SELECT NULL::text AS driver, NULL::bigint AS assigned, NULL::bigint AS done,
+       NULL::bigint AS cancelled, NULL::bigint AS pending,
+       NULL::bigint AS in_progress, NULL::bigint AS districts,
+       NULL::date AS first_booking, NULL::date AS last_booking
+ WHERE false;
+        $sql$;
+        EXECUTE $sql$
+CREATE OR REPLACE VIEW v_booking_match_coverage AS
+SELECT 0::bigint AS bookings_with_vehicle, 0::bigint AS matched,
+       0::bigint AS unmatched;
+        $sql$;
+    ELSE
+        EXECUTE $sql$
 CREATE OR REPLACE VIEW v_driver_bookings AS
 SELECT vd.driver                                            AS driver,
        count(*)                                             AS assigned,
@@ -185,8 +207,8 @@ SELECT vd.driver                                            AS driver,
     ON vd.plate = regexp_replace(upper(btrim(b.vehicle)), '[^0-9A-Zก-๙]', '', 'g')
  WHERE b.vehicle IS NOT NULL AND btrim(b.vehicle) <> ''
  GROUP BY vd.driver;
-
--- ใบจองที่ยังจับคู่คนขับไม่ได้ — หน้าเว็บต้องบอกผู้ใช้ว่าสถิติครอบคลุมแค่ไหน
+        $sql$;
+        EXECUTE $sql$
 CREATE OR REPLACE VIEW v_booking_match_coverage AS
 SELECT count(*)                                         AS bookings_with_vehicle,
        count(vd.plate)                                  AS matched,
@@ -195,8 +217,23 @@ SELECT count(*)                                         AS bookings_with_vehicle
   LEFT JOIN v_vehicle_driver vd
     ON vd.plate = regexp_replace(upper(btrim(b.vehicle)), '[^0-9A-Zก-๙]', '', 'g')
  WHERE b.vehicle IS NOT NULL AND btrim(b.vehicle) <> '';
+        $sql$;
+    END IF;
+END
+$bookings$;
 
 -- ── station ที่คนขับวิ่งเข้า ─────────────────────────────────
+DO $stations$
+BEGIN
+    IF to_regclass('public.vehicle_station_map') IS NULL THEN
+        RAISE NOTICE 'ยังไม่มี vehicle_station_map — คอลัมน์คลังของคนขับจะว่างไว้ก่อน';
+        EXECUTE $sql$
+CREATE OR REPLACE VIEW v_driver_stations AS
+SELECT NULL::text AS driver, NULL::text AS stations, NULL::bigint AS station_count
+ WHERE false;
+        $sql$;
+    ELSE
+        EXECUTE $sql$
 CREATE OR REPLACE VIEW v_driver_stations AS
 SELECT main_driver                        AS driver,
        string_agg(DISTINCT station_name, ', ' ORDER BY station_name) AS stations,
@@ -204,6 +241,10 @@ SELECT main_driver                        AS driver,
   FROM vehicle_station_map
  WHERE main_driver IS NOT NULL AND btrim(main_driver) <> ''
  GROUP BY main_driver;
+        $sql$;
+    END IF;
+END
+$stations$;
 
 -- ── โปรไฟล์รวม ──────────────────────────────────────────────
 -- DROP ก่อน เพราะ CREATE OR REPLACE เปลี่ยนชนิดคอลัมน์เดิมไม่ได้

@@ -372,13 +372,35 @@ BEGIN;
 
 SET client_min_messages = warning;
 
-CREATE INDEX IF NOT EXISTS booking_queue_member_idx
-    ON booking_queue (btrim(member_name)) WHERE status = 'สำเร็จ';
+DO $bq_idx$
+BEGIN
+    IF to_regclass('public.booking_queue') IS NOT NULL THEN
+        CREATE INDEX IF NOT EXISTS booking_queue_member_idx
+            ON booking_queue (btrim(member_name)) WHERE status = 'สำเร็จ';
+    END IF;
+END
+$bq_idx$;
 
 -- ที่อยู่ล่าสุดที่ยืนยันแล้วของแต่ละชื่อสมาชิก
 --
 -- '(LINE)' ไม่ใช่ที่อยู่ เป็นค่าที่ระบบใส่แทนตอนจองผ่าน LINE — ตัดทิ้ง
 -- เลือกใบล่าสุดเพราะคนย้ายบ้านได้ ใบเก่าจึงไม่ใช่ของจริงเสมอไป
+DO $guard_v_member_address_from_booking$
+BEGIN
+    IF to_regclass('public.booking_queue') IS NULL THEN
+        RAISE NOTICE 'ยังไม่มี booking_queue — ที่อยู่จากใบจองจะว่างไว้ก่อน';
+        EXECUTE $empty$
+CREATE OR REPLACE VIEW v_member_address_from_booking AS
+SELECT NULL::text AS member_name, NULL::text AS address, NULL::text AS district,
+       NULL::text AS subdistrict, NULL::varchar(10) AS post_code,
+       NULL::double precision AS lat, NULL::double precision AS lng,
+       NULL::varchar(50) AS booking_code, NULL::date AS booking_date,
+       NULL::bigint AS done_bookings
+ WHERE false;
+        $empty$;
+        RETURN;
+    END IF;
+    EXECUTE $sql$
 CREATE OR REPLACE VIEW v_member_address_from_booking AS
 SELECT DISTINCT ON (btrim(b.member_name))
        btrim(b.member_name)              AS member_name,
@@ -397,6 +419,9 @@ SELECT DISTINCT ON (btrim(b.member_name))
    AND b.address IS NOT NULL AND btrim(b.address) <> ''
    AND b.address NOT LIKE '%(LINE%'
  ORDER BY btrim(b.member_name), b.booking_date DESC NULLS LAST, b.id DESC;
+    $sql$;
+END
+$guard_v_member_address_from_booking$;
 
 -- ที่อยู่ที่ควรใช้ในรายงาน = ของในระบบถ้ามี ไม่มีก็เอาจากใบจองที่สำเร็จ
 --
@@ -469,6 +494,32 @@ BEGIN;
 
 SET client_min_messages = warning;
 
+DO $guard_v_orders$
+BEGIN
+    IF to_regclass('public.booking_queue') IS NULL THEN
+        RAISE NOTICE 'ยังไม่มี booking_queue — ออร์เดอร์จะนับจากบิลจริงอย่างเดียว';
+        -- ยังคำนวณจากบิลได้ แค่ไม่มีงานที่ยังไม่จบมาเติม
+        EXECUTE $only_bills$
+CREATE OR REPLACE VIEW v_orders AS
+SELECT w.purchase_date                          AS order_date,
+       w.purchase_number                        AS order_code,
+       btrim(w.member_name)                     AS member_name,
+       a.district,
+       btrim(w.driver_name)                     AS worker,
+       w.station,
+       'สำเร็จ'::text                            AS status,
+       'บิลจริง'::text                           AS source,
+       round(sum(w.net_weight)::numeric, 2)     AS total_kg,
+       round(sum(w.total_price)::numeric, 2)    AS total_baht
+  FROM weight_query w
+  LEFT JOIN v_member_address a ON a.member_name = btrim(w.member_name)
+ WHERE w.purchase_number IS NOT NULL
+ GROUP BY w.purchase_date, w.purchase_number, btrim(w.member_name),
+          a.district, btrim(w.driver_name), w.station;
+        $only_bills$;
+        RETURN;
+    END IF;
+    EXECUTE $sql$
 CREATE OR REPLACE VIEW v_orders AS
 -- (1) งานที่จบแล้ว — หนึ่งบิล = หนึ่งออร์เดอร์
 SELECT w.purchase_date                          AS order_date,
@@ -502,6 +553,9 @@ SELECT b.booking_date                           AS order_date,
        NULL::numeric                            AS total_baht
   FROM booking_queue b
  WHERE b.status <> 'สำเร็จ';
+    $sql$;
+END
+$guard_v_orders$;
 
 -- ยอดออร์เดอร์รายเขต ใช้แทนการนับ booking_queue ตรง ๆ
 CREATE OR REPLACE VIEW v_orders_by_district AS
