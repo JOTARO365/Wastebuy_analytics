@@ -7,6 +7,7 @@
 --     psql -v ON_ERROR_STOP=1 -d wastebuy-analytics -f database/migrate.sql
 --
 -- ── ลำดับสำคัญ ห้ามสลับ ────────────────────────────────────
+--  0. seed_reference         ตารางอ้างอิงที่มากับ repo (ไม่มีข้อมูลลูกค้า)
 --  1. rename_columns          ชื่อคอลัมน์ต้องถูกก่อน ไม่งั้น view ทุกตัวอ้างผิด
 --  2. add_weight_query_columns  เพิ่ม 4 คอลัมน์ที่ import รอบใหม่จะเติมค่า
 --  3. driver_performance      view ผลงานคนขับ + ราคากลาง (materialized)
@@ -28,6 +29,19 @@
 
 \set ON_ERROR_STOP on
 SET client_encoding = 'UTF8';
+
+-- ── 0. ข้อมูลตั้งต้น ────────────────────────────────────────
+-- ตารางอ้างอิง (ที่อยู่ไทย ทะเบียนสินค้า หน่วยนับ วันหยุด) มาพร้อม repo
+-- เครื่องใหม่จึงไม่ต้องรอ dump สำหรับส่วนนี้ — รันได้แม้ฐานยังว่างสนิท
+\echo ''
+\echo '=== 0/7  ข้อมูลตั้งต้น (ตารางอ้างอิง)'
+\ir seed_reference.sql
+
+-- ตั้งแต่ขั้น 1 เป็นต้นไปต้องมีตารางธุรกรรมก่อน ซึ่งมาจาก dump เท่านั้น
+-- ยังไม่มีก็ไม่ถือว่าผิด — หยุดตรงนี้แล้วบอกว่าต้องทำอะไรต่อ
+SELECT to_regclass('public.weight_query') IS NOT NULL AS has_weight \gset
+
+\if :has_weight
 
 \echo ''
 \echo '=== 1/7  ตั้งชื่อคอลัมน์ weight_query ให้ตรงความหมาย'
@@ -57,6 +71,17 @@ SET client_encoding = 'UTF8';
 \echo '=== 7/7  ชั้น cache (materialized view)'
 \ir analysis_cache.sql
 
+\else
+
+\echo ''
+\echo '    ยังไม่มีตาราง weight_query — ข้ามขั้น 1-7'
+\echo '    ตารางอ้างอิงลงครบแล้ว เหลือแค่ข้อมูลธุรกรรมสองตาราง'
+\echo '    ให้เครื่องที่ใช้งานอยู่รัน scripts\dump-seed.ps1 แล้วสั่ง'
+\echo '        .\scripts\setup.ps1 -DumpFile <ไฟล์>.dump'
+\echo ''
+
+\endif
+
 -- ── สรุปว่าอะไรพร้อม อะไรยังขาด ─────────────────────────────
 -- พิมพ์ผลให้คนอ่านตัดสินใจได้เอง ไม่ใช่เงียบแล้วปล่อยให้ไปเจอบนหน้าเว็บ
 \echo ''
@@ -74,8 +99,10 @@ DECLARE
     obj              text;
     n_matviews       int;
 BEGIN
-    -- ตารางที่ระบบขาดไม่ได้
-    FOREACH obj IN ARRAY ARRAY['weight_query', 'customers', 'materials',
+    -- ตารางที่ระบบขาดไม่ได้จริง ๆ
+    -- customers ไม่อยู่ในนี้ — เป็นข้อมูลส่วนบุคคลที่ไม่มากับ repo
+    -- ระบบทำงานได้โดยไม่มีมัน แค่ที่อยู่/เขตของสมาชิกจะว่าง
+    FOREACH obj IN ARRAY ARRAY['weight_query', 'materials',
                                'thai_amphures', 'recurring_jobs', 'holidays',
                                'item_category_overrides', 'ai_runs',
                                'analysis_cache_log']
@@ -98,6 +125,12 @@ BEGIN
       FROM pg_matviews WHERE schemaname = 'public';
 
     RAISE NOTICE 'materialized view ที่สร้างแล้ว: % ตัว', n_matviews;
+
+    IF to_regclass('public.customers') IS NULL THEN
+        RAISE NOTICE 'ยังไม่มีตาราง customers (ทะเบียนสมาชิก)';
+        RAISE NOTICE '  กระทบ: Report 50 Districts · Customer Details · Zone Members';
+        RAISE NOTICE '  หน้าอื่นใช้ได้ปกติ — กู้จาก dump ของเครื่องที่ใช้งานอยู่เมื่อไรก็เต็มเอง';
+    END IF;
 
     IF array_length(missing_zone, 1) > 0 THEN
         RAISE NOTICE 'ยังไม่มีข้อมูลโซน (%) — หน้า Zone Coverage/Members จะว่าง',

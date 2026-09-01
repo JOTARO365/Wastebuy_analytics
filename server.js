@@ -544,13 +544,9 @@ FROM
 -- ชื่อไม่ใช่ key: มีสมาชิก 493 คนชื่อ "LINE" เหมือนกัน การ join ตรง ๆ กับ customers
 -- จะโคลนแถวการซื้อ 493 เท่า แล้ว SUM ข้างล่างก็บวกซ้ำทั้งหมด (54.40 kg กลายเป็น 26,819.20 kg)
 -- จึงยุบให้เหลือหนึ่งสมาชิกต่อหนึ่งชื่อก่อน เลือกตัว id น้อยสุดเพื่อให้ผลคงที่ทุกครั้ง
-LEFT JOIN (
-    SELECT DISTINCT ON (fullname)
-           fullname, id_customer, id_tambons, id_amphures, id_provinces
-      FROM customers
-     WHERE fullname IS NOT NULL AND btrim(fullname) <> ''
-     ORDER BY fullname, id
-) c ON wq.member_name = c.fullname
+-- v_customer_directory ยุบชื่อซ้ำมาให้แล้ว และคืน view เปล่าถ้ายังไม่ได้กู้
+-- ตาราง customers — หน้าเว็บจะได้ไม่ 500 ทั้งหน้าเพราะตารางเดียว
+LEFT JOIN v_customer_directory c ON wq.member_name = c.fullname
 LEFT JOIN thai_tambons tm on c.id_tambons = tm.id
 LEFT JOIN thai_amphures am ON c.id_amphures = am.id
 left join customer_groups cg on c.id_customer = cg.id

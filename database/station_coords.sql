@@ -61,6 +61,20 @@ END
 $stations$;
 
 -- ใช้บนหน้าเว็บ: บอกว่าเหลือคลังไหนที่ยังต้องยืนยัน
+-- ตาราง stations มาจาก zone_analysis — ยังไม่มีก็ต้องรันไฟล์นี้ผ่านให้ได้
+DO $status_view$
+BEGIN
+    IF to_regclass('public.stations') IS NULL THEN
+        EXECUTE $empty$
+CREATE OR REPLACE VIEW v_station_coord_status AS
+SELECT NULL::text AS station_name, NULL::varchar(20) AS branch_code,
+       NULL::double precision AS lat, NULL::double precision AS lng,
+       NULL::text AS coord_precision, NULL::text AS coord_note,
+       false AS verified
+ WHERE false;
+        $empty$;
+    ELSE
+        EXECUTE $real$
 CREATE OR REPLACE VIEW v_station_coord_status AS
 SELECT station_name,
        branch_code,
@@ -70,6 +84,10 @@ SELECT station_name,
        coord_note,
        COALESCE(coord_precision, '') = 'gmaps_pin'     AS verified
   FROM stations;
+        $real$;
+    END IF;
+END
+$status_view$;
 
 COMMIT;
 

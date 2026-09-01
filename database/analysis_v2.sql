@@ -427,6 +427,63 @@ $guard_v_member_address_from_booking$;
 --
 -- source บอกที่มาเสมอ ไม่ให้ปนกันจนแยกไม่ออกว่าอันไหนลูกค้ากรอกเอง
 -- อันไหนระบบเดาให้จากใบจอง
+-- ── ทะเบียนสมาชิกแบบยุบชื่อซ้ำแล้ว ─────────────────────────
+-- ทุกที่ที่ต้องการเขต/กลุ่มของสมาชิกให้ join view นี้ ไม่ใช่ join customers ตรง ๆ
+--
+-- เหตุผล 2 ข้อ:
+--   1. ชื่อซ้ำมีจริง (สมาชิก 493 คนชื่อ "LINE") join ตรง ๆ แถวจะบานเป็นทวีคูณ
+--   2. customers เป็นข้อมูลส่วนบุคคล ไม่มากับ repo — เครื่องที่ยังไม่ได้กู้
+--      ต้องเปิดหน้าเว็บได้ ไม่ใช่ 500 ทั้งหน้า
+DO $directory$
+BEGIN
+    IF to_regclass('public.customers') IS NULL THEN
+        EXECUTE $empty$
+CREATE OR REPLACE VIEW v_customer_directory AS
+SELECT NULL::text AS fullname, NULL::integer AS id_customer,
+       NULL::integer AS id_tambons, NULL::integer AS id_amphures,
+       NULL::integer AS id_provinces
+ WHERE false;
+        $empty$;
+    ELSE
+        EXECUTE $real$
+CREATE OR REPLACE VIEW v_customer_directory AS
+SELECT DISTINCT ON (fullname)
+       fullname, id_customer, id_tambons, id_amphures, id_provinces
+  FROM customers
+ WHERE fullname IS NOT NULL AND btrim(fullname) <> ''
+ ORDER BY fullname, id;
+        $real$;
+    END IF;
+END
+$directory$;
+
+-- ทะเบียนสมาชิกเป็นข้อมูลส่วนบุคคล จึงไม่ได้อยู่ใน seed ที่มากับ repo
+-- เครื่องที่ยังไม่ได้กู้ตารางนี้ต้องใช้ระบบต่อได้ — ถอยไปใช้ชื่อจากบิลแทน
+-- (ได้รายชื่อสมาชิกครบเหมือนเดิม แค่ไม่มีที่อยู่กับเขต)
+DO $member_address$
+BEGIN
+    IF to_regclass('public.customers') IS NULL THEN
+        RAISE NOTICE 'ยังไม่มีตาราง customers — ที่อยู่และเขตของสมาชิกจะว่าง';
+        EXECUTE $no_customers$
+CREATE OR REPLACE VIEW v_member_address AS
+SELECT DISTINCT btrim(w.member_name)              AS member_name,
+       b.address,
+       b.district,
+       b.subdistrict,
+       b.lat,
+       b.lng,
+       b.booking_code                             AS from_booking,
+       b.booking_date                             AS booking_date,
+       CASE WHEN b.address IS NOT NULL THEN 'ใบจองที่สำเร็จ'
+            ELSE 'ไม่มีที่อยู่' END                 AS source
+  FROM weight_query w
+  LEFT JOIN v_member_address_from_booking b ON b.member_name = btrim(w.member_name)
+ WHERE w.member_name IS NOT NULL AND btrim(w.member_name) <> '';
+        $no_customers$;
+        RETURN;
+    END IF;
+
+    EXECUTE $with_customers$
 CREATE OR REPLACE VIEW v_member_address AS
 SELECT c.name                                        AS member_name,
        COALESCE(NULLIF(btrim(c.address), ''), b.address)      AS address,
@@ -455,6 +512,9 @@ SELECT c.name                                        AS member_name,
        ORDER BY btrim(cu.fullname), cu.id
   ) c
   LEFT JOIN v_member_address_from_booking b ON b.member_name = c.name;
+    $with_customers$;
+END
+$member_address$;
 
 -- สรุปว่าการเติมช่วยได้แค่ไหน ใช้โชว์บนหน้าเว็บ
 CREATE OR REPLACE VIEW v_member_address_coverage AS
